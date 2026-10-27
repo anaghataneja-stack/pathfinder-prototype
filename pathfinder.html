@@ -1,0 +1,790 @@
+<title>Pathfinder Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a working phone on the left runs the real flow; the right column shows what Pathfinder is doing behind the scenes. */
+:root{
+  --bg:#EEF2EC; --surface:#FFFFFF; --surface-2:#F6F8F4; --ink:#15211B; --muted:#56665D; --line:#D5DDD3;
+  --accent:#1D6A4E; --accent-ink:#FFFFFF; --accent-soft:#D9ECE1;
+  --start:#A86F00; --start-soft:#FAEDCF; --learn:#245F96; --learn-soft:#DCE8F5; --apply:#863D82; --apply-soft:#F2E1F0;
+  --warn:#A64C14; --warn-soft:#FBE5D6; --ok:#237245; --ok-soft:#DCF0E2;
+  --phone:#121A16; --chat:#E6ECE4; --bot:#FFFFFF; --user:#CFE8D9; --sms:#E9E9EC; --sms-user:#2F7BF6; --sms-user-ink:#FFFFFF;
+  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0F1512; --surface:#17201B; --surface-2:#1C2721; --ink:#E5EDE7; --muted:#9AAAA0; --line:#2C3A32;
+  --accent:#5FC497; --accent-ink:#0B1A12; --accent-soft:#1E3A2D;
+  --start:#E8B44A; --start-soft:#3A2E14; --learn:#7EB3E6; --learn-soft:#1B2C3E; --apply:#D597D0; --apply-soft:#38223A;
+  --warn:#F0965E; --warn-soft:#3D2616; --ok:#6FD196; --ok-soft:#173523;
+  --phone:#050807; --chat:#121915; --bot:#1F2A24; --user:#1F4434; --sms:#24262B; --sms-user:#2F7BF6; --sms-user-ink:#FFFFFF;
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0F1512; --surface:#17201B; --surface-2:#1C2721; --ink:#E5EDE7; --muted:#9AAAA0; --line:#2C3A32;
+  --accent:#5FC497; --accent-ink:#0B1A12; --accent-soft:#1E3A2D;
+  --start:#E8B44A; --start-soft:#3A2E14; --learn:#7EB3E6; --learn-soft:#1B2C3E; --apply:#D597D0; --apply-soft:#38223A;
+  --warn:#F0965E; --warn-soft:#3D2616; --ok:#6FD196; --ok-soft:#173523;
+  --phone:#050807; --chat:#121915; --bot:#1F2A24; --user:#1F4434; --sms:#24262B; --sms-user:#2F7BF6; --sms-user-ink:#FFFFFF;
+  color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:24px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 32px}
+.brand h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,4vw,42px);line-height:1;margin:0;letter-spacing:-.02em;text-wrap:balance}
+.brand p{margin:8px 0 0;color:var(--muted);max-width:58ch}
+.badge{display:inline-block;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:4px;background:var(--warn-soft);color:var(--warn);margin-bottom:10px}
+
+ol.stepper{list-style:none;margin:0;padding:0;display:flex;gap:6px;flex-wrap:wrap}
+ol.stepper li{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:14px}
+ol.stepper li b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--surface-2);font-family:var(--f-mono);font-size:12px;border:1px solid var(--line)}
+ol.stepper li.on{border-color:var(--accent);color:var(--ink);background:var(--accent-soft)}
+ol.stepper li.on b{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+ol.stepper li.done b{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;padding:12px 16px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.ctl{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctl > span{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:7px 12px;font-size:14px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.seg small{display:block;font-size:11px;opacity:.75}
+.btn-ghost{border:1px solid var(--line);background:transparent;border-radius:8px;padding:7px 12px;font-size:14px}
+.btn-ghost:hover{background:var(--surface-2)}
+
+.stage{display:grid;grid-template-columns:minmax(0,390px) minmax(0,1fr);gap:32px;align-items:start}
+@media (max-width:880px){.stage{grid-template-columns:minmax(0,1fr)}}
+
+/* Phone */
+.phone{background:var(--phone);border-radius:34px;padding:12px;max-width:390px;width:100%;margin:0 auto;box-shadow:0 20px 50px -20px rgba(10,30,20,.45)}
+.screen{border-radius:24px;overflow:hidden;display:flex;flex-direction:column;height:min(720px,82vh);min-height:520px;background:var(--chat)}
+.ph-head{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--accent);color:var(--accent-ink)}
+.ph-head .av{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.22);display:grid;place-items:center;font-family:var(--f-display);font-weight:700}
+.ph-head .nm{font-weight:700;line-height:1.2}
+.ph-head .st{font-size:12px;opacity:.85}
+.sms .ph-head{background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line)}
+.sms .ph-head .av{background:var(--sms)}
+.chat{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+.sms .chat{background:var(--surface)}
+.msg{max-width:88%;padding:8px 11px;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14.5px}
+.msg.bot{align-self:flex-start;background:var(--bot);border-top-left-radius:4px}
+.msg.user{align-self:flex-end;background:var(--user);border-top-right-radius:4px}
+.sms .msg.bot{background:var(--sms);border-radius:16px}
+.sms .msg.user{background:var(--sms-user);color:var(--sms-user-ink);border-radius:16px}
+.msg.sys{align-self:center;background:transparent;font-family:var(--f-mono);font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:4px 0}
+.typing{align-self:flex-start;background:var(--bot);border-radius:12px;padding:10px 14px;display:flex;gap:4px}
+.sms .typing{background:var(--sms)}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,100%{opacity:.25}50%{opacity:1}}
+.opts{display:flex;flex-direction:column;gap:6px;align-self:flex-start;width:88%}
+.opts.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.opts button{background:var(--bot);border:1px solid var(--line);color:var(--accent);font-weight:700;padding:9px 10px;border-radius:10px;font-size:14px;text-align:center}
+.opts button:hover{background:var(--accent-soft)}
+.sms .opts{flex-direction:row;flex-wrap:wrap;width:auto}
+.sms .opts button{width:40px;height:40px;padding:0;border-radius:50%;font-family:var(--f-mono);color:var(--ink);background:var(--sms)}
+.weekbtn{align-self:center;border:1.5px dashed var(--accent);background:transparent;color:var(--accent);border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:700;margin-top:4px}
+.weekbtn:hover{background:var(--accent-soft)}
+.composer{display:flex;gap:6px;padding:8px;background:var(--surface-2);border-top:1px solid var(--line)}
+.composer input{flex:1;min-width:0;border:1px solid var(--line);border-radius:999px;padding:9px 14px;font:inherit;font-size:14px;background:var(--surface);color:var(--ink)}
+.composer button{width:40px;height:40px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
+.composer button.mic{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.sms .composer button.mic{display:none}
+
+/* Plan card in chat */
+.plan{align-self:flex-start;width:94%;background:var(--bot);border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.plan h4{margin:0;padding:10px 12px;font-family:var(--f-display);font-size:16px;border-bottom:1px solid var(--line)}
+.pstep{padding:10px 12px;border-bottom:1px solid var(--line);display:grid;gap:3px}
+.pstep:last-child{border-bottom:0}
+.tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:600;padding:2px 7px;border-radius:4px;width:max-content}
+.t-start{background:var(--start-soft);color:var(--start)}
+.t-learn{background:var(--learn-soft);color:var(--learn)}
+.t-apply{background:var(--apply-soft);color:var(--apply)}
+.pstep .ttl{font-weight:700;font-size:14.5px;line-height:1.3}
+.pstep .src{font-size:12.5px;color:var(--muted)}
+.pstep .meta{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+.pstep .why{font-size:13px;background:var(--surface-2);border-radius:6px;padding:6px 8px;margin-top:3px}
+.pstep .row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap}
+.open{border:0;background:none;color:var(--accent);font-weight:700;font-size:13px;padding:0;text-decoration:underline;text-underline-offset:3px}
+.status{font-family:var(--f-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.status.doing{border-color:var(--start);color:var(--start)}
+.status.done{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.pstep.isdone .ttl{text-decoration:line-through;text-decoration-color:var(--muted)}
+.informal{font-size:11.5px;color:var(--ok)}
+
+/* Panel */
+.panel{display:grid;gap:16px;min-width:0}
+.panel > h2{font-family:var(--f-display);font-size:22px;margin:0}
+.panel > p.lede{margin:-8px 0 0;color:var(--muted);max-width:62ch}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.box h3{margin:0 0 10px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.box h3 em{font-style:normal;font-family:var(--f-mono);text-transform:none;letter-spacing:0;color:var(--accent)}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:620px){.cols{grid-template-columns:minmax(0,1fr)}}
+dl.kv{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 14px;margin:0;font-size:14px}
+dl.kv dt{color:var(--muted)}
+dl.kv dd{margin:0;font-weight:700}
+dl.kv dd.empty{font-weight:400;color:var(--muted)}
+.empty-note{color:var(--muted);font-size:14px;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--line)}
+.chip.have{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.chip.miss{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.chip.cov{outline:2px solid var(--learn);outline-offset:1px}
+ul.ex{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:13.5px}
+ul.ex li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding-bottom:5px}
+ul.ex li:last-child{border-bottom:0}
+ul.ex li span:last-child{color:var(--warn);font-family:var(--f-mono);font-size:11.5px;text-align:right;flex:none;max-width:48%}
+ul.ex li span:first-child{min-width:0}
+.mono{font-family:var(--f-mono);font-size:12.5px}
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.board{grid-template-columns:minmax(0,1fr)}}
+.board > div{border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:grid;gap:4px;align-content:start;font-size:13.5px}
+.board .ttl{font-weight:700;line-height:1.3}
+.meter{display:flex;gap:4px;margin-top:10px;align-items:center;font-size:13px;color:var(--muted)}
+.meter i{width:26px;height:8px;border-radius:4px;background:var(--line)}
+.meter i.on{background:var(--warn)}
+.fac{border:1.5px solid var(--warn);background:var(--warn-soft);border-radius:10px;padding:10px 12px;font-size:14px;display:grid;gap:4px}
+.fac b{color:var(--warn)}
+ul.rules{margin:0;padding-left:18px;display:grid;gap:6px;font-size:14px}
+ul.rules b{font-weight:700}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;max-width:min(92vw,460px);z-index:20;box-shadow:0 10px 30px -10px rgba(0,0,0,.4)}
+footer{color:var(--muted);font-size:13px;max-width:80ch}
+@media (prefers-reduced-motion:reduce){.typing i{animation:none}.chat{scroll-behavior:auto}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="badge">Prototype · sample listings</span>
+      <h1>Pathfinder</h1>
+      <p>Turns a young person's goal into three ordered steps across Passport to Earning, Yoma and imaGen, then keeps them moving with weekly check-ins.</p>
+    </div>
+    <ol class="stepper" id="stepper" aria-label="Pathfinder stages">
+      <li data-s="intake"><b>1</b>Tell us your goal</li>
+      <li data-s="plan"><b>2</b>Get your 3-step plan</li>
+      <li data-s="checkin"><b>3</b>Weekly check-ins</li>
+    </ol>
+  </header>
+
+  <div class="controls">
+    <div class="ctl"><span>Test as</span>
+      <div class="seg" id="persona">
+        <button data-v="amina" aria-pressed="true">Amina<small>17 · Kano · 1 P2E course</small></button>
+        <button data-v="tunde" aria-pressed="false">Tunde<small>21 · Lagos · 2 P2E courses</small></button>
+        <button data-v="new" aria-pressed="false">New user<small>No Yoma record</small></button>
+      </div>
+    </div>
+    <div class="ctl"><span>Phone</span>
+      <div class="seg" id="channel">
+        <button data-v="chat" aria-pressed="true">Smartphone<small>WhatsApp-style buttons</small></button>
+        <button data-v="sms" aria-pressed="false">Basic phone<small>SMS, reply with numbers</small></button>
+      </div>
+    </div>
+    <button class="btn-ghost" id="restart">Start over</button>
+  </div>
+
+  <div class="stage">
+    <div class="phone" id="phone">
+      <div class="screen">
+        <div class="ph-head">
+          <div class="av">P</div>
+          <div><div class="nm">GenU Pathfinder</div><div class="st" id="chan-label">WhatsApp · Nigeria</div></div>
+        </div>
+        <div class="chat" id="chat" aria-live="polite"></div>
+        <form class="composer" id="composer" autocomplete="off">
+          <button type="button" class="mic" id="mic" aria-label="Record a voice note"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3" fill="none"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" fill="none"/></svg></button>
+          <input id="msg-input" placeholder="Type a number or message" aria-label="Message">
+          <button type="submit" aria-label="Send"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20l18-8L3 4v6l12 2-12 2z"/></svg></button>
+        </form>
+      </div>
+    </div>
+
+    <section class="panel" aria-label="Behind the scenes">
+      <h2>Behind the scenes</h2>
+      <p class="lede">Everything here updates as you answer in the phone. It shows what Pathfinder knows, how it picks each step, and what it stores.</p>
+      <div class="cols">
+        <div class="box" id="p-answers"></div>
+        <div class="box" id="p-profile"></div>
+      </div>
+      <div class="box" id="p-match"></div>
+      <div class="box" id="p-gap"></div>
+      <div class="box" id="p-board"></div>
+      <div class="box">
+        <h3>Design rules built in</h3>
+        <ul class="rules">
+          <li><b>Listings only.</b> Every step links to a live P2E course, Yoma opportunity or imaGen challenge. Listings with no deadline, a broken link or a past deadline are dropped and flagged for review.</li>
+          <li><b>Every step explains itself.</b> Each one carries a one-line reason. In the live build Azure OpenAI writes it from the listing's own fields; this prototype uses the reviewed templates that under-18s receive.</li>
+          <li><b>Users can say no.</b> Swap any step, or say none fit and get a lighter or different plan.</li>
+          <li><b>Buttons, not open chat.</b> Fixed questions with tap or number replies work on basic phones and keep the intake to about 5 minutes.</li>
+          <li><b>A person after two missed check-ins.</b> Anyone who stalls twice or asks for help goes to a facilitator instead of another automated message.</li>
+          <li><b>Minimal data.</b> Stores the six answers, the age check, the plan and its status. Reply DELETE to erase them.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <footer>All courses, openings, employers and facilitators shown are invented sample data for testing the flow. Prototype date is fixed at Monday 26 October 2026. Estimated running cost in the report: about a third of a US cent per active user each month on GPT‑5.4 nano.</footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep = ms => new Promise(r => setTimeout(r, reduceMotion ? 0 : ms));
+const DAY = 864e5;
+const TODAY = Date.UTC(2026, 9, 26);
+const parseD = s => { const [y,m,d] = s.split('-').map(Number); return Date.UTC(y, m-1, d); };
+const fmtD = t => new Date(t).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric', timeZone:'UTC'});
+const fmtShort = t => new Date(t).toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'short', timeZone:'UTC'});
+
+/* ---------- Sample catalogue (tagged with skills, as the nightly sync would do with Tabiya's taxonomy) ---------- */
+const SK = {
+  'digital-basics':'Using a phone & computer','online-safety':'Staying safe online','job-search':'Finding & applying for jobs',
+  comms:'Clear communication',customer:'Serving customers',spreadsheets:'Spreadsheets & data entry','social-media':'Social media marketing',
+  cv:'Writing a CV',interview:'Interview skills',teamwork:'Working in a team',bookkeeping:'Basic bookkeeping',
+  'business-plan':'Business planning',pricing:'Pricing & selling','agri-practice':'Modern farming practices',poultry:'Poultry care',
+  tailoring:'Sewing & tailoring','design-basics':'Graphic design basics','coding-basics':'Coding basics'
+};
+const COURSES = [
+  {id:'c1',title:'Digital Literacy Essentials',skills:['digital-basics','online-safety'],hours:6,entry:true,sectors:['all'],data:1,offline:true},
+  {id:'c13',title:'Finding Work Online',skills:['job-search','online-safety'],hours:4,entry:true,sectors:['digital','customer'],data:1,offline:true},
+  {id:'c2',title:'Get Job-Ready: Work Readiness',skills:['cv','interview','comms','teamwork'],hours:8,entry:true,sectors:['all'],data:1,offline:true},
+  {id:'c3',title:'Customer Service Fundamentals',skills:['customer','comms'],hours:10,entry:true,sectors:['customer'],data:2,offline:true},
+  {id:'c4',title:'Data Entry & Spreadsheets',skills:['spreadsheets'],hours:12,entry:false,prereq:'digital-basics',sectors:['digital','customer'],data:2,offline:false},
+  {id:'c5',title:'Social Media for Small Business',skills:['social-media','pricing'],hours:8,entry:false,prereq:'digital-basics',sectors:['digital','fashion'],data:2,offline:false},
+  {id:'c6',title:'Entrepreneurship Foundations',skills:['business-plan','bookkeeping','pricing'],hours:14,entry:true,sectors:['all'],data:1,offline:true},
+  {id:'c7',title:'Intro to Coding with Python',skills:['coding-basics'],hours:20,entry:false,prereq:'digital-basics',sectors:['digital'],data:3,offline:false},
+  {id:'c8',title:'Smart Farming Basics',skills:['agri-practice','poultry'],hours:10,entry:true,sectors:['agri'],data:2,offline:true},
+  {id:'c9',title:'Graphic Design with Free Tools',skills:['design-basics','social-media'],hours:10,entry:false,prereq:'digital-basics',sectors:['digital','fashion'],data:3,offline:false},
+  {id:'c10',title:'Fashion Business Bootcamp',skills:['tailoring','pricing'],hours:12,entry:true,sectors:['fashion'],data:2,offline:true},
+  {id:'c11',title:'Money Basics for Young People',skills:['bookkeeping'],hours:5,entry:true,sectors:['all'],data:1,offline:true},
+  {id:'c12',title:'Digital Marketing (2024 cohort)',skills:['social-media'],hours:16,entry:false,sectors:['digital'],data:3,expired:true}
+];
+COURSES.forEach(c => { c.src = 'Passport to Earning'; c.kind = 'course'; });
+const OPPS = [
+  {id:'o1',title:'Customer Care Trainee',org:'BrightLine Contact Centre',type:'job',skills:['customer','comms','digital-basics'],states:['lagos'],minAge:18,deadline:'2026-12-15',sectors:['customer']},
+  {id:'o2',title:'Data Entry Assistant (part-time, remote)',org:'Kora Data Services',type:'job',skills:['spreadsheets','digital-basics','comms'],remote:true,minAge:18,deadline:'2026-12-05',sectors:['digital','customer']},
+  {id:'o3',title:'Digital Skills Learnership',org:'Kano Tech Hub',type:'learnership',skills:['digital-basics','teamwork'],states:['kano'],minAge:16,deadline:'2026-11-30',sectors:['digital']},
+  {id:'o4',title:'Junior Social Media Assistant',org:'Zuma Media, Abuja',type:'job',skills:['social-media','design-basics','comms'],states:['fct'],minAge:18,deadline:'2026-12-20',sectors:['digital','fashion']},
+  {id:'o5',title:'Farm Extension Volunteer',org:'Oyo Young Farmers Network',type:'volunteer',skills:['agri-practice','comms'],states:['oyo'],minAge:16,deadline:'2026-12-10',sectors:['agri']},
+  {id:'o6',title:'Youth Community Survey Task',org:'Yoma community task, earns Zlto rewards',type:'task',skills:['digital-basics'],remote:true,minAge:15,deadline:'2026-11-28',sectors:['all']},
+  {id:'o7',title:'Retail Sales Associate',org:'Garden City Stores, Port Harcourt',type:'job',skills:['customer','pricing','comms'],states:['rivers'],minAge:18,deadline:'ongoing',sectors:['customer']},
+  {id:'o8',title:'Junior Developer Internship',org:'Lagos software studio',type:'job',skills:['coding-basics','teamwork'],states:['lagos'],minAge:18,deadline:'2026-12-01',linkBroken:true,sectors:['digital']},
+  {id:'o9',title:'Tailoring Apprenticeship',org:'Kurmi Market Tailors Cooperative',type:'apprenticeship',skills:['tailoring','pricing'],states:['kano'],minAge:15,deadline:'2027-01-15',sectors:['fashion'],informal:true},
+  {id:'o10',title:'Poultry Enterprise Apprenticeship',org:'Ibadan Agri-Enterprise Centre',type:'apprenticeship',skills:['poultry','bookkeeping'],states:['oyo','lagos'],minAge:16,deadline:'2027-01-10',sectors:['agri'],informal:true},
+  {id:'o11',title:'Mobile Money Agent Starter Programme',org:'Self-employment route',type:'self',skills:['customer','bookkeeping','digital-basics'],states:['all'],minAge:18,deadline:'2026-11-30',sectors:['customer'],informal:true},
+  {id:'i1',title:'Youth Venture Challenge 2026',org:'imaGen Ventures',type:'challenge',skills:['business-plan','pricing'],remote:true,minAge:15,deadline:'2026-12-31',sectors:['all'],src:'imaGen'},
+  {id:'i2',title:'Green Ideas Challenge',org:'imaGen Ventures',type:'challenge',skills:['business-plan','agri-practice'],remote:true,minAge:15,deadline:'2026-12-12',sectors:['agri'],src:'imaGen'},
+  {id:'i3',title:'Fashion Upcycling Challenge',org:'imaGen Ventures',type:'challenge',skills:['business-plan','tailoring'],remote:true,minAge:15,deadline:'2026-09-30',sectors:['fashion'],src:'imaGen'}
+];
+OPPS.forEach(o => { o.src = o.src || 'Yoma'; o.kind = 'opp'; });
+const PROFILE_STEP = {id:'p1',title:'Complete your Yoma profile',src:'Yoma',kind:'course',skills:[],hours:1,pseudo:true,sectors:['all'],data:1};
+const TYPE_LABEL = {job:'Job',learnership:'Learnership',apprenticeship:'Apprenticeship',self:'Self-employment',volunteer:'Volunteering',task:'Yoma task',challenge:'imaGen challenge'};
+const GOAL_TYPES = {job:['job','learnership','apprenticeship','self'],skills:['learnership','volunteer','task','apprenticeship'],business:['challenge','self','apprenticeship'],notsure:['task','learnership','volunteer','challenge']};
+const PERSONAS = {
+  amina:{name:'Amina',creds:[{title:'Digital Literacy Essentials',src:'Passport to Earning',skills:['digital-basics','online-safety']}]},
+  tunde:{name:'Tunde',creds:[{title:'Digital Literacy Essentials',src:'Passport to Earning',skills:['digital-basics','online-safety']},{title:'Get Job-Ready: Work Readiness',src:'Passport to Earning',skills:['cv','interview','comms','teamwork']}]},
+  new:{name:'Young person #4821',creds:[]}
+};
+const STATES = {lagos:'Lagos',kano:'Kano',fct:'FCT Abuja',oyo:'Oyo',rivers:'Rivers',other:'another state',online:'online only'};
+const FAC = {kano:'Hauwa at the Kano partner centre',lagos:'Tolu at the Yaba partner centre',fct:'Chinedu at the Abuja partner centre',oyo:'Bisi at the Ibadan partner centre',rivers:'Ibim at the Port Harcourt partner centre'};
+
+/* ---------- Words (English + Nigerian Pidgin) ---------- */
+const T = {
+ en:{
+  greet:"Hi, I'm Pathfinder from GenU. I turn your goal into 3 clear steps: one to start, one to learn and one to apply. It takes about 5 minutes.",
+  age:"Before we start: I only save your answers, your plan and your progress. Reply DELETE at any time to erase them.\n\nHow old are you?",
+  under15:"Pathfinder is for young people aged 15 to 24. Please ask a teacher or parent about programmes for your age. Reply RESTART to begin again.",
+  over24:"Pathfinder is built for people aged 15 to 24, so the openings I can see may not fit you. You can still browse every opportunity on Yoma. Reply RESTART to begin again.",
+  profile:"Can I look at the courses and certificates on your Yoma profile? It helps me skip what you've already done.",
+  profileFound:"I found {n} on your Yoma profile:\n{list}\nI'll build on these.",
+  profileEmpty:"Your Yoma profile has no courses yet, so we'll start from the beginning.",
+  profileSkip:"No problem. I'll plan from your answers only.",
+  goal:"What's your main goal right now?", sector:"What kind of work interests you?", state:"Which state do you live in?",
+  hours:"How many hours a week can you spend on this?", data:"How much mobile data can you use for learning?",
+  building:"Checking today's live courses and openings for you...",
+  planIntro:"Here is your plan. Every step says why I picked it, and you can swap any step.",
+  planWeak:"I couldn't find a strong match for your answers today, so this is the closest plan I have. A facilitator can help you look further.",
+  tight:"Heads up: applications close on {date}, before you'd finish steps 1 and 2 (about {weeks} weeks). You can apply now and keep learning.",
+  planAsk:"What would you like to do?",
+  saved:"Saved to your Yoma profile. I'll check in every Monday to see how it's going.",
+  swapped:"Done. Here's your updated plan.",
+  swappedApply:"Done. Changing where you apply also changes what you need to learn, so steps 1 and 2 were updated too.",
+  noMore:"That's the only good match I have for this step right now. I'd rather tell you than suggest something that doesn't fit.",
+  rejectWhy:"Sorry it doesn't fit. What's the main problem?",
+  lessTime:"I've made a lighter plan for {h} hours a week.", minTime:"This is already the lightest plan I can make. A facilitator could help find something shorter.",
+  ciQ:"Week {w} check-in. Did you finish Step {n}: {title}?",
+  ciDone:"Well done! Your certificate will show on your Yoma profile and counts towards your next step.",
+  ciNext:"Next up is Step {n}: {title}.",
+  ciDoing:"Good. Try one short lesson today, about 30 minutes. You can download lessons on Wi-Fi and study without data.",
+  ciStall:"That's okay. Let's make it smaller: open the course and finish just the first lesson this week.",
+  applyQ:"Week {w} check-in. Have you applied to {title}?",
+  applied:"Great! I've marked it as Applied on your Yoma profile, so it doesn't get lost once you leave the site.",
+  complete:"You've finished all 3 steps. Your plan and application are saved on Yoma. When you hear back, tell me and I'll help you plan what comes next.",
+  handoff:"I've asked {fac} to message you within 2 working days. They can help you in person. Your plan stays saved.",
+  fallback:"I work best with the buttons. Tap an option, or reply with its number.",
+  deleted:"Done. Your answers and plan have been deleted. Send Hi to start again.",
+  bye:"Good luck! Send Hi any time to make a new plan.",
+  rStart:"Recommended because it has no entry requirements and fits your {h} hours a week.",
+  rStartPre:"Recommended because it teaches {skill}, which you need before Step 2, and has no entry requirements.",
+  rStartProfile:"Recommended because employers see your Yoma profile first, and it takes about an hour.",
+  rLearn:"Recommended because {org} is looking for {skills}. This course covers {n} of the {m} skills you're missing.",
+  rLearnAll:"Recommended because {org} is looking for {skills}, and this course covers {all} you're missing.",
+  rLearnReady:"Your Yoma profile already shows the skills this opening asks for. This sharpens your CV and interview.",
+  rApply:"Recommended because it's {where}, you're eligible at {age}, and it closes on {date}.",
+  whereState:"in {state}", whereOnline:"online", whereAll:"open in every state",
+  hrs:"{h} hrs", weeks:"about {w} wk", closes:"closes {d}", planTitle:"Your Pathfinder plan", why:"Why: ",
+  informal:"Informal and self-employment routes count."
+ },
+ pcm:{
+  greet:"How far! I be Pathfinder from GenU. I go help you turn your goal into 3 clear steps: one to start, one to learn, one to apply. E go take like 5 minutes.",
+  age:"Before we start: I go keep only your answers, your plan and how far you don go. Send DELETE anytime make I clear am.\n\nHow old you be?",
+  under15:"Pathfinder na for young people wey dey 15 reach 24. Abeg ask your teacher or parent about programme for your age. Send RESTART to start again.",
+  over24:"Pathfinder na for people wey dey 15 reach 24, so the openings wey I see fit no fit you. You still fit check all opportunities for Yoma. Send RESTART to start again.",
+  profile:"You allow make I check the courses and certificates wey dey your Yoma profile? E go help me skip wetin you don already do.",
+  profileFound:"I see {n} for your Yoma profile:\n{list}\nI go build on top am.",
+  profileEmpty:"Your Yoma profile never get any course, so we go start from beginning.",
+  profileSkip:"No wahala. I go use only your answers.",
+  goal:"Wetin be your main goal now?", sector:"Which kind work dey interest you?", state:"Which state you dey?",
+  hours:"How many hours for one week you fit put for this?", data:"How much data you fit use for learning?",
+  building:"I dey check the courses and openings wey dey live today...",
+  planIntro:"See your plan. Each step get reason why I pick am, and you fit change any one.",
+  planWeak:"I no see strong match for your answers today, so na the closest plan be this. Facilitator fit help you find more.",
+  tight:"Hear this: application go close {date}, before you finish step 1 and 2 (like {weeks} weeks). You fit apply now and dey learn dey go.",
+  planAsk:"Wetin you wan do?",
+  saved:"I don save am for your Yoma profile. Every Monday I go check how e dey go.",
+  swapped:"E don do. See your new plan.",
+  swappedApply:"E don do. Because the place wey you go apply change, wetin you need learn change too, so I update step 1 and 2.",
+  noMore:"Na only this one fit this step now. Better I tell you than make I give you wetin no fit you.",
+  rejectWhy:"Sorry say e no fit you. Wetin be the main problem?",
+  lessTime:"I don make lighter plan for {h} hours for one week.", minTime:"This one na the lightest plan wey I fit make. Facilitator fit help find shorter one.",
+  ciQ:"Week {w} check-in. You don finish Step {n}: {title}?",
+  ciDone:"Well done! Your certificate go show for your Yoma profile and e go help your next step.",
+  ciNext:"Next one na Step {n}: {title}.",
+  ciDoing:"Good. Try do one small lesson today, like 30 minutes. You fit download lessons when you get Wi-Fi and read am without data.",
+  ciStall:"No wahala. Make we reduce am: open the course and finish only the first lesson this week.",
+  applyQ:"Week {w} check-in. You don apply for {title}?",
+  applied:"Correct! I don mark am as Applied for your Yoma profile, so e no go lost when you comot the site.",
+  complete:"You don finish all 3 steps. Your plan and application dey saved for Yoma. When you hear from them, tell me and I go help you plan the next thing.",
+  handoff:"I don tell {fac} make dem message you inside 2 working days. Dem fit help you face to face. Your plan still dey saved.",
+  fallback:"I sabi buttons pass. Tap one option, or send the number.",
+  deleted:"E don do. I don delete your answers and plan. Send Hi to start again.",
+  bye:"Good luck! Send Hi anytime to make new plan.",
+  rStart:"I pick am because e no need any requirement and e fit your {h} hours for one week.",
+  rStartPre:"I pick am because e teach {skill}, wey you need before Step 2, and e no need any requirement.",
+  rStartProfile:"I pick am because employers dey look your Yoma profile first, and e go take like one hour.",
+  rLearn:"I pick am because {org} want people wey sabi {skills}. This course cover {n} out of the {m} skill wey you still need.",
+  rLearnAll:"I pick am because {org} want people wey sabi {skills}, and this course cover {all} wey you still need.",
+  rLearnReady:"Your Yoma profile don show say you get the skills wey this opening want. This one go sharpen your CV and interview.",
+  rApply:"I pick am because e dey {where}, you qualify for {age}, and e go close {date}.",
+  whereState:"for {state}", whereOnline:"online", whereAll:"open for every state",
+  hrs:"{h} hrs", weeks:"like {w} wk", closes:"close {d}", planTitle:"Your Pathfinder plan", why:"Why: ",
+  informal:"Informal work and self-employment count."
+ }
+};
+const O = {
+  lang:[{v:'en',en:'English',pcm:'English'},{v:'pcm',en:'Naija Pidgin',pcm:'Naija Pidgin'}],
+  age:[...Array.from({length:10},(_,i)=>({v:15+i,en:String(15+i),pcm:String(15+i)})),{v:14,en:'Under 15',pcm:'Under 15'},{v:25,en:'25+',pcm:'25+'}],
+  profile:[{v:true,en:'Yes, use my profile',pcm:'Yes, check am'},{v:false,en:'No, skip',pcm:'No, skip am'}],
+  goal:[{v:'job',en:'Get a job',pcm:'Find work'},{v:'skills',en:'Learn new skills',pcm:'Learn new skill'},{v:'business',en:'Start a business',pcm:'Start business'},{v:'notsure',en:"I'm not sure",pcm:'I never sure'}],
+  sector:[{v:'digital',en:'Digital & tech',pcm:'Digital & tech'},{v:'customer',en:'Customer service & sales',pcm:'Customer service & sales'},{v:'agri',en:'Farming & agribusiness',pcm:'Farm work & agribusiness'},{v:'fashion',en:'Fashion & beauty',pcm:'Fashion & beauty'},{v:'notsure',en:'Not sure yet',pcm:'I never decide'}],
+  state:[{v:'lagos',en:'Lagos',pcm:'Lagos'},{v:'kano',en:'Kano',pcm:'Kano'},{v:'fct',en:'FCT Abuja',pcm:'FCT Abuja'},{v:'oyo',en:'Oyo',pcm:'Oyo'},{v:'rivers',en:'Rivers',pcm:'Rivers'},{v:'other',en:'Another state',pcm:'Another state'},{v:'online',en:'Online only',pcm:'Online only'}],
+  hours:[{v:2,en:'1–2 hours',pcm:'1–2 hours'},{v:4,en:'3–5 hours',pcm:'3–5 hours'},{v:8,en:'6–10 hours',pcm:'6–10 hours'},{v:12,en:'More than 10',pcm:'Pass 10 hours'}],
+  data:[{v:'low',en:'Very little (texts only)',pcm:'Small (na text only)'},{v:'some',en:'Some (a few short videos)',pcm:'Small-small video'},{v:'plenty',en:'Plenty (Wi-Fi or big bundle)',pcm:'Plenty (Wi-Fi or big bundle)'}],
+  plan:[{v:'save',en:'Save my plan',pcm:'Save my plan'},{v:'start',en:'Swap step 1',pcm:'Change step 1'},{v:'learn',en:'Swap step 2',pcm:'Change step 2'},{v:'apply',en:'Swap step 3',pcm:'Change step 3'},{v:'reject',en:'None of these fit',pcm:'None fit me'}],
+  reject:[{v:'time',en:'Too much time',pcm:'E go take too much time'},{v:'kind',en:'Wrong kind of work',pcm:'No be the work I want'},{v:'place',en:'Wrong place',pcm:'The place no good'},{v:'person',en:'Talk to a person',pcm:'I wan talk to person'}],
+  ci:[{v:'done',en:'Yes, finished',pcm:'Yes, I don finish'},{v:'doing',en:'Still working on it',pcm:'I still dey do am'},{v:'not',en:'Not started',pcm:'I never start'},{v:'help',en:'I need help',pcm:'I need help'}],
+  apply:[{v:'applied',en:'Yes, I applied',pcm:'Yes, I don apply'},{v:'not',en:'Not yet',pcm:'Not yet'},{v:'help',en:'I need help',pcm:'I need help'}],
+  end:[{v:'new',en:'Make a new plan',pcm:'Make new plan'},{v:'done',en:"That's all for now",pcm:'Na all for now'}]
+};
+const LABEL = {lang:{en:'English',pcm:'Naija Pidgin'}};
+
+/* ---------- State ---------- */
+let S, pending = null, busy = false, gen = 0, persona = 'amina', channel = 'chat';
+const ABORT = Symbol('abort');
+function fresh(){
+  return {lang:'en', stage:'intake', msgs:[], a:{}, age:null, consent:null, calc:null, idx:{apply:0,learn:0,start:0},
+          plan:null, saved:false, week:0, stalls:0, flagged:null, awaitWeek:false, deleted:false};
+}
+function t(k, v={}){ let s = (T[S.lang][k] ?? T.en[k]); return s.replace(/\{(\w+)\}/g, (_,x) => v[x] ?? ''); }
+const lbl = o => o[S.lang] ?? o.en;
+const held = () => new Set(S.consent ? PERSONAS[persona].creds.flatMap(c => c.skills) : []);
+
+/* ---------- Chat engine ---------- */
+async function say(text, extra={}){
+  const g = gen; busy = true;
+  S.msgs.push({from:'typing'}); renderChat();
+  await sleep(380 + Math.min(text.length, 160) * 3);
+  if (g !== gen) throw ABORT;
+  S.msgs.pop(); S.msgs.push({from:'bot', text, ...extra}); busy = false; renderAll();
+}
+function sys(text){ S.msgs.push({from:'sys', text}); renderChat(); }
+async function ask(text, options, handler, extra={}){
+  await say(text, {options, ...extra});
+  pending = {options, handler, msg: S.msgs[S.msgs.length-1]};
+  renderChat();
+}
+function run(p){ p.catch(e => { if (e !== ABORT) console.error(e); }); }
+function pick(i){
+  if (busy || !pending) return;
+  const p = pending, opt = p.options[i]; if (!opt) return;
+  pending = null; p.msg.answered = true;
+  S.msgs.push({from:'user', text: channel === 'sms' ? String(i+1) : lbl(opt)});
+  renderAll();
+  run(p.handler(opt.v));
+}
+
+/* ---------- Matching ---------- */
+function oppBlock(o){
+  const a = S.a;
+  if (o.deadline === 'ongoing') return 'No clear deadline ("ongoing")';
+  if (o.linkBroken) return 'Application link broken';
+  if (parseD(o.deadline) < TODAY) return 'Deadline passed';
+  if (S.age < o.minAge) return `Needs age ${o.minAge}+`;
+  const st = o.states || [];
+  const okLoc = a.state === 'online' ? !!o.remote : (o.remote || st.includes('all') || st.includes(a.state));
+  if (!okLoc) return a.state === 'online' ? 'In person only' : 'Outside your state';
+  return null;
+}
+function courseBlock(c){
+  if (c.expired) return 'Course closed (expired)';
+  if (S.a.data === 'low' && c.data === 3 && !c.offline) return 'Video-heavy, over data budget';
+  return null;
+}
+function compute(){
+  const a = S.a, have = held(), excluded = [];
+  const courses = COURSES.filter(c => { const r = courseBlock(c); if (r) excluded.push({name:c.title, src:c.src, why:r}); return !r; });
+  const teachable = new Set(courses.flatMap(c => c.skills));
+  const opps = OPPS.filter(o => { const r = oppBlock(o); if (r) excluded.push({name:o.title, src:o.src, why:r}); return !r; })
+    .map(o => {
+      const pref = GOAL_TYPES[a.goal], ti = pref.indexOf(o.type);
+      let s = ti >= 0 ? 4 - ti * .5 : -2;
+      if (a.sector !== 'notsure') s += o.sectors.includes(a.sector) ? 4 : o.sectors.includes('all') ? 1 : -3;
+      else if (o.sectors.includes('all')) s += 1;
+      const st = o.states || [];
+      if (st.includes(a.state)) s += 2; else if (st.includes('all')) s += 1.5; else if (o.remote) s += a.data === 'low' ? 0 : 1;
+      const gap = o.skills.filter(k => !have.has(k));
+      s += (o.skills.length - gap.length) - gap.length * .5;
+      s -= gap.filter(k => !teachable.has(k)).length * 1.5;
+      return {o, score: Math.round(s * 10) / 10};
+    }).sort((x, y) => y.score - x.score);
+  S.calc = {courses, opps, excluded, considered: COURSES.length + OPPS.length};
+  S.idx = {apply:0, learn:0, start:0};
+  buildPlan();
+}
+function buildPlan(){
+  const a = S.a, have = held(), c = S.calc;
+  const target = c.opps[S.idx.apply];
+  const gap = target.o.skills.filter(k => !have.has(k));
+  const fullyHeld = x => x.skills.length && x.skills.every(k => have.has(k));
+  let learnList = c.courses.map(x => ({c:x, cov:x.skills.filter(k => gap.includes(k))}))
+    .filter(x => x.cov.length).sort((p, q) => q.cov.length - p.cov.length || q.c.sectors.includes(a.sector) - p.c.sectors.includes(a.sector) || p.c.hours - q.c.hours);
+  if (!learnList.length) {
+    const ready = c.courses.find(x => x.id === 'c2');
+    learnList = [{c: ready && !fullyHeld(ready) ? ready : PROFILE_STEP, cov:[], ready:true}];
+  }
+  const learn = learnList[Math.min(S.idx.learn, learnList.length - 1)];
+  const startList = c.courses.filter(x => x.entry && x.id !== learn.c.id && !fullyHeld(x)).map(x => {
+    let s = 0; const pre = learn.c.prereq && !have.has(learn.c.prereq) && x.skills.includes(learn.c.prereq);
+    if (pre) s += 5;
+    s += x.skills.filter(k => gap.includes(k) && !learn.cov.includes(k)).length * 2;
+    if (x.sectors.includes(a.sector)) s += 2; else if (x.sectors.includes('all')) s += 1;
+    if (x.hours <= a.hours * 3) s += 2; else s -= 1;
+    if (a.data === 'low' && x.data > 1) s -= 1;
+    return {c:x, score:s, pre};
+  }).sort((p, q) => q.score - p.score || p.c.hours - q.c.hours);
+  if (!learn.c.pseudo) startList.push({c:PROFILE_STEP, score:-9, profile:true});
+  const start = startList[Math.min(S.idx.start, startList.length - 1)];
+  const old = S.plan;
+  S.plan = {target, gap, learn, start, learnList, startList, weak: target.score < 5,
+    steps: [
+      {kind:'start', item:start.c, status:'todo'},
+      {kind:'learn', item:learn.c, status:'todo'},
+      {kind:'apply', item:target.o, status:'todo'}
+    ]};
+  if (old && S.saved) S.plan.steps.forEach((st, i) => { if (old.steps[i].item.id === st.item.id) st.status = old.steps[i].status; });
+}
+function reason(kind){
+  const p = S.plan, a = S.a;
+  if (kind === 'start') {
+    if (p.start.profile) return t('rStartProfile');
+    if (p.start.pre) return t('rStartPre', {skill: SK[p.learn.c.prereq].toLowerCase()});
+    return t('rStart', {h: hoursLabel()});
+  }
+  if (kind === 'learn') {
+    if (p.learn.ready) return t('rLearnReady');
+    const names = p.learn.cov.map(k => SK[k].toLowerCase());
+    const o = p.target.o, org = ['task','challenge','self'].includes(o.type) ? o.title : o.org;
+    const n = p.learn.cov.length, m = p.gap.length;
+    if (n === m) return t('rLearnAll', {org, skills: names.join(' and '), all: S.lang === 'pcm' ? (m === 1 ? 'the one skill' : `all ${m} skills`) : (m === 1 ? 'the one skill' : `all ${m} skills`)});
+    return t('rLearn', {org, skills: names.join(' and '), n, m});
+  }
+  const o = p.target.o, st = o.states || [];
+  const where = st.includes(a.state) ? t('whereState', {state: STATES[a.state]}) : st.includes('all') ? t('whereAll') : t('whereOnline');
+  return t('rApply', {where, age: S.age, date: fmtD(parseD(o.deadline))});
+}
+const hoursLabel = () => ({2:'1–2',4:'3–5',8:'6–10',12:'10+'})[S.a.hours];
+const weeksFor = h => Math.max(1, Math.ceil(h / S.a.hours));
+
+/* ---------- Flow ---------- */
+async function start(){
+  gen++; S = fresh(); pending = null; busy = false; renderAll();
+  run((async () => {
+    await say(T.en.greet + '\n\n' + T.pcm.greet);
+    await ask('Which language do you prefer?\nWhich language you want?', O.lang, async v => { S.lang = v; S.a.lang = v; renderPanel(); await askAge(); });
+  })());
+}
+async function askAge(){
+  await ask(t('age'), O.age, async v => {
+    if (v < 15) { S.age = v; await say(t('under15')); return; }
+    if (v > 24) { S.age = v; await say(t('over24')); return; }
+    S.age = v; renderPanel(); await askProfile();
+  }, {grid:true});
+}
+async function askProfile(){
+  await ask(t('profile'), O.profile, async v => {
+    S.consent = v; renderPanel();
+    const creds = PERSONAS[persona].creds;
+    if (!v) await say(t('profileSkip'));
+    else if (!creds.length) await say(t('profileEmpty'));
+    else await say(t('profileFound', {n: creds.length === 1 ? (S.lang==='pcm'?'one certificate':'1 certificate') : `${creds.length} ${S.lang==='pcm'?'certificates':'certificates'}`, list: creds.map(c => `• ${c.title} (${c.src})`).join('\n')}));
+    await askGoal();
+  });
+}
+async function askGoal(){ await ask(t('goal'), O.goal, async v => { S.a.goal = v; renderPanel(); await askSector(); }); }
+async function askSector(next){ await ask(t('sector'), O.sector, async v => { S.a.sector = v; renderPanel(); await (next ? next() : askState()); }); }
+async function askState(next){ await ask(t('state'), O.state, async v => { S.a.state = v; renderPanel(); await (next ? next() : askHours()); }); }
+async function askHours(){ await ask(t('hours'), O.hours, async v => { S.a.hours = v; renderPanel(); await askData(); }); }
+async function askData(){
+  await ask(t('data'), O.data, async v => {
+    S.a.data = v; S.stage = 'plan'; renderPanel();
+    await say(t('building'));
+    compute(); await showPlan(t(S.plan.weak ? 'planWeak' : 'planIntro'));
+  });
+}
+async function showPlan(intro){
+  if (intro) await say(intro);
+  await say('', {card: snapshot()});
+  const p = S.plan, learnWeeks = weeksFor(p.start.c.hours + p.learn.c.hours);
+  const deadline = parseD(p.target.o.deadline);
+  if (!S.saved && TODAY + learnWeeks * 7 * DAY > deadline) await say(t('tight', {date: fmtD(deadline), weeks: learnWeeks}));
+  if (!S.saved) await planMenu();
+}
+async function planMenu(){
+  await ask(t('planAsk'), O.plan, async v => {
+    if (v === 'save') {
+      S.saved = true; S.stage = 'checkin'; renderPanel();
+      await say(t('saved')); S.awaitWeek = true; renderChat(); return;
+    }
+    if (v === 'reject') return rejectFlow();
+    const p = S.plan;
+    const list = v === 'apply' ? S.calc.opps.filter(x => x.score >= 2) : v === 'learn' ? p.learnList : p.startList;
+    if (S.idx[v] + 1 >= list.length) { await say(t('noMore')); return planMenu(); }
+    S.idx[v]++;
+    if (v === 'apply') { S.idx.learn = 0; S.idx.start = 0; }
+    if (v === 'learn') S.idx.start = 0;
+    buildPlan(); await showPlan(t(v === 'apply' ? 'swappedApply' : 'swapped'));
+  });
+}
+async function rejectFlow(){
+  await ask(t('rejectWhy'), O.reject, async v => {
+    if (v === 'time') {
+      const bands = [2,4,8,12], i = bands.indexOf(S.a.hours);
+      if (i <= 0) { await say(t('minTime')); return planMenu(); }
+      S.a.hours = bands[i-1]; compute(); return showPlan(t('lessTime', {h: hoursLabel()}));
+    }
+    if (v === 'kind') return askSector(async () => { compute(); await showPlan(t('swapped')); });
+    if (v === 'place') return askState(async () => { compute(); await showPlan(t('swapped')); });
+    await handoff('Asked to talk to a person while choosing a plan');
+    return planMenu();
+  });
+}
+function currentStep(){ return S.plan.steps.findIndex(s => s.status !== 'done'); }
+async function nextWeek(){
+  if (busy || !S.awaitWeek) return;
+  S.awaitWeek = false; S.week++;
+  sys(fmtShort(TODAY + S.week * 7 * DAY) + ' · ' + (S.week === 1 ? 'one week later' : `week ${S.week}`));
+  run(checkin());
+}
+async function checkin(){
+  const i = currentStep(), step = S.plan.steps[i];
+  if (step.kind === 'apply') {
+    return ask(t('applyQ', {w: S.week, title: step.item.title}), O.apply, async v => {
+      if (v === 'applied') {
+        step.status = 'done'; S.stalls = 0; S.stage = 'done'; renderPanel();
+        await say(t('applied')); await say('', {card: snapshot()});
+        await say(t('complete'));
+        return ask(S.lang === 'pcm' ? 'Wetin next?' : 'What next?', O.end, async e => { if (e === 'new') start(); else await say(t('bye')); });
+      }
+      return afterMiss(v, step);
+    });
+  }
+  return ask(t('ciQ', {w: S.week, n: i + 1, title: step.item.title}), O.ci, async v => {
+    if (v === 'done') {
+      step.status = 'done'; S.stalls = 0; renderPanel();
+      await say(t('ciDone'));
+      const n = currentStep(); await say(t('ciNext', {n: n + 1, title: S.plan.steps[n].item.title}));
+      await say('', {card: snapshot()});
+      S.awaitWeek = true; renderChat(); return;
+    }
+    if (v === 'doing') { step.status = 'doing'; S.stalls = 0; renderPanel(); await say(t('ciDoing')); S.awaitWeek = true; renderChat(); return; }
+    return afterMiss(v, step);
+  });
+}
+async function afterMiss(v, step){
+  if (v === 'help') await handoff(`Asked for help on "${step.item.title}"`);
+  else {
+    S.stalls++; renderPanel();
+    if (S.stalls >= 2) await handoff(`Missed 2 check-ins in a row on "${step.item.title}"`);
+    else await say(t('ciStall'));
+  }
+  S.awaitWeek = true; renderChat();
+}
+async function handoff(why){
+  const fac = FAC[S.a.state] || (S.lang === 'pcm' ? 'one GenU Nigeria facilitator' : 'a GenU Nigeria facilitator');
+  S.flagged = {why, fac, week: S.week, step: S.plan ? S.plan.steps[Math.max(0, currentStep())]?.item.title : null};
+  S.stalls = 0; renderPanel();
+  await say(t('handoff', {fac}));
+}
+
+/* ---------- Snapshot of plan for chat card ---------- */
+function snapshot(){
+  const p = S.plan;
+  return p.steps.map(st => {
+    const it = st.item;
+    return {kind: st.kind, status: st.status, title: it.title,
+      src: st.kind === 'apply' ? `${it.org} · ${TYPE_LABEL[it.type]} on ${it.src}` : it.src,
+      meta: st.kind === 'apply' ? t('closes', {d: fmtD(parseD(it.deadline))}) : `${t('hrs', {h: it.hours})} · ${t('weeks', {w: weeksFor(it.hours)})}${it.offline ? ' · offline' : ''}`,
+      why: reason(st.kind), informal: !!it.informal, platform: it.src};
+  });
+}
+
+/* ---------- Render ---------- */
+const TAG = {start:'Start here', learn:'Learn here', apply:'Apply here'};
+const STATUS = {todo:'To do', doing:'In progress', done:'Done'};
+function planCard(steps){
+  if (channel === 'sms') {
+    const lines = steps.map((s, i) => `${i+1}) ${TAG[s.kind].toUpperCase()}${S.saved ? ' [' + STATUS[s.status] + ']' : ''}\n${s.title}\n${s.src}\n${s.meta}\n${t('why')}${s.why}\nLink: gen.u/${s.kind[0]}${i+1}`);
+    return `<div class="msg bot">${esc(t('planTitle').toUpperCase() + '\n\n' + lines.join('\n\n'))}</div>`;
+  }
+  return `<div class="plan"><h4>${esc(t('planTitle'))}</h4>${steps.map((s, i) => `
+    <div class="pstep ${s.status === 'done' ? 'isdone' : ''}">
+      <span class="tag t-${s.kind}">Step ${i+1} · ${TAG[s.kind]}</span>
+      <div class="ttl">${esc(s.title)}</div>
+      <div class="src">${esc(s.src)}</div>
+      <div class="meta">${esc(s.meta)}</div>
+      <div class="why">${esc(s.why)}</div>
+      ${s.informal ? `<div class="informal">${esc(t('informal'))}</div>` : ''}
+      <div class="row"><button class="open" data-open="${esc(s.title)}|${esc(s.platform)}">Open on ${esc(s.platform)}</button>${S.saved ? `<span class="status ${s.status}">${STATUS[s.status]}</span>` : ''}</div>
+    </div>`).join('')}</div>`;
+}
+function renderChat(){
+  const el = $('#chat'); const sms = channel === 'sms';
+  let h = '';
+  for (const m of S.msgs) {
+    if (m.from === 'typing') { h += '<div class="typing" aria-label="Pathfinder is typing"><i></i><i></i><i></i></div>'; continue; }
+    if (m.from === 'sys') { h += `<div class="msg sys">${esc(m.text)}</div>`; continue; }
+    if (m.card) { h += planCard(m.card); continue; }
+    let text = m.text;
+    if (sms && m.options) text += '\n\n' + m.options.map((o, i) => `${i+1}. ${lbl(o)}`).join('\n');
+    h += `<div class="msg ${m.from}">${esc(text)}</div>`;
+    if (m.options && !m.answered && pending && pending.msg === m) {
+      h += `<div class="opts ${m.grid && !sms ? 'grid' : ''}">${m.options.map((o, i) => `<button data-pick="${i}">${esc(sms ? String(i+1) : lbl(o))}</button>`).join('')}</div>`;
+    }
+  }
+  if (S.awaitWeek && !busy) h += `<button class="weekbtn" id="weekbtn">Skip ahead to ${esc(fmtShort(TODAY + (S.week + 1) * 7 * DAY))} →</button>`;
+  el.innerHTML = h;
+  el.scrollTop = el.scrollHeight;
+  $('#phone').classList.toggle('sms', sms);
+  $('#chan-label').textContent = sms ? 'SMS · basic phone' : 'WhatsApp · Nigeria';
+}
+function renderPanel(){
+  const a = S.a, ans = (v, map) => v === undefined ? '<dd class="empty">—</dd>' : `<dd>${esc(map ? map(v) : v)}</dd>`;
+  const optName = (k) => v => { const o = O[k].find(x => x.v === v); return o ? o.en : v; };
+  $('#p-answers').innerHTML = `<h3>Answers stored <em>6 + age check</em></h3><dl class="kv">
+    <dt>Age</dt>${ans(S.age ?? undefined, v => v + (v < 18 ? ' (under 18)' : ''))}
+    <dt>Language</dt>${ans(a.lang, v => LABEL.lang[v])}
+    <dt>Goal</dt>${ans(a.goal, optName('goal'))}
+    <dt>Sector</dt>${ans(a.sector, optName('sector'))}
+    <dt>State</dt>${ans(a.state, optName('state'))}
+    <dt>Hours/week</dt>${ans(a.hours, optName('hours'))}
+    <dt>Data</dt>${ans(a.data, optName('data'))}</dl>
+    ${S.age !== null && S.age < 18 && S.age >= 15 ? '<p class="empty-note" style="margin-top:10px">Under 18: only reviewed message templates are used, and no free-text generation.</p>' : ''}`;
+  const P = PERSONAS[persona];
+  $('#p-profile').innerHTML = `<h3>Yoma profile <em>${S.consent === null ? 'not asked yet' : S.consent ? 'read with consent' : 'not shared'}</em></h3>
+    ${S.consent ? (P.creds.length ? `<ul class="ex">${P.creds.map(c => `<li><span>${esc(c.title)}</span><span style="color:var(--ok)">${esc(c.src)}</span></li>`).join('')}</ul>
+      <div class="chips" style="margin-top:10px">${[...held()].map(k => `<span class="chip have">${esc(SK[k])}</span>`).join('')}</div>` : '<p class="empty-note">No credentials on this profile yet.</p>')
+      : `<p class="empty-note">${S.consent === false ? 'The user chose not to share. Pathfinder plans from their answers only.' : `Sample profile for ${esc(P.name)}: ${P.creds.length} credential${P.creds.length === 1 ? '' : 's'}. Pathfinder asks before reading it.`}</p>`}`;
+  const c = S.calc;
+  $('#p-match').innerHTML = !c ? `<h3>Live listings check</h3><p class="empty-note">After the intake, Pathfinder checks ${COURSES.length + OPPS.length} sample listings synced overnight from P2E, Yoma and imaGen and removes anything the user can't actually act on.</p>`
+    : `<h3>Live listings check <em>${c.considered} considered · ${c.excluded.length} removed</em></h3>
+      <ul class="ex">${c.excluded.map(x => `<li><span>${esc(x.name)} <span class="mono" style="color:var(--muted)">${esc(x.src)}</span></span><span>${esc(x.why)}</span></li>`).join('')}</ul>
+      <p class="empty-note" style="margin-top:12px">Top openings by fit score (goal type, sector, location, skills already held, skills P2E can teach):</p>
+      <ul class="ex" style="margin-top:6px">${c.opps.slice(0, 4).map((x, i) => `<li><span>${i === S.idx.apply ? '<b>▸ </b>' : ''}${esc(x.o.title)}</span><span class="mono" style="color:var(--accent)">${x.score}</span></li>`).join('')}</ul>`;
+  const p = S.plan, have = held();
+  $('#p-gap').innerHTML = !p ? `<h3>Skill gap</h3><p class="empty-note">Pathfinder compares the skills the chosen opening asks for with the skills on the Yoma profile, then picks the course that covers most of what's missing.</p>`
+    : `<h3>Skill gap <em>${esc(p.target.o.title)}</em></h3>
+      <div class="chips">${p.target.o.skills.map(k => `<span class="chip ${have.has(k) ? 'have' : 'miss'} ${p.learn.cov.includes(k) ? 'cov' : ''}">${have.has(k) ? '✓ ' : ''}${esc(SK[k])}</span>`).join('')}</div>
+      <p class="empty-note" style="margin-top:10px">Green = already on Yoma profile. Orange = missing. Blue outline = covered by Step 2, <b>${esc(p.learn.c.title)}</b>${p.learn.ready ? ' (no gap, so a job-readiness step instead)' : ` (${p.learn.cov.length} of ${p.gap.length})`}.</p>`;
+  $('#p-board').innerHTML = !p ? `<h3>Saved plan on Yoma</h3><p class="empty-note">The plan appears here once it's built, with each step's status as check-ins come in.</p>`
+    : `<h3>Saved plan on Yoma <em>${S.saved ? (S.stage === 'done' ? 'complete' : 'week ' + S.week) : 'not saved yet'}</em></h3>
+      <div class="board">${p.steps.map((st, i) => `<div><span class="tag t-${st.kind}">${TAG[st.kind]}</span><span class="ttl">${esc(st.item.title)}</span><span class="status ${st.status}" style="width:max-content">${STATUS[st.status]}</span></div>`).join('')}</div>
+      <div class="meter" aria-label="Missed check-ins">Missed check-ins: <i class="${S.stalls >= 1 ? 'on' : ''}"></i><i class="${S.stalls >= 2 ? 'on' : ''}"></i> <span>${S.stalls} of 2 before a facilitator steps in</span></div>
+      ${S.flagged ? `<div class="fac" style="margin-top:12px"><b>Facilitator queue · ${esc(S.flagged.fac)}</b>
+        <span>${esc(PERSONAS[persona].name)}, ${S.age}, ${esc(STATES[a.state] || '')}. Messages in ${esc(LABEL.lang[a.lang])}.</span>
+        <span>${esc(S.flagged.why)}.</span>
+        <span class="empty-note">Shared with the facilitator: first name, age, state, language, plan and the stuck step. Nothing else.</span></div>` : ''}`;
+  document.querySelectorAll('#stepper li').forEach(li => {
+    const order = ['intake','plan','checkin'], cur = S.stage === 'done' ? 3 : order.indexOf(S.stage), me = order.indexOf(li.dataset.s);
+    li.classList.toggle('on', me === cur); li.classList.toggle('done', me < cur);
+    li.querySelector('b').textContent = me < cur ? '✓' : me + 1;
+  });
+}
+function renderAll(){ renderChat(); renderPanel(); }
+
+/* ---------- Events ---------- */
+let toastTimer;
+function toast(msg){ const el = $('#toast'); el.textContent = msg; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.hidden = true, 3600); }
+$('#chat').addEventListener('click', e => {
+  const b = e.target.closest('[data-pick]'); if (b) return pick(+b.dataset.pick);
+  if (e.target.closest('#weekbtn')) return nextWeek();
+  const o = e.target.closest('[data-open]');
+  if (o) { const [title, plat] = o.dataset.open.split('|'); toast(`In the live version this opens "${title}" on ${plat}. This prototype uses sample listings.`); }
+});
+$('#composer').addEventListener('submit', e => {
+  e.preventDefault();
+  const inp = $('#msg-input'), v = inp.value.trim(); if (!v || busy) return; inp.value = '';
+  const low = v.toLowerCase();
+  if (low === 'restart') return start();
+  if (low === 'delete') {
+    gen++; pending = null; busy = false;
+    const msgs = S.msgs; S = fresh(); S.msgs = msgs; S.deleted = true;
+    S.msgs.push({from:'user', text:v}); renderAll();
+    run(say(T.en.deleted)); return;
+  }
+  if (S.deleted && /^(hi|hello|hey)\b/.test(low)) return start();
+  if (pending) {
+    const opts = pending.options;
+    let i = /^\d+$/.test(v) ? +v - 1 : opts.findIndex(o => lbl(o).toLowerCase() === low || o.en.toLowerCase().startsWith(low));
+    if (i >= 0 && i < opts.length) return pick(i);
+  }
+  S.msgs.push({from:'user', text:v}); renderChat();
+  const p = pending;
+  if (p) { p.msg.answered = true; pending = null; }
+  run(say(t('fallback')).then(() => p && ask(p.msg.text, p.options, p.handler, {grid: p.msg.grid})));
+});
+$('#mic').addEventListener('click', () => toast('Voice notes in Hausa, Yoruba and Igbo come in a later phase. The MVP uses English and Nigerian Pidgin text.'));
+$('#restart').addEventListener('click', start);
+function seg(id, set){ document.querySelectorAll(`#${id} button`).forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll(`#${id} button`).forEach(x => x.setAttribute('aria-pressed', x === b)); set(b.dataset.v); })); }
+seg('persona', v => { persona = v; start(); });
+seg('channel', v => { channel = v; renderChat(); });
+start();
+</script>
