@@ -153,6 +153,10 @@ ul.ex li span:first-child{min-width:0}
 .fac b{color:var(--warn)}
 ul.rules{margin:0;padding-left:18px;display:grid;gap:6px;font-size:14px}
 ul.rules b{font-weight:700}
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:middle}
+.live-dot.on{background:var(--ok)}
+.stats{margin:6px 0 0;font-size:14px;color:var(--muted)}
+.stats b{color:var(--ink)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;max-width:min(92vw,460px);z-index:20;box-shadow:0 10px 30px -10px rgba(0,0,0,.4)}
 footer{color:var(--muted);font-size:13px;max-width:80ch}
 @media (prefers-reduced-motion:reduce){.typing i{animation:none}.chat{scroll-behavior:auto}}
@@ -161,9 +165,10 @@ footer{color:var(--muted);font-size:13px;max-width:80ch}
 <div class="wrap">
   <header class="top">
     <div class="brand">
-      <span class="badge">Prototype · sample listings</span>
+      <span class="badge" id="data-badge">Prototype · sample listings</span>
       <h1>Pathfinder</h1>
       <p>Turns a young person's goal into three ordered steps across Passport to Earning, Yoma and imaGen, then keeps them moving with weekly check-ins.</p>
+      <p class="stats" id="yoma-stats" hidden></p>
     </div>
     <ol class="stepper" id="stepper" aria-label="Pathfinder stages">
       <li data-s="intake"><b>1</b>Tell us your goal</li>
@@ -184,6 +189,12 @@ footer{color:var(--muted);font-size:13px;max-width:80ch}
       <div class="seg" id="channel">
         <button data-v="chat" aria-pressed="true">Smartphone<small>WhatsApp-style buttons</small></button>
         <button data-v="sms" aria-pressed="false">Basic phone<small>SMS, reply with numbers</small></button>
+      </div>
+    </div>
+    <div class="ctl"><span>Listings</span>
+      <div class="seg" id="datamode">
+        <button data-v="live" aria-pressed="true"><span class="live-dot" id="live-dot"></span>Live Yoma<small id="live-sub">connecting…</small></button>
+        <button data-v="sample" aria-pressed="false">Sample<small>invented test data</small></button>
       </div>
     </div>
     <button class="btn-ghost" id="restart">Start over</button>
@@ -229,7 +240,7 @@ footer{color:var(--muted);font-size:13px;max-width:80ch}
     </section>
   </div>
 
-  <footer>All courses, openings, employers and facilitators shown are invented sample data for testing the flow. Prototype date is fixed at Monday 26 October 2026. Estimated running cost in the report: about a third of a US cent per active user each month on GPT‑5.4 nano.</footer>
+  <footer><span id="foot-data">All courses, openings, employers and facilitators shown are invented sample data for testing the flow. Prototype date is fixed at Monday 26 October 2026.</span> Estimated running cost in the report: about a third of a US cent per active user each month on GPT‑5.4 nano.</footer>
 </div>
 <div class="toast" id="toast" hidden></div>
 
@@ -239,8 +250,11 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sleep = ms => new Promise(r => setTimeout(r, reduceMotion ? 0 : ms));
 const DAY = 864e5;
-const TODAY = Date.UTC(2026, 9, 26);
+const SAMPLE_TODAY = Date.UTC(2026, 9, 26);
+const REAL_TODAY = (d => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))(new Date());
+let TODAY = SAMPLE_TODAY;
 const parseD = s => { const [y,m,d] = s.split('-').map(Number); return Date.UTC(y, m-1, d); };
+const hasDeadline = o => o.deadline && o.deadline !== 'ongoing';
 const fmtD = t => new Date(t).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric', timeZone:'UTC'});
 const fmtShort = t => new Date(t).toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'short', timeZone:'UTC'});
 
@@ -296,6 +310,129 @@ const PERSONAS = {
 const STATES = {lagos:'Lagos',kano:'Kano',fct:'FCT Abuja',oyo:'Oyo',rivers:'Rivers',other:'another state',online:'online only'};
 const FAC = {kano:'Hauwa at the Kano partner centre',lagos:'Tolu at the Yaba partner centre',fct:'Chinedu at the Abuja partner centre',oyo:'Bisi at the Ibadan partner centre',rivers:'Ibim at the Port Harcourt partner centre'};
 
+
+/* ---------- Live Yoma listings ----------
+   Public, anonymous endpoints of the Yoma API (v3). No user data is read: Yoma does not expose
+   profiles publicly, so personas and their credentials stay as samples.
+   api.yoma.world only accepts browser calls from https://yoma.world (CORS), so requests go through
+   a same-origin proxy at /yoma-api (see serve.mjs). Results are cached on the device for 6 hours so
+   the app keeps working on a bad connection. */
+const YOMA_API = window.YOMA_API_BASE || '/yoma-api';
+const CACHE_MS = 6 * 3600e3;
+let dataMode = 'live';
+const LIVE = {status:'loading', opps:[], courses:[], metrics:null, error:null, fetchedAt:null, total:0};
+async function yoma(path, body){
+  const key = 'pf-yoma:' + path + (body ? '|' + JSON.stringify(body) : '');
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem(key)); } catch {}
+  if (cached && Date.now() - cached.at < CACHE_MS) return cached;
+  try {
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 12000);
+    const res = await fetch(YOMA_API + path, body
+      ? {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body), signal: ctl.signal}
+      : {signal: ctl.signal});
+    clearTimeout(timer);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const out = {at: Date.now(), data: await res.json()};
+    try { localStorage.setItem(key, JSON.stringify(out)); } catch {}
+    return out;
+  } catch (e) {
+    if (cached) return {...cached, stale:true};   // offline: use the last copy we had
+    throw e;
+  }
+}
+// Map Yoma's free-text skills, categories and titles onto Pathfinder's skill keys.
+const SKILL_RULES = [
+  [/customer|client|call cent|hospitality|front desk/i, 'customer'],
+  [/communicat|writing|presentation|public speaking|english/i, 'comms'],
+  [/excel|spreadsheet|data entry|google sheets|data analy|analytics/i, 'spreadsheets'],
+  [/social media|digital marketing|content creat|marketing/i, 'social-media'],
+  [/python|coding|programming|software|developer|javascript|web dev|html|\bai\b|machine learning/i, 'coding-basics'],
+  [/design|canva|figma|graphic/i, 'design-basics'],
+  [/\bcv\b|resume|curriculum vitae/i, 'cv'],
+  [/interview/i, 'interview'],
+  [/job search|job seeking|employab|career|work readiness/i, 'job-search'],
+  [/team/i, 'teamwork'],
+  [/bookkeep|accounting|financ|money|budget/i, 'bookkeeping'],
+  [/entrepreneur|business plan|start.?up|venture/i, 'business-plan'],
+  [/sales|selling|pricing/i, 'pricing'],
+  [/agri|farm|crop|livestock/i, 'agri-practice'],
+  [/poultry|chicken/i, 'poultry'],
+  [/tailor|sewing|fashion|garment/i, 'tailoring'],
+  [/cyber|online safety|digital safety|privacy/i, 'online-safety'],
+  [/digital literacy|computer|microsoft office|ict|internet/i, 'digital-basics']
+];
+const SECTOR_RULES = [
+  [/technolog|digit|data|\bai\b|software|coding/i, 'digital'],
+  [/tourism|hospitality|customer|sales|retail/i, 'customer'],
+  [/agri|farm|environment|climate|green/i, 'agri'],
+  [/fashion|beauty|tailor/i, 'fashion']
+];
+const TYPE_MAP = {Job:'job', Task:'task', Event:'volunteer', Other:'task'};
+function mapYoma(x){
+  const names = (a) => (a || []).map(v => v.name).join(' | ');
+  const text = [x.title, x.summary, names(x.skills), names(x.categories), (x.keywords || []).join(' ')].join(' | ');
+  let skills = [...new Set(SKILL_RULES.filter(([re]) => re.test(text)).map(([, k]) => k))].slice(0, 4);
+  const online = x.engagementType === 'Online' || !x.engagementType;
+  if (!skills.length) skills = [online ? 'digital-basics' : 'comms'];
+  let sectors = [...new Set(SECTOR_RULES.filter(([re]) => re.test(text)).map(([, k]) => k))];
+  if (!sectors.length || /career|personal development|entrepreneur/i.test(names(x.categories))) sectors.push('all');
+  const deadline = x.dateEnd ? x.dateEnd.slice(0, 10) : null;
+  const base = {id:'y-' + x.id, title:x.title, src:'Yoma', skills, sectors, live:true,
+    link: x.yomaInfoURL || ('https://yoma.world/opportunities/' + x.id),
+    zlto: x.zltoReward || 0, commitment: x.commitmentIntervalDescription || null};
+  if (x.type === 'Learning') {
+    const hrs = x.commitmentIntervalTotalHours || 4;
+    return {...base, kind:'course', hours: Math.max(1, Math.min(hrs, 40)), entry: !/advanced|intermediate/i.test(x.difficulty || ''),
+      data: online ? 2 : 1, offline: !online, org: x.organizationName, deadline};
+  }
+  return {...base, kind:'opp', org: x.organizationName, type: TYPE_MAP[x.type] || 'task',
+    remote: online, states: online ? [] : ['all'], minAge: 15, deadline, openEnded: !deadline};
+}
+async function loadYoma(){
+  LIVE.status = 'loading'; renderDataStatus();
+  if (location.protocol === 'file:' && !window.YOMA_API_BASE) { LIVE.status = 'error'; LIVE.error = 'opened as a file'; return renderDataStatus(); }
+  try {
+    const [countries, metrics] = await Promise.all([
+      yoma('/opportunity/search/filter/country'),
+      yoma('/analytics/platform/metrics/info').catch(() => null)
+    ]);
+    const ids = countries.data.filter(c => c.codeAlpha2 === 'NG' || c.codeAlpha2 === 'WW').map(c => c.id);
+    const res = await yoma('/opportunity/search', {pageNumber:1, pageSize:200, countries: ids.length ? ids : null});
+    const items = (res.data.items || []).filter(x => !x.hidden);
+    const mapped = items.map(mapYoma);
+    LIVE.opps = mapped.filter(x => x.kind === 'opp');
+    LIVE.courses = mapped.filter(x => x.kind === 'course');
+    LIVE.total = res.data.totalCount ?? items.length;
+    LIVE.metrics = metrics && metrics.data;
+    LIVE.fetchedAt = res.at; LIVE.stale = !!res.stale;
+    LIVE.hasNigeria = countries.data.some(c => c.codeAlpha2 === 'NG');
+    LIVE.status = LIVE.opps.length ? 'ok' : 'empty';
+  } catch (e) {
+    LIVE.status = 'error'; LIVE.error = String(e.message || e);
+  }
+  renderDataStatus();
+}
+const liveOn = () => dataMode === 'live' && LIVE.status === 'ok';
+const catalogue = () => liveOn()
+  ? {courses: [...COURSES, ...LIVE.courses], opps: [...LIVE.opps, ...OPPS.filter(o => o.src === 'imaGen')]}
+  : {courses: COURSES, opps: OPPS};
+function renderDataStatus(){
+  const on = liveOn(), sub = $('#live-sub');
+  $('#live-dot').classList.toggle('on', LIVE.status === 'ok');
+  sub.textContent = LIVE.status === 'loading' ? 'connecting…'
+    : LIVE.status === 'ok' ? `${LIVE.opps.length + LIVE.courses.length} listings${LIVE.stale ? ' · saved copy' : ''}`
+    : LIVE.status === 'empty' ? 'no listings found' : 'not reachable';
+  $('#data-badge').textContent = on ? 'Prototype · live Yoma listings' : 'Prototype · sample listings';
+  $('#foot-data').textContent = on
+    ? `Yoma opportunities and courses are live from the public Yoma API (fetched ${new Date(LIVE.fetchedAt).toLocaleString('en-GB')}). Passport to Earning courses, imaGen challenges, personas and facilitators are still invented sample data. Dates use today's date.`
+    : 'All courses, openings, employers and facilitators shown are invented sample data for testing the flow. Prototype date is fixed at Monday 26 October 2026.'
+      + (dataMode === 'live' && LIVE.status === 'error' ? ` Live Yoma data couldn't load (${LIVE.error}); run "node serve.mjs" and open http://localhost:4173 to use it.` : '');
+  const m = LIVE.metrics, st = $('#yoma-stats');
+  st.hidden = !(on && m);
+  if (on && m) st.innerHTML = `<span class="live-dot on"></span>Live on Yoma: <b>${esc(m.userCountDisplay)}</b> young people · <b>${esc(m.organizationCountDisplay)}</b> organisations · <b>${Number(m.opportunityCount).toLocaleString('en-GB')}</b> opportunities in <b>${esc(m.countryCount)}</b> countries`;
+}
+
 /* ---------- Words (English + Nigerian Pidgin) ---------- */
 const T = {
  en:{
@@ -339,6 +476,8 @@ const T = {
   rLearnAll:"Recommended because {org} is looking for {skills}, and this course covers {all} you're missing.",
   rLearnReady:"Your Yoma profile already shows the skills this opening asks for. This sharpens your CV and interview.",
   rApply:"Recommended because it's {where}, you're eligible at {age}, and it closes on {date}.",
+  rApplyOpen:"Recommended because it's {where}, it matches what you want to do, and it's open now with no closing date.",
+  openNow:"open now", noMatch:"I couldn't find an opening that fits your answers today. I'd rather tell you than send you something that won't work.",
   whereState:"in {state}", whereOnline:"online", whereAll:"open in every state",
   hrs:"{h} hrs", weeks:"about {w} wk", closes:"closes {d}", planTitle:"Your Pathfinder plan", why:"Why: ",
   informal:"Informal and self-employment routes count."
@@ -384,6 +523,8 @@ const T = {
   rLearnAll:"I pick am because {org} want people wey sabi {skills}, and this course cover {all} wey you still need.",
   rLearnReady:"Your Yoma profile don show say you get the skills wey this opening want. This one go sharpen your CV and interview.",
   rApply:"I pick am because e dey {where}, you qualify for {age}, and e go close {date}.",
+  rApplyOpen:"I pick am because e dey {where}, e match wetin you wan do, and e dey open now, no closing date.",
+  openNow:"dey open now", noMatch:"I no see any opening wey fit your answers today. Better I tell you than make I give you wetin no go work.",
   whereState:"for {state}", whereOnline:"online", whereAll:"open for every state",
   hrs:"{h} hrs", weeks:"like {w} wk", closes:"close {d}", planTitle:"Your Pathfinder plan", why:"Why: ",
   informal:"Informal work and self-employment count."
@@ -444,9 +585,9 @@ function pick(i){
 /* ---------- Matching ---------- */
 function oppBlock(o){
   const a = S.a;
-  if (o.deadline === 'ongoing') return 'No clear deadline ("ongoing")';
+  if (o.deadline === 'ongoing' || (!o.deadline && !o.openEnded)) return 'No clear deadline ("ongoing")';
   if (o.linkBroken) return 'Application link broken';
-  if (parseD(o.deadline) < TODAY) return 'Deadline passed';
+  if (hasDeadline(o) && parseD(o.deadline) < TODAY) return 'Deadline passed';
   if (S.age < o.minAge) return `Needs age ${o.minAge}+`;
   const st = o.states || [];
   const okLoc = a.state === 'online' ? !!o.remote : (o.remote || st.includes('all') || st.includes(a.state));
@@ -454,15 +595,15 @@ function oppBlock(o){
   return null;
 }
 function courseBlock(c){
-  if (c.expired) return 'Course closed (expired)';
+  if (c.expired || (c.deadline && parseD(c.deadline) < TODAY)) return 'Course closed (expired)';
   if (S.a.data === 'low' && c.data === 3 && !c.offline) return 'Video-heavy, over data budget';
   return null;
 }
 function compute(){
-  const a = S.a, have = held(), excluded = [];
-  const courses = COURSES.filter(c => { const r = courseBlock(c); if (r) excluded.push({name:c.title, src:c.src, why:r}); return !r; });
+  const a = S.a, have = held(), excluded = [], CAT = catalogue();
+  const courses = CAT.courses.filter(c => { const r = courseBlock(c); if (r) excluded.push({name:c.title, src:c.src, why:r}); return !r; });
   const teachable = new Set(courses.flatMap(c => c.skills));
-  const opps = OPPS.filter(o => { const r = oppBlock(o); if (r) excluded.push({name:o.title, src:o.src, why:r}); return !r; })
+  const opps = CAT.opps.filter(o => { const r = oppBlock(o); if (r) excluded.push({name:o.title, src:o.src, why:r}); return !r; })
     .map(o => {
       const pref = GOAL_TYPES[a.goal], ti = pref.indexOf(o.type);
       let s = ti >= 0 ? 4 - ti * .5 : -2;
@@ -475,7 +616,8 @@ function compute(){
       s -= gap.filter(k => !teachable.has(k)).length * 1.5;
       return {o, score: Math.round(s * 10) / 10};
     }).sort((x, y) => y.score - x.score);
-  S.calc = {courses, opps, excluded, considered: COURSES.length + OPPS.length};
+  S.calc = {courses, opps, excluded, considered: CAT.courses.length + CAT.opps.length, live: liveOn()};
+  if (!opps.length) { S.plan = null; return; }
   S.idx = {apply:0, learn:0, start:0};
   buildPlan();
 }
@@ -528,6 +670,7 @@ function reason(kind){
   }
   const o = p.target.o, st = o.states || [];
   const where = st.includes(a.state) ? t('whereState', {state: STATES[a.state]}) : st.includes('all') ? t('whereAll') : t('whereOnline');
+  if (!hasDeadline(o)) return t('rApplyOpen', {where});
   return t('rApply', {where, age: S.age, date: fmtD(parseD(o.deadline))});
 }
 const hoursLabel = () => ({2:'1–2',4:'3–5',8:'6–10',12:'10+'})[S.a.hours];
@@ -535,7 +678,7 @@ const weeksFor = h => Math.max(1, Math.ceil(h / S.a.hours));
 
 /* ---------- Flow ---------- */
 async function start(){
-  gen++; S = fresh(); pending = null; busy = false; renderAll();
+  gen++; S = fresh(); pending = null; busy = false; TODAY = liveOn() ? REAL_TODAY : SAMPLE_TODAY; renderAll();
   run((async () => {
     await say(T.en.greet + '\n\n' + T.pcm.greet);
     await ask('Which language do you prefer?\nWhich language you want?', O.lang, async v => { S.lang = v; S.a.lang = v; renderPanel(); await askAge(); });
@@ -566,14 +709,18 @@ async function askData(){
   await ask(t('data'), O.data, async v => {
     S.a.data = v; S.stage = 'plan'; renderPanel();
     await say(t('building'));
-    compute(); await showPlan(t(S.plan.weak ? 'planWeak' : 'planIntro'));
+    if (dataMode === 'live' && LIVE.status === 'loading') await liveReady;
+    TODAY = liveOn() ? REAL_TODAY : SAMPLE_TODAY;
+    compute();
+    if (!S.plan) { renderPanel(); await say(t('noMatch')); await handoff('No opening matched their answers'); return; }
+    await showPlan(t(S.plan.weak ? 'planWeak' : 'planIntro'));
   });
 }
 async function showPlan(intro){
   if (intro) await say(intro);
   await say('', {card: snapshot()});
   const p = S.plan, learnWeeks = weeksFor(p.start.c.hours + p.learn.c.hours);
-  const deadline = parseD(p.target.o.deadline);
+  const deadline = hasDeadline(p.target.o) ? parseD(p.target.o.deadline) : Infinity;
   if (!S.saved && TODAY + learnWeeks * 7 * DAY > deadline) await say(t('tight', {date: fmtD(deadline), weeks: learnWeeks}));
   if (!S.saved) await planMenu();
 }
@@ -598,10 +745,11 @@ async function rejectFlow(){
     if (v === 'time') {
       const bands = [2,4,8,12], i = bands.indexOf(S.a.hours);
       if (i <= 0) { await say(t('minTime')); return planMenu(); }
-      S.a.hours = bands[i-1]; compute(); return showPlan(t('lessTime', {h: hoursLabel()}));
+      S.a.hours = bands[i-1]; compute(); if (!S.plan) return say(t('noMatch')); return showPlan(t('lessTime', {h: hoursLabel()}));
     }
-    if (v === 'kind') return askSector(async () => { compute(); await showPlan(t('swapped')); });
-    if (v === 'place') return askState(async () => { compute(); await showPlan(t('swapped')); });
+    const redo = async () => { compute(); if (!S.plan) { await say(t('noMatch')); return handoff('No opening matched their answers'); } await showPlan(t('swapped')); };
+    if (v === 'kind') return askSector(redo);
+    if (v === 'place') return askState(redo);
     await handoff('Asked to talk to a person while choosing a plan');
     return planMenu();
   });
@@ -661,8 +809,10 @@ function snapshot(){
     const it = st.item;
     return {kind: st.kind, status: st.status, title: it.title,
       src: st.kind === 'apply' ? `${it.org} · ${TYPE_LABEL[it.type]} on ${it.src}` : it.src,
-      meta: st.kind === 'apply' ? t('closes', {d: fmtD(parseD(it.deadline))}) : `${t('hrs', {h: it.hours})} · ${t('weeks', {w: weeksFor(it.hours)})}${it.offline ? ' · offline' : ''}`,
-      why: reason(st.kind), informal: !!it.informal, platform: it.src};
+      meta: st.kind === 'apply'
+        ? (hasDeadline(it) ? t('closes', {d: fmtD(parseD(it.deadline))}) : t('openNow')) + (it.zlto ? ` · ${it.zlto} Zlto` : '')
+        : `${t('hrs', {h: it.hours})} · ${t('weeks', {w: weeksFor(it.hours)})}${it.offline ? ' · offline' : ''}`,
+      why: reason(st.kind), informal: !!it.informal, platform: it.src, link: it.link || ''};
   });
 }
 
@@ -671,7 +821,7 @@ const TAG = {start:'Start here', learn:'Learn here', apply:'Apply here'};
 const STATUS = {todo:'To do', doing:'In progress', done:'Done'};
 function planCard(steps){
   if (channel === 'sms') {
-    const lines = steps.map((s, i) => `${i+1}) ${TAG[s.kind].toUpperCase()}${S.saved ? ' [' + STATUS[s.status] + ']' : ''}\n${s.title}\n${s.src}\n${s.meta}\n${t('why')}${s.why}\nLink: gen.u/${s.kind[0]}${i+1}`);
+    const lines = steps.map((s, i) => `${i+1}) ${TAG[s.kind].toUpperCase()}${S.saved ? ' [' + STATUS[s.status] + ']' : ''}\n${s.title}\n${s.src}\n${s.meta}\n${t('why')}${s.why}\nLink: ${s.link ? s.link.replace(/^https?:\/\//, '') : 'gen.u/' + s.kind[0] + (i+1)}`);
     return `<div class="msg bot">${esc(t('planTitle').toUpperCase() + '\n\n' + lines.join('\n\n'))}</div>`;
   }
   return `<div class="plan"><h4>${esc(t('planTitle'))}</h4>${steps.map((s, i) => `
@@ -682,7 +832,7 @@ function planCard(steps){
       <div class="meta">${esc(s.meta)}</div>
       <div class="why">${esc(s.why)}</div>
       ${s.informal ? `<div class="informal">${esc(t('informal'))}</div>` : ''}
-      <div class="row"><button class="open" data-open="${esc(s.title)}|${esc(s.platform)}">Open on ${esc(s.platform)}</button>${S.saved ? `<span class="status ${s.status}">${STATUS[s.status]}</span>` : ''}</div>
+      <div class="row"><button class="open" data-open="${esc(s.title)}|${esc(s.platform)}" data-link="${esc(s.link)}">Open on ${esc(s.platform)}</button>${S.saved ? `<span class="status ${s.status}">${STATUS[s.status]}</span>` : ''}</div>
     </div>`).join('')}</div>`;
 }
 function renderChat(){
@@ -722,13 +872,14 @@ function renderPanel(){
     ${S.consent ? (P.creds.length ? `<ul class="ex">${P.creds.map(c => `<li><span>${esc(c.title)}</span><span style="color:var(--ok)">${esc(c.src)}</span></li>`).join('')}</ul>
       <div class="chips" style="margin-top:10px">${[...held()].map(k => `<span class="chip have">${esc(SK[k])}</span>`).join('')}</div>` : '<p class="empty-note">No credentials on this profile yet.</p>')
       : `<p class="empty-note">${S.consent === false ? 'The user chose not to share. Pathfinder plans from their answers only.' : `Sample profile for ${esc(P.name)}: ${P.creds.length} credential${P.creds.length === 1 ? '' : 's'}. Pathfinder asks before reading it.`}</p>`}`;
-  const c = S.calc;
-  $('#p-match').innerHTML = !c ? `<h3>Live listings check</h3><p class="empty-note">After the intake, Pathfinder checks ${COURSES.length + OPPS.length} sample listings synced overnight from P2E, Yoma and imaGen and removes anything the user can't actually act on.</p>`
-    : `<h3>Live listings check <em>${c.considered} considered · ${c.excluded.length} removed</em></h3>
+  const c = S.calc, p = S.plan, have = held();
+  const CAT = catalogue();
+  $('#p-match').innerHTML = !c ? `<h3>Live listings check</h3><p class="empty-note">After the intake, Pathfinder checks ${CAT.courses.length + CAT.opps.length} listings ${liveOn() ? `(${LIVE.opps.length + LIVE.courses.length} live from Yoma for Nigeria and worldwide, the rest sample P2E and imaGen)` : 'synced overnight from P2E, Yoma and imaGen (sample data)'} and removes anything the user can't actually act on.</p>`
+    : `<h3>Live listings check <em>${c.considered} considered · ${c.excluded.length} removed${c.live ? ' · Yoma live' : ''}</em></h3>
+      ${c.live ? '<p class="empty-note" style="margin-bottom:8px">Yoma listings don\'t carry a Nigerian state or minimum age, so in-person ones count as nationwide and open-ended ones are kept. Skills are matched from each listing\'s Yoma skills, categories and title.</p>' : ''}
       <ul class="ex">${c.excluded.map(x => `<li><span>${esc(x.name)} <span class="mono" style="color:var(--muted)">${esc(x.src)}</span></span><span>${esc(x.why)}</span></li>`).join('')}</ul>
       <p class="empty-note" style="margin-top:12px">Top openings by fit score (goal type, sector, location, skills already held, skills P2E can teach):</p>
-      <ul class="ex" style="margin-top:6px">${c.opps.slice(0, 4).map((x, i) => `<li><span>${i === S.idx.apply ? '<b>▸ </b>' : ''}${esc(x.o.title)}</span><span class="mono" style="color:var(--accent)">${x.score}</span></li>`).join('')}</ul>`;
-  const p = S.plan, have = held();
+      <ul class="ex" style="margin-top:6px">${c.opps.slice(0, 4).map((x, i) => `<li><span>${p && x === p.target ? '<b>▸ </b>' : ''}${esc(x.o.title)}${x.o.live ? ' <span class="mono" style="color:var(--muted)">' + esc(x.o.org) + '</span>' : ''}</span><span class="mono" style="color:var(--accent)">${x.score}</span></li>`).join('')}</ul>`;
   $('#p-gap').innerHTML = !p ? `<h3>Skill gap</h3><p class="empty-note">Pathfinder compares the skills the chosen opening asks for with the skills on the Yoma profile, then picks the course that covers most of what's missing.</p>`
     : `<h3>Skill gap <em>${esc(p.target.o.title)}</em></h3>
       <div class="chips">${p.target.o.skills.map(k => `<span class="chip ${have.has(k) ? 'have' : 'miss'} ${p.learn.cov.includes(k) ? 'cov' : ''}">${have.has(k) ? '✓ ' : ''}${esc(SK[k])}</span>`).join('')}</div>
@@ -756,7 +907,10 @@ $('#chat').addEventListener('click', e => {
   const b = e.target.closest('[data-pick]'); if (b) return pick(+b.dataset.pick);
   if (e.target.closest('#weekbtn')) return nextWeek();
   const o = e.target.closest('[data-open]');
-  if (o) { const [title, plat] = o.dataset.open.split('|'); toast(`In the live version this opens "${title}" on ${plat}. This prototype uses sample listings.`); }
+  if (o) {
+    if (o.dataset.link) return void window.open(o.dataset.link, '_blank', 'noopener');
+    const [title, plat] = o.dataset.open.split('|'); toast(`In the live version this opens "${title}" on ${plat}. This is a sample listing.`);
+  }
 });
 $('#composer').addEventListener('submit', e => {
   e.preventDefault();
@@ -786,5 +940,7 @@ function seg(id, set){ document.querySelectorAll(`#${id} button`).forEach(b => b
   document.querySelectorAll(`#${id} button`).forEach(x => x.setAttribute('aria-pressed', x === b)); set(b.dataset.v); })); }
 seg('persona', v => { persona = v; start(); });
 seg('channel', v => { channel = v; renderChat(); });
+seg('datamode', v => { dataMode = v; renderDataStatus(); start(); });
+const liveReady = loadYoma().then(() => { if (S && S.stage === 'intake' && !S.calc) { TODAY = liveOn() ? REAL_TODAY : SAMPLE_TODAY; renderAll(); } });
 start();
 </script>
