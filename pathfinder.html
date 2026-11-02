@@ -70,6 +70,7 @@ ol.stepper li.done b{background:var(--ok-soft);color:var(--ok);border-color:tran
 .sms .ph-head{background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line)}
 .sms .ph-head .av{background:var(--sms)}
 .chat{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+.chat > *{flex-shrink:0} /* keep the plan card from being squashed to a line as the chat grows */
 .sms .chat{background:var(--surface)}
 .msg{max-width:88%;padding:8px 11px;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14.5px}
 .msg.bot{align-self:flex-start;background:var(--bot);border-top-left-radius:4px}
@@ -153,6 +154,15 @@ ul.ex li span:first-child{min-width:0}
 .fac b{color:var(--warn)}
 ul.rules{margin:0;padding-left:18px;display:grid;gap:6px;font-size:14px}
 ul.rules b{font-weight:700}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.safe{font-size:12.5px;border-left:3px solid var(--warn);background:var(--warn-soft);color:var(--ink);border-radius:4px;padding:5px 8px;margin-top:4px}
+.safe b{color:var(--warn)}
+.open.report{color:var(--muted);font-weight:400;font-size:12.5px}
+.plan-foot{padding:10px 12px;border-top:1px solid var(--line);background:var(--surface-2);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--muted)}
+.plan-foot a{color:var(--accent);font-weight:700;font-size:13px;text-underline-offset:3px}
+.fac.urgent{border-color:#B3261E;background:#FCE4E2}
+.fac.urgent b{color:#B3261E}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .fac.urgent{background:#3D1A18;border-color:#F28B82} :root:not([data-theme="light"]) .fac.urgent b{color:#F28B82}}
 .live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:middle}
 .live-dot.on{background:var(--ok)}
 .stats{margin:6px 0 0;font-size:14px;color:var(--muted)}
@@ -207,7 +217,8 @@ footer{color:var(--muted);font-size:13px;max-width:80ch}
           <div class="av">P</div>
           <div><div class="nm">GenU Pathfinder</div><div class="st" id="chan-label">WhatsApp · Nigeria</div></div>
         </div>
-        <div class="chat" id="chat" aria-live="polite"></div>
+        <div class="chat" id="chat" role="region" aria-label="Conversation with Pathfinder" tabindex="-1"></div>
+        <div id="sr-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
         <form class="composer" id="composer" autocomplete="off">
           <button type="button" class="mic" id="mic" aria-label="Record a voice note"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3" fill="none"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" fill="none"/></svg></button>
           <input id="msg-input" placeholder="Type a number or message" aria-label="Message">
@@ -234,7 +245,13 @@ footer{color:var(--muted);font-size:13px;max-width:80ch}
           <li><b>Users can say no.</b> Swap any step, or say none fit and get a lighter or different plan.</li>
           <li><b>Buttons, not open chat.</b> Fixed questions with tap or number replies work on basic phones and keep the intake to about 5 minutes.</li>
           <li><b>A person after two missed check-ins.</b> Anyone who stalls twice or asks for help goes to a facilitator instead of another automated message.</li>
-          <li><b>Minimal data.</b> Stores the six answers, the age check, the plan and its status. Reply DELETE to erase them.</li>
+          <li><b>Minimal data.</b> Stores the six answers, the age check, the plan and its status. Reply DELETE to erase them. Plans with no activity for 6 months are deleted automatically.</li>
+          <li><b>Never pay to apply.</b> Listings that ask for a fee, deposit or payment are removed and flagged. Every Apply step carries the warning, and users can report any step (Report button, or reply REPORT 1, 2 or 3).</li>
+          <li><b>Under 18s need a guardian.</b> 15 to 17 year olds need a parent or guardian's agreement before anything is saved (Nigeria Data Protection Act 2023), and are told to bring them to any first in-person visit.</li>
+          <li><b>Safe meetings.</b> In-person openings come with safety tips. Facilitators are vetted partner staff and meet young people only at the partner centre.</li>
+          <li><b>Urgent words reach a person.</b> Messages about danger, abuse or self-harm skip the bot and go straight to a facilitator the same day, with the 112 emergency number.</li>
+          <li><b>Shared phones.</b> A saved plan never shows a name. Reopening asks "Is this yours?" first, and SMS messages carry no personal details.</li>
+          <li><b>No promises.</b> Reasons only use the listing's own facts and never promise a job or result.</li>
         </ul>
       </div>
     </section>
@@ -242,7 +259,7 @@ footer{color:var(--muted);font-size:13px;max-width:80ch}
 
   <footer><span id="foot-data">All courses, openings, employers and facilitators shown are invented sample data for testing the flow. Prototype date is fixed at Monday 26 October 2026.</span> Estimated running cost in the report: about a third of a US cent per active user each month on GPT‑5.4 nano.</footer>
 </div>
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
 
 <script>
 const $ = s => document.querySelector(s);
@@ -298,7 +315,10 @@ const OPPS = [
   {id:'i2',title:'Green Ideas Challenge',org:'imaGen Ventures',type:'challenge',skills:['business-plan','agri-practice'],remote:true,minAge:15,deadline:'2026-12-12',sectors:['agri'],src:'imaGen'},
   {id:'i3',title:'Fashion Upcycling Challenge',org:'imaGen Ventures',type:'challenge',skills:['business-plan','tailoring'],remote:true,minAge:15,deadline:'2026-09-30',sectors:['fashion'],src:'imaGen'}
 ];
-OPPS.forEach(o => { o.src = o.src || 'Yoma'; o.kind = 'opp'; });
+OPPS.push({id:'o12',title:'Remote Typing Job (₦50,000 a week)',org:'QuickCash Jobs',type:'job',skills:['digital-basics'],remote:true,minAge:16,deadline:'2026-12-08',sectors:['digital','customer'],desc:'Start today. Pay a ₦5,000 registration fee to receive your work.'});
+// Listings that ask young people for money are a common scam. Anything mentioning a fee, deposit or upfront payment is removed and flagged.
+const SCAM_RE = /\b(registration|application|processing|training|starter|joining|form)\s+fees?\b|\bpay\s+(a|the|to|for)\b|\bdeposit\b|\bsend\s+money\b|\bupfront\b|\bpay\s+before\b/i;
+OPPS.forEach(o => { o.src = o.src || 'Yoma'; o.kind = 'opp'; o.scam = SCAM_RE.test(o.title + ' ' + (o.desc || '')); });
 const PROFILE_STEP = {id:'p1',title:'Complete your Yoma profile',src:'Yoma',kind:'course',skills:[],hours:1,pseudo:true,sectors:['all'],data:1};
 const TYPE_LABEL = {job:'Job',learnership:'Learnership',apprenticeship:'Apprenticeship',self:'Self-employment',volunteer:'Volunteering',task:'Yoma task',challenge:'imaGen challenge'};
 const GOAL_TYPES = {job:['job','learnership','apprenticeship','self'],skills:['learnership','volunteer','task','apprenticeship'],business:['challenge','self','apprenticeship'],notsure:['task','learnership','volunteer','challenge']};
@@ -378,7 +398,8 @@ function mapYoma(x){
   let sectors = [...new Set(SECTOR_RULES.filter(([re]) => re.test(text)).map(([, k]) => k))];
   if (!sectors.length || /career|personal development|entrepreneur/i.test(names(x.categories))) sectors.push('all');
   const deadline = x.dateEnd ? x.dateEnd.slice(0, 10) : null;
-  const base = {id:'y-' + x.id, title:x.title, src:'Yoma', skills, sectors, live:true,
+  const scam = SCAM_RE.test([x.title, x.summary, x.description, x.instructions].join(' '));
+  const base = {id:'y-' + x.id, title:x.title, src:'Yoma', skills, sectors, live:true, scam,
     link: x.yomaInfoURL || ('https://yoma.world/opportunities/' + x.id),
     zlto: x.zltoReward || 0, commitment: x.commitmentIntervalDescription || null};
   if (x.type === 'Learning') {
@@ -436,6 +457,21 @@ function renderDataStatus(){
 /* ---------- Words (English + Nigerian Pidgin) ---------- */
 const T = {
  en:{
+  guardianQ:"Because you're under 18, a parent or guardian needs to agree before I save anything. In the full version I'll text them a code to confirm.\n\nDoes your parent or guardian agree?",
+  guardianYes:"Thank you. I'll keep your plan simple and safe, and only use reviewed messages.",
+  guardianNo:"That's fine. Nothing has been saved. When they agree, send Hi to start again. You can still look at opportunities on Yoma.",
+  neverPay:"Never pay to apply. Real openings are free. If anyone asks you for money, tap Report or reply REPORT {n}.",
+  safeInPerson:"Going in person? Meet in a public place, go in daylight and tell someone you trust where you're going.",
+  minorInPerson:"You're under 18, so bring a parent or guardian to the first visit.",
+  reported:"Thanks for telling me. I've hidden it from your plan and sent it to the GenU team to check. Here's your updated plan.",
+  reportedOld:"Thanks. That listing has been sent to the GenU team to check.",
+  urgent:"It sounds like you might not be safe. If you're in danger right now, call 112. It's free.\n\nI've asked {fac} to contact you today. You're not alone, and you did the right thing by telling me.",
+  welcomeBack:"Welcome back. There's a saved Pathfinder plan on this phone. Is it yours?",
+  resumed:"Here's where you left off.",
+  fbQ:"Quick question: is this plan useful to you?", fbThanks:"Thank you. That helps us make Pathfinder better.",
+  zlto:"This one also earns you {z} Zlto on Yoma once it's verified.",
+  neverPaySms:"Never pay to apply. Real openings are free. If anyone asks you for money, reply REPORT {n}.",
+  share:"Send my plan on WhatsApp", shareHead:"My Pathfinder plan", report:"Report", smsReport:"If anything looks wrong or asks for money, reply REPORT and the step number.",
   greet:"Hi, I'm Pathfinder from GenU. I turn your goal into 3 clear steps: one to start, one to learn and one to apply. It takes about 5 minutes.",
   age:"Before we start: I only save your answers, your plan and your progress. Reply DELETE at any time to erase them.\n\nHow old are you?",
   under15:"Pathfinder is for young people aged 15 to 24. Please ask a teacher or parent about programmes for your age. Reply RESTART to begin again.",
@@ -465,7 +501,7 @@ const T = {
   applyQ:"Week {w} check-in. Have you applied to {title}?",
   applied:"Great! I've marked it as Applied on your Yoma profile, so it doesn't get lost once you leave the site.",
   complete:"You've finished all 3 steps. Your plan and application are saved on Yoma. When you hear back, tell me and I'll help you plan what comes next.",
-  handoff:"I've asked {fac} to message you within 2 working days. They can help you in person. Your plan stays saved.",
+  handoff:"I've asked {fac} to message you within 2 working days. If you meet, it will be at the partner centre, never somewhere private. Your plan stays saved.",
   fallback:"I work best with the buttons. Tap an option, or reply with its number.",
   deleted:"Done. Your answers and plan have been deleted. Send Hi to start again.",
   bye:"Good luck! Send Hi any time to make a new plan.",
@@ -483,6 +519,21 @@ const T = {
   informal:"Informal and self-employment routes count."
  },
  pcm:{
+  guardianQ:"Because you never reach 18, your parent or guardian must agree before I save anything. For the full version I go send them code make dem confirm.\n\nYour parent or guardian agree?",
+  guardianYes:"Thank you. I go keep your plan simple and safe, and I go use only messages wey dem don check.",
+  guardianNo:"No wahala. I never save anything. When dem agree, send Hi make we start again. You still fit check opportunities for Yoma.",
+  neverPay:"No pay money to apply. Real openings dey free. If anybody ask you for money, tap Report or send REPORT {n}.",
+  safeInPerson:"You go go there? Meet for open place, go during day and tell person wey you trust where you dey go.",
+  minorInPerson:"You never reach 18, so carry your parent or guardian go the first visit.",
+  reported:"Thank you say you tell me. I don comot am from your plan and send am to GenU team make dem check. See your new plan.",
+  reportedOld:"Thank you. I don send that listing to GenU team make dem check am.",
+  urgent:"E be like say you no dey safe. If danger dey now now, call 112. E free.\n\nI don ask {fac} make dem reach you today. You no dey alone, and you do well say you tell me.",
+  welcomeBack:"Welcome back. One Pathfinder plan dey saved for this phone. Na your own?",
+  resumed:"See where you stop.",
+  fbQ:"Small question: this plan go help you?", fbThanks:"Thank you. E go help us make Pathfinder better.",
+  zlto:"This one go also give you {z} Zlto for Yoma when dem verify am.",
+  neverPaySms:"No pay money to apply. Real openings dey free. If anybody ask you for money, send REPORT {n}.",
+  share:"Send my plan for WhatsApp", shareHead:"My Pathfinder plan", report:"Report", smsReport:"If anything no look correct or dem ask for money, send REPORT and the step number.",
   greet:"How far! I be Pathfinder from GenU. I go help you turn your goal into 3 clear steps: one to start, one to learn, one to apply. E go take like 5 minutes.",
   age:"Before we start: I go keep only your answers, your plan and how far you don go. Send DELETE anytime make I clear am.\n\nHow old you be?",
   under15:"Pathfinder na for young people wey dey 15 reach 24. Abeg ask your teacher or parent about programme for your age. Send RESTART to start again.",
@@ -512,7 +563,7 @@ const T = {
   applyQ:"Week {w} check-in. You don apply for {title}?",
   applied:"Correct! I don mark am as Applied for your Yoma profile, so e no go lost when you comot the site.",
   complete:"You don finish all 3 steps. Your plan and application dey saved for Yoma. When you hear from them, tell me and I go help you plan the next thing.",
-  handoff:"I don tell {fac} make dem message you inside 2 working days. Dem fit help you face to face. Your plan still dey saved.",
+  handoff:"I don tell {fac} make dem message you inside 2 working days. If una meet, na for the partner centre, no be private place. Your plan still dey saved.",
   fallback:"I sabi buttons pass. Tap one option, or send the number.",
   deleted:"E don do. I don delete your answers and plan. Send Hi to start again.",
   bye:"Good luck! Send Hi anytime to make new plan.",
@@ -543,6 +594,9 @@ const O = {
   reject:[{v:'time',en:'Too much time',pcm:'E go take too much time'},{v:'kind',en:'Wrong kind of work',pcm:'No be the work I want'},{v:'place',en:'Wrong place',pcm:'The place no good'},{v:'person',en:'Talk to a person',pcm:'I wan talk to person'}],
   ci:[{v:'done',en:'Yes, finished',pcm:'Yes, I don finish'},{v:'doing',en:'Still working on it',pcm:'I still dey do am'},{v:'not',en:'Not started',pcm:'I never start'},{v:'help',en:'I need help',pcm:'I need help'}],
   apply:[{v:'applied',en:'Yes, I applied',pcm:'Yes, I don apply'},{v:'not',en:'Not yet',pcm:'Not yet'},{v:'help',en:'I need help',pcm:'I need help'}],
+  guardian:[{v:true,en:'Yes, they agree',pcm:'Yes, dem agree'},{v:false,en:'Not yet',pcm:'Not yet'}],
+  resume:[{v:'yes',en:'Yes, continue',pcm:'Yes, continue'},{v:'no',en:'No, start a new plan',pcm:'No, start new plan'}],
+  fb:[{v:'yes',en:'Yes, very',pcm:'Yes, well well'},{v:'bit',en:'A bit',pcm:'Small'},{v:'no',en:'Not really',pcm:'No really'}],
   end:[{v:'new',en:'Make a new plan',pcm:'Make new plan'},{v:'done',en:"That's all for now",pcm:'Na all for now'}]
 };
 const LABEL = {lang:{en:'English',pcm:'Naija Pidgin'}};
@@ -552,7 +606,8 @@ let S, pending = null, busy = false, gen = 0, persona = 'amina', channel = 'chat
 const ABORT = Symbol('abort');
 function fresh(){
   return {lang:'en', stage:'intake', msgs:[], a:{}, age:null, consent:null, calc:null, idx:{apply:0,learn:0,start:0},
-          plan:null, saved:false, week:0, stalls:0, flagged:null, awaitWeek:false, deleted:false};
+          plan:null, saved:false, week:0, stalls:0, flagged:null, awaitWeek:false, deleted:false,
+          guardian:null, reported:[], feedback:null};
 }
 function t(k, v={}){ let s = (T[S.lang][k] ?? T.en[k]); return s.replace(/\{(\w+)\}/g, (_,x) => v[x] ?? ''); }
 const lbl = o => o[S.lang] ?? o.en;
@@ -565,7 +620,9 @@ async function say(text, extra={}){
   await sleep(380 + Math.min(text.length, 160) * 3);
   if (g !== gen) throw ABORT;
   S.msgs.pop(); S.msgs.push({from:'bot', text, ...extra}); busy = false; renderAll();
+  announce(extra.card ? t('planTitle') + '. ' + extra.card.map((c, i) => `Step ${i+1}, ${TAG[c.kind]}: ${c.title}, ${c.src}. ${c.meta}.`).join(' ') : text);
 }
+function announce(text){ const el = $('#sr-live'); el.textContent = ''; setTimeout(() => { el.textContent = text; }, 50); }
 function sys(text){ S.msgs.push({from:'sys', text}); renderChat(); }
 async function ask(text, options, handler, extra={}){
   await say(text, {options, ...extra});
@@ -585,6 +642,8 @@ function pick(i){
 /* ---------- Matching ---------- */
 function oppBlock(o){
   const a = S.a;
+  if (S.reported.includes(o.id)) return 'Reported by the user';
+  if (o.scam) return 'Asks for a fee or payment, flagged for review';
   if (o.deadline === 'ongoing' || (!o.deadline && !o.openEnded)) return 'No clear deadline ("ongoing")';
   if (o.linkBroken) return 'Application link broken';
   if (hasDeadline(o) && parseD(o.deadline) < TODAY) return 'Deadline passed';
@@ -595,6 +654,7 @@ function oppBlock(o){
   return null;
 }
 function courseBlock(c){
+  if (S.reported.includes(c.id)) return 'Reported by the user';
   if (c.expired || (c.deadline && parseD(c.deadline) < TODAY)) return 'Course closed (expired)';
   if (S.a.data === 'low' && c.data === 3 && !c.offline) return 'Video-heavy, over data budget';
   return null;
@@ -688,8 +748,17 @@ async function askAge(){
   await ask(t('age'), O.age, async v => {
     if (v < 15) { S.age = v; await say(t('under15')); return; }
     if (v > 24) { S.age = v; await say(t('over24')); return; }
-    S.age = v; renderPanel(); await askProfile();
+    S.age = v; renderPanel();
+    if (v < 18) return askGuardian();
+    await askProfile();
   }, {grid:true});
+}
+async function askGuardian(){
+  await ask(t('guardianQ'), O.guardian, async v => {
+    S.guardian = v; renderPanel();
+    if (!v) { await say(t('guardianNo')); S.deleted = true; return; }
+    await say(t('guardianYes')); await askProfile();
+  });
 }
 async function askProfile(){
   await ask(t('profile'), O.profile, async v => {
@@ -728,7 +797,8 @@ async function planMenu(){
   await ask(t('planAsk'), O.plan, async v => {
     if (v === 'save') {
       S.saved = true; S.stage = 'checkin'; renderPanel();
-      await say(t('saved')); S.awaitWeek = true; renderChat(); return;
+      await say(t('saved'));
+      return ask(t('fbQ'), O.fb, async f => { S.feedback = f; renderPanel(); await say(t('fbThanks')); S.awaitWeek = true; renderChat(); });
     }
     if (v === 'reject') return rejectFlow();
     const p = S.plan;
@@ -767,7 +837,9 @@ async function checkin(){
     return ask(t('applyQ', {w: S.week, title: step.item.title}), O.apply, async v => {
       if (v === 'applied') {
         step.status = 'done'; S.stalls = 0; S.stage = 'done'; renderPanel();
-        await say(t('applied')); await say('', {card: snapshot()});
+        await say(t('applied'));
+        if (step.item.zlto) await say(t('zlto', {z: step.item.zlto}));
+        await say('', {card: snapshot()});
         await say(t('complete'));
         return ask(S.lang === 'pcm' ? 'Wetin next?' : 'What next?', O.end, async e => { if (e === 'new') start(); else await say(t('bye')); });
       }
@@ -778,6 +850,7 @@ async function checkin(){
     if (v === 'done') {
       step.status = 'done'; S.stalls = 0; renderPanel();
       await say(t('ciDone'));
+      if (step.item.zlto) await say(t('zlto', {z: step.item.zlto}));
       const n = currentStep(); await say(t('ciNext', {n: n + 1, title: S.plan.steps[n].item.title}));
       await say('', {card: snapshot()});
       S.awaitWeek = true; renderChat(); return;
@@ -795,11 +868,59 @@ async function afterMiss(v, step){
   }
   S.awaitWeek = true; renderChat();
 }
-async function handoff(why){
+async function handoff(why, urgent=false){
   const fac = FAC[S.a.state] || (S.lang === 'pcm' ? 'one GenU Nigeria facilitator' : 'a GenU Nigeria facilitator');
-  S.flagged = {why, fac, week: S.week, step: S.plan ? S.plan.steps[Math.max(0, currentStep())]?.item.title : null};
+  S.flagged = {why, fac, urgent, week: S.week, step: S.plan ? S.plan.steps[Math.max(0, currentStep())]?.item.title : null};
   S.stalls = 0; renderPanel();
-  await say(t('handoff', {fac}));
+  await say(t(urgent ? 'urgent' : 'handoff', {fac}));
+}
+
+/* ---------- Reporting a step ---------- */
+function report(id){
+  if (busy) return toast('One moment, Pathfinder is still typing.');
+  if (S.reported.includes(id)) return;
+  S.reported.push(id);
+  const onPlan = S.plan && S.plan.steps.some(st => st.item.id === id);
+  if (!onPlan) { renderPanel(); return run(say(t('reportedOld'))); }
+  if (pending) { pending.msg.answered = true; pending = null; }
+  S.awaitWeek = false;
+  run((async () => {
+    compute();
+    if (!S.plan) { renderPanel(); await say(t('noMatch')); return handoff('Reported a step and no other opening fits'); }
+    await showPlan(t('reported'));
+    if (S.saved) { S.awaitWeek = S.stage !== 'done'; renderChat(); }
+  })());
+}
+
+/* ---------- Saved on this phone ---------- */
+const SAVE_KEY = 'pf-saved-plan', KEEP_MS = 182 * DAY;
+function persist(){
+  if (!S || !S.saved || !S.plan) return;
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify({at: Date.now(), persona, channel, dataMode, S})); } catch {}
+}
+function clearSaved(){ try { localStorage.removeItem(SAVE_KEY); } catch {} }
+function resume(){
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch {}
+  if (!d || !d.S) return false;
+  if (Date.now() - d.at > KEEP_MS) { clearSaved(); return false; }
+  persona = d.persona; channel = d.channel; dataMode = d.dataMode;
+  [['persona', persona], ['channel', channel], ['datamode', dataMode]].forEach(([id, v]) =>
+    document.querySelectorAll(`#${id} button`).forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v)));
+  gen++; pending = null; busy = false;
+  S = d.S; S.msgs = S.msgs.filter(m => m.from !== 'typing'); S.msgs.forEach(m => { if (m.options) m.answered = true; });
+  const wasWaiting = S.awaitWeek; S.awaitWeek = false;
+  TODAY = dataMode === 'live' ? REAL_TODAY : SAMPLE_TODAY;
+  renderDataStatus(); renderAll();
+  sys('Saved on this phone');
+  run(ask(t('welcomeBack'), O.resume, async v => {
+    if (v === 'no') return start();
+    await say(t('resumed'));
+    await say('', {card: snapshot()});
+    if (S.stage === 'done') return ask(S.lang === 'pcm' ? 'Wetin next?' : 'What next?', O.end, async e => { if (e === 'new') start(); else await say(t('bye')); });
+    S.awaitWeek = wasWaiting || true; renderChat();
+  }));
+  return true;
 }
 
 /* ---------- Snapshot of plan for chat card ---------- */
@@ -812,7 +933,8 @@ function snapshot(){
       meta: st.kind === 'apply'
         ? (hasDeadline(it) ? t('closes', {d: fmtD(parseD(it.deadline))}) : t('openNow')) + (it.zlto ? ` · ${it.zlto} Zlto` : '')
         : `${t('hrs', {h: it.hours})} · ${t('weeks', {w: weeksFor(it.hours)})}${it.offline ? ' · offline' : ''}`,
-      why: reason(st.kind), informal: !!it.informal, platform: it.src, link: it.link || ''};
+      why: reason(st.kind), informal: !!it.informal, platform: it.src, link: it.link || '', id: it.id,
+      inPerson: st.kind === 'apply' && !it.remote};
   });
 }
 
@@ -821,8 +943,9 @@ const TAG = {start:'Start here', learn:'Learn here', apply:'Apply here'};
 const STATUS = {todo:'To do', doing:'In progress', done:'Done'};
 function planCard(steps){
   if (channel === 'sms') {
-    const lines = steps.map((s, i) => `${i+1}) ${TAG[s.kind].toUpperCase()}${S.saved ? ' [' + STATUS[s.status] + ']' : ''}\n${s.title}\n${s.src}\n${s.meta}\n${t('why')}${s.why}\nLink: ${s.link ? s.link.replace(/^https?:\/\//, '') : 'gen.u/' + s.kind[0] + (i+1)}`);
-    return `<div class="msg bot">${esc(t('planTitle').toUpperCase() + '\n\n' + lines.join('\n\n'))}</div>`;
+    const lines = steps.map((s, i) => `${i+1}) ${TAG[s.kind].toUpperCase()}${S.saved ? ' [' + STATUS[s.status] + ']' : ''}\n${s.title}\n${s.src}\n${s.meta}\n${t('why')}${s.why}\nLink: ${s.link ? s.link.replace(/^https?:\/\//, '') : 'gen.u/' + s.kind[0] + (i+1)}`
+      + (s.kind === 'apply' ? '\n! ' + t('neverPaySms', {n: i+1}) + (s.inPerson ? '\n! ' + t('safeInPerson') + (S.age < 18 ? ' ' + t('minorInPerson') : '') : '') : ''));
+    return `<div class="msg bot">${esc(t('planTitle').toUpperCase() + '\n\n' + lines.join('\n\n') + '\n\n' + t('smsReport'))}</div>`;
   }
   return `<div class="plan"><h4>${esc(t('planTitle'))}</h4>${steps.map((s, i) => `
     <div class="pstep ${s.status === 'done' ? 'isdone' : ''}">
@@ -832,26 +955,40 @@ function planCard(steps){
       <div class="meta">${esc(s.meta)}</div>
       <div class="why">${esc(s.why)}</div>
       ${s.informal ? `<div class="informal">${esc(t('informal'))}</div>` : ''}
-      <div class="row"><button class="open" data-open="${esc(s.title)}|${esc(s.platform)}" data-link="${esc(s.link)}">Open on ${esc(s.platform)}</button>${S.saved ? `<span class="status ${s.status}">${STATUS[s.status]}</span>` : ''}</div>
-    </div>`).join('')}</div>`;
+      ${s.kind === 'apply' ? `<div class="safe"><b>!</b> ${esc(t('neverPay', {n: i+1}))}</div>` : ''}
+      ${s.inPerson ? `<div class="safe"><b>!</b> ${esc(t('safeInPerson'))}${S.age < 18 ? ' ' + esc(t('minorInPerson')) : ''}</div>` : ''}
+      <div class="row"><button class="open" data-open="${esc(s.title)}|${esc(s.platform)}" data-link="${esc(s.link)}">Open on ${esc(s.platform)}<span class="sr-only">: ${esc(s.title)}</span></button>
+        <span>${S.saved ? `<span class="status ${s.status}">${STATUS[s.status]}</span> ` : ''}<button class="open report" data-report="${esc(s.id)}">${esc(t('report'))}<span class="sr-only"> ${esc(s.title)}</span></button></span></div>
+    </div>`).join('')}
+    <div class="plan-foot"><a href="${esc(shareLink(steps))}" target="_blank" rel="noopener">${esc(t('share'))}</a><span>No name or phone number is included.</span></div></div>`;
+}
+function shareLink(steps){
+  const text = t('shareHead') + ':\n' + steps.map((s, i) => `${i+1}) ${TAG[s.kind]}: ${s.title} (${s.platform})${s.link ? ' ' + s.link : ''}`).join('\n');
+  return 'https://wa.me/?text=' + encodeURIComponent(text);
 }
 function renderChat(){
   const el = $('#chat'); const sms = channel === 'sms';
+  const hadFocus = el.contains(document.activeElement);
   let h = '';
   for (const m of S.msgs) {
-    if (m.from === 'typing') { h += '<div class="typing" aria-label="Pathfinder is typing"><i></i><i></i><i></i></div>'; continue; }
+    if (m.from === 'typing') { h += '<div class="typing" aria-hidden="true"><i></i><i></i><i></i></div>'; continue; }
     if (m.from === 'sys') { h += `<div class="msg sys">${esc(m.text)}</div>`; continue; }
     if (m.card) { h += planCard(m.card); continue; }
     let text = m.text;
     if (sms && m.options) text += '\n\n' + m.options.map((o, i) => `${i+1}. ${lbl(o)}`).join('\n');
     h += `<div class="msg ${m.from}">${esc(text)}</div>`;
     if (m.options && !m.answered && pending && pending.msg === m) {
-      h += `<div class="opts ${m.grid && !sms ? 'grid' : ''}">${m.options.map((o, i) => `<button data-pick="${i}">${esc(sms ? String(i+1) : lbl(o))}</button>`).join('')}</div>`;
+      h += `<div class="opts ${m.grid && !sms ? 'grid' : ''}" role="group" aria-label="Reply options">${m.options.map((o, i) => `<button data-pick="${i}">${esc(sms ? String(i+1) : lbl(o))}</button>`).join('')}</div>`;
     }
   }
   if (S.awaitWeek && !busy) h += `<button class="weekbtn" id="weekbtn">Skip ahead to ${esc(fmtShort(TODAY + (S.week + 1) * 7 * DAY))} →</button>`;
   el.innerHTML = h;
   el.scrollTop = el.scrollHeight;
+  // Re-rendering removes the button that had focus. Put keyboard and screen-reader users on the next thing to do.
+  if (hadFocus || document.activeElement === document.body) {
+    const next = el.querySelector('.opts button, #weekbtn');
+    if (next) next.focus({preventScroll:true}); else if (hadFocus) el.focus({preventScroll:true});
+  }
   $('#phone').classList.toggle('sms', sms);
   $('#chan-label').textContent = sms ? 'SMS · basic phone' : 'WhatsApp · Nigeria';
 }
@@ -860,6 +997,7 @@ function renderPanel(){
   const optName = (k) => v => { const o = O[k].find(x => x.v === v); return o ? o.en : v; };
   $('#p-answers').innerHTML = `<h3>Answers stored <em>6 + age check</em></h3><dl class="kv">
     <dt>Age</dt>${ans(S.age ?? undefined, v => v + (v < 18 ? ' (under 18)' : ''))}
+    ${S.age !== null && S.age < 18 && S.age >= 15 ? `<dt>Guardian</dt>${ans(S.guardian ?? undefined, v => v ? 'Agreed (confirmed by SMS code in live build)' : 'Not yet, nothing saved')}` : ''}
     <dt>Language</dt>${ans(a.lang, v => LABEL.lang[v])}
     <dt>Goal</dt>${ans(a.goal, optName('goal'))}
     <dt>Sector</dt>${ans(a.sector, optName('sector'))}
@@ -888,7 +1026,8 @@ function renderPanel(){
     : `<h3>Saved plan on Yoma <em>${S.saved ? (S.stage === 'done' ? 'complete' : 'week ' + S.week) : 'not saved yet'}</em></h3>
       <div class="board">${p.steps.map((st, i) => `<div><span class="tag t-${st.kind}">${TAG[st.kind]}</span><span class="ttl">${esc(st.item.title)}</span><span class="status ${st.status}" style="width:max-content">${STATUS[st.status]}</span></div>`).join('')}</div>
       <div class="meter" aria-label="Missed check-ins">Missed check-ins: <i class="${S.stalls >= 1 ? 'on' : ''}"></i><i class="${S.stalls >= 2 ? 'on' : ''}"></i> <span>${S.stalls} of 2 before a facilitator steps in</span></div>
-      ${S.flagged ? `<div class="fac" style="margin-top:12px"><b>Facilitator queue · ${esc(S.flagged.fac)}</b>
+      ${S.feedback ? `<p class="empty-note" style="margin-top:10px">Plan feedback: <b>${esc({yes:'Useful',bit:'A bit useful',no:'Not useful'}[S.feedback])}</b>${S.reported.length ? ` · ${S.reported.length} listing${S.reported.length > 1 ? 's' : ''} reported` : ''}</p>` : S.reported.length ? `<p class="empty-note" style="margin-top:10px">${S.reported.length} listing${S.reported.length > 1 ? 's' : ''} reported for review</p>` : ''}
+      ${S.flagged ? `<div class="fac ${S.flagged.urgent ? 'urgent' : ''}" style="margin-top:12px"><b>${S.flagged.urgent ? 'URGENT, contact today · ' : 'Facilitator queue · '}${esc(S.flagged.fac)}</b>
         <span>${esc(PERSONAS[persona].name)}, ${S.age}, ${esc(STATES[a.state] || '')}. Messages in ${esc(LABEL.lang[a.lang])}.</span>
         <span>${esc(S.flagged.why)}.</span>
         <span class="empty-note">Shared with the facilitator: first name, age, state, language, plan and the stuck step. Nothing else.</span></div>` : ''}`;
@@ -898,7 +1037,7 @@ function renderPanel(){
     li.querySelector('b').textContent = me < cur ? '✓' : me + 1;
   });
 }
-function renderAll(){ renderChat(); renderPanel(); }
+function renderAll(){ renderChat(); renderPanel(); persist(); }
 
 /* ---------- Events ---------- */
 let toastTimer;
@@ -906,6 +1045,7 @@ function toast(msg){ const el = $('#toast'); el.textContent = msg; el.hidden = f
 $('#chat').addEventListener('click', e => {
   const b = e.target.closest('[data-pick]'); if (b) return pick(+b.dataset.pick);
   if (e.target.closest('#weekbtn')) return nextWeek();
+  const r = e.target.closest('[data-report]'); if (r) return report(r.dataset.report);
   const o = e.target.closest('[data-open]');
   if (o) {
     if (o.dataset.link) return void window.open(o.dataset.link, '_blank', 'noopener');
@@ -918,12 +1058,27 @@ $('#composer').addEventListener('submit', e => {
   const low = v.toLowerCase();
   if (low === 'restart') return start();
   if (low === 'delete') {
-    gen++; pending = null; busy = false;
+    gen++; pending = null; busy = false; clearSaved();
     const msgs = S.msgs; S = fresh(); S.msgs = msgs; S.deleted = true;
     S.msgs.push({from:'user', text:v}); renderAll();
     run(say(T.en.deleted)); return;
   }
   if (S.deleted && /^(hi|hello|hey)\b/.test(low)) return start();
+  const rep = low.match(/^report\s*([1-3])$/);
+  if (rep && S.plan) { S.msgs.push({from:'user', text:v}); renderChat(); return report(S.plan.steps[+rep[1] - 1].item.id); }
+  // Words that suggest someone is unsafe go straight to a person, not back to the buttons.
+  const URGENT = /suicid|kill myself|want to die|end my life|hurt myself|abus|rape|beat(ing)? me|hit(ting)? me|touch(ed|ing)? me|threaten|unsafe|not safe|in danger|dem dey beat me|i no dey safe/;
+  const wantsHelp = /^(help|i need help|talk to a person|agent|human)$/.test(low);
+  if (URGENT.test(low) || wantsHelp) {
+    S.msgs.push({from:'user', text:v}); renderChat();
+    const p = pending; if (p) { p.msg.answered = true; pending = null; }
+    run((async () => {
+      await handoff(URGENT.test(low) ? 'Urgent: message suggests they may be unsafe' : 'Asked for help in the chat', URGENT.test(low));
+      if (p) await ask(p.msg.text, p.options, p.handler, {grid: p.msg.grid});
+      else if (S.saved && S.stage !== 'done') { S.awaitWeek = true; renderChat(); }
+    })());
+    return;
+  }
   if (pending) {
     const opts = pending.options;
     let i = /^\d+$/.test(v) ? +v - 1 : opts.findIndex(o => lbl(o).toLowerCase() === low || o.en.toLowerCase().startsWith(low));
@@ -935,12 +1090,12 @@ $('#composer').addEventListener('submit', e => {
   run(say(t('fallback')).then(() => p && ask(p.msg.text, p.options, p.handler, {grid: p.msg.grid})));
 });
 $('#mic').addEventListener('click', () => toast('Voice notes in Hausa, Yoruba and Igbo come in a later phase. The MVP uses English and Nigerian Pidgin text.'));
-$('#restart').addEventListener('click', start);
+$('#restart').addEventListener('click', () => { clearSaved(); start(); });
 function seg(id, set){ document.querySelectorAll(`#${id} button`).forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll(`#${id} button`).forEach(x => x.setAttribute('aria-pressed', x === b)); set(b.dataset.v); })); }
-seg('persona', v => { persona = v; start(); });
+seg('persona', v => { persona = v; clearSaved(); start(); });
 seg('channel', v => { channel = v; renderChat(); });
-seg('datamode', v => { dataMode = v; renderDataStatus(); start(); });
+seg('datamode', v => { dataMode = v; clearSaved(); renderDataStatus(); start(); });
 const liveReady = loadYoma().then(() => { if (S && S.stage === 'intake' && !S.calc) { TODAY = liveOn() ? REAL_TODAY : SAMPLE_TODAY; renderAll(); } });
-start();
+if (!resume()) start();
 </script>
