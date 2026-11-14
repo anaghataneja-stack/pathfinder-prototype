@@ -15,7 +15,7 @@ Work through this before the first young person uses Pathfinder. Each item says 
 | 5 | Native-speaker review of Hausa, Yoruba and Pidgin text, including the urgent-help words | GenU Nigeria | ☐ |
 | 6 | Vetted helplines added to the urgent-help message (currently 112 only) | GenU Nigeria | ☐ |
 | 7 | Real facilitator names per state replace the sample ones. A named person checks `/staff` **every working day**; urgent cases are contacted the same day | GenU Nigeria partners | ☐ |
-| 8 | Hosting on Azure App Service: HTTPS, **Always On**, `TRUST_PROXY=true`, `STAFF_CODE` (long, random) and `PILOT_ACCESS_CODE` set | GenU IT | ☐ |
+| 8 | Hosting on Azure App Service: HTTPS, **Always On**, `TRUST_PROXY=true`, `STAFF_CODE` (long, random) and `PILOT_ACCESS_CODE` set, **`DEMO_BROWSER_VOICE=false`** (the demo voice sends audio to Google) | GenU IT | ☐ |
 | 9 | How a facilitator reaches a young person agreed. Today the young person quotes their case code; a WhatsApp/SMS channel would let staff message them | GenU Nigeria | ☐ |
 
 ## 2. Already built in

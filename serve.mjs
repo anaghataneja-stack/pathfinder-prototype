@@ -20,10 +20,11 @@ sync.schedule(hour);
 const port = Number(env.PORT) || 4173;
 const rateLimit = { max: Number(env.AI_RATE_LIMIT) || 60, windowMs: 10 * 60e3 };
 const store = createStore('data');
-createApp({ sync, ai, store, staffCode: env.STAFF_CODE || '', accessCode: env.PILOT_ACCESS_CODE || '', trustProxy: env.TRUST_PROXY === 'true', rateLimit, log }).listen(port, () => {
+createApp({ sync, ai, store, staffCode: env.STAFF_CODE || '', accessCode: env.PILOT_ACCESS_CODE || '', trustProxy: env.TRUST_PROXY === 'true', demoVoice: env.DEMO_BROWSER_VOICE === 'true', rateLimit, log }).listen(port, () => {
   log(`Pathfinder running at http://localhost:${port}`);
   log(`AI: ${ai.provider === 'none' ? 'off (keyword rules and templates)' : `${ai.provider}, voice ${ai.features.voice ? 'on' : 'off'}`}`);
   log(`Yoma: ${sync.get().source} copy loaded; daily sync at ${String(hour).padStart(2, '0')}:00`);
   if (env.PILOT_ACCESS_CODE) log('Access code required (PILOT_ACCESS_CODE is set)');
+  if (env.DEMO_BROWSER_VOICE === 'true') log('DEMO ONLY: browser speech recognition is on (audio goes to Google). Turn off for the pilot.');
   log(env.STAFF_CODE ? `Staff case inbox: http://localhost:${port}/staff?code=…` : 'Staff case inbox off (set STAFF_CODE to turn it on)');
 });

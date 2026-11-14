@@ -126,3 +126,12 @@ test('the app page is marked so the offline cache only stores the real app', asy
   assert.equal((await fetch(base + '/')).headers.get('x-pf-app'), '1');
   assert.equal((await fetch(lockedBase + '/')).headers.get('x-pf-app'), null);
 });
+
+test('the browser-voice demo fallback is off unless switched on', async () => {
+  const off = await (await fetch(base + '/api/status')).json();
+  assert.equal(off.demoVoice, false);
+  const demo = createApp({ sync: fakeSync, ai: createAI({}), demoVoice: true });
+  const b = await listen(demo);
+  assert.equal((await (await fetch(b + '/api/status')).json()).demoVoice, true);
+  demo.close();
+});

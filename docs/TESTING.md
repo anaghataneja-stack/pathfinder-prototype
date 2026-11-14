@@ -4,8 +4,8 @@ Last run: 13 November 2026, Node 22, Chromium (Playwright).
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit and API tests | `npm test` | **76 / 76 pass** (about 2 s) |
-| Browser scenarios | `npm run e2e` | **16 / 16 pass** |
+| Unit and API tests | `npm test` | **77 / 77 pass** (about 2 s) |
+| Browser scenarios | `npm run e2e` | **17 / 17 pass** |
 | Live check, real Yoma API | `node sync.mjs` + the app | **Done 14 Nov 2026**: 5,171 real listings. Results and fixes [below](#live-check-real-yoma-14-november-2026) |
 | Live check, real Azure OpenAI | see [Live check](#live-check-run-this-before-the-demo) | **Not run yet.** Needs the team's Azure keys |
 
@@ -42,6 +42,7 @@ The automated tests use **mock** Yoma and Azure servers (`test/helpers/`) that c
 | 13 | The server returns a 404 page once | The 404 doesn't replace the offline copy, and the app still opens offline afterwards | Pass |
 | 14 | AI over its rate limit | Shows "try again in a minute", not a network error | Pass |
 | 15 | Real-data shape: Start step | A real P2E course on Yoma is chosen and labelled; sample courses say "(sample)" | Pass |
+| 17 | Demo voice without Azure | With `DEMO_BROWSER_VOICE=true`, voice uses Chrome speech recognition (a stand-in in the test), is labelled "Demo only", and the words become skills | Pass |
 | 16 | Pilot: urgent message | A case reaches the staff inbox with a code shown to the young person. No message text is stored. A listing report and the pilot counts are recorded | Pass |
 
 The test fake microphone is Chromium's `--use-fake-device-for-media-stream`.

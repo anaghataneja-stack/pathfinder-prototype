@@ -68,6 +68,7 @@ Other settings:
 - `TRUST_PROXY`: set `true` when hosted behind a proxy such as App Service, so each phone gets its own rate limit instead of everyone sharing one.
 - `AI_ENRICH_LISTINGS`: AI tagging of listings during the sync.
 - `PILOT_ACCESS_CODE`: locks a hosted pilot behind a code. Open `/?code=…` once on each phone. Wrong codes are limited to 10 tries per 10 minutes.
+- `DEMO_BROWSER_VOICE`: **demo only.** `true` lets voice notes use Chrome's built-in speech recognition when Azure voice isn't set up. The audio goes to Google, so it must stay `false` for the pilot. The app labels it "Demo only" whenever it's used.
 - `STAFF_CODE`: turns on the facilitator case inbox at `/staff`. Open `/staff?code=…` once. Use a long random code.
 - `PORT`: the port the server listens on.
 - `AI_PROVIDER=openai-compatible` plus the `OPENAI_COMPAT_*` settings: lets teams without Azure use any OpenAI-compatible endpoint.
@@ -81,7 +82,7 @@ The keys stay on the server. The browser never sees them.
 | Yoma opportunities and courses (Nigeria + Worldwide) | **Real**: public Yoma API (`/opportunity/search`), synced daily, saved to `data/yoma-cache.json` |
 | Yoma platform totals in the header | **Real**: `/analytics/platform/metrics/info` |
 | Skills from informal work, plain-word answers, plan reasons, listing tags | **Real Azure OpenAI calls** when `.env` is set; otherwise keyword rules and templates, labelled in the app |
-| Voice notes | **Real** Azure transcription when a speech deployment is set; otherwise the option is hidden |
+| Voice notes | **Real** Azure transcription when a speech deployment is set. For demos without Azure, `DEMO_BROWSER_VOICE=true` uses Chrome's speech recognition instead, labelled "Demo only". Otherwise the option is hidden |
 | Scam check, safety rules, matching and scoring | **Real logic** running on whatever listings are loaded |
 | Passport to Earning courses | **Partly real**: 13 P2E courses published on Yoma are used and labelled. The rest are built-in samples marked "(sample)" |
 | imaGen challenges | **Sample**: no API access yet |
@@ -140,10 +141,10 @@ The **Behind the scenes** panel shows:
 ## Tests
 
 ```bash
-npm test                    # 76 unit and API tests, no installs, about 2 seconds
+npm test                    # 77 unit and API tests, no installs, about 2 seconds
 ```
 
-Browser scenarios (16 of them) run the real server against a mock Yoma API and a mock Azure, in Chromium:
+Browser scenarios (17 of them) run the real server against a mock Yoma API and a mock Azure, in Chromium:
 
 ```bash
 npm i --no-save playwright && npx playwright install chromium

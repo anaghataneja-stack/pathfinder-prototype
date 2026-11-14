@@ -69,6 +69,7 @@ const saved = await listen(createApp({ sync: savedSync, ai: createAI({}), rateLi
 const busy = await listen(createApp({ sync, ai: createAI(azure.env, fetch, { timeoutMs: 3000 }), rateLimit: { max: 0 } }));
 const restartDir = mkdtempSync(join(tmpdir(), 'pf-e2e-restart-'));
 writeFileSync(join(restartDir, 'yoma-cache.json'), JSON.stringify(sync.get()));
+const demoVoice = await listen(createApp({ sync, ai: createAI({}), demoVoice: true, rateLimit: { max: 1000 } }));
 const restarted = await listen(createApp({ sync: createSync({ dataDir: restartDir, base: yoma.base }), ai: createAI({}), rateLimit: { max: 1000 } }));
 
 const browser = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] });
@@ -282,6 +283,31 @@ await scenario('Pilot: an urgent message reaches the staff inbox with a case cod
   assert(cases.some(x => x.kind === 'report'), 'report not recorded');
   const types = store.events().map(e => e.type);
   for (const t of ['intake_started', 'plan_built', 'report', 'urgent']) assert(types.includes(t), 'missing event ' + t + ' in ' + types);
+  await ctx.close();
+});
+
+await scenario('Demo voice (no Azure): Chrome speech recognition, clearly labelled demo only', async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  // Stand-in for Chrome's speech service (the real one needs Google's servers).
+  await ctx.addInitScript(() => {
+    window.webkitSpeechRecognition = class {
+      start() { this.started = true; }
+      stop() { setTimeout(() => { this.onresult && this.onresult({ resultIndex: 0, results: [Object.assign([{ transcript: 'I sell provisions in the market' }], { isFinal: true })] }); this.onend && this.onend(); }, 50); }
+      abort() { this.onend && this.onend(); }
+    };
+    window.SpeechRecognition = window.webkitSpeechRecognition;   // newer Chrome has the unprefixed name too
+  });
+  const page = await ctx.newPage();
+  await page.goto(demoVoice + '/');
+  await page.waitForFunction(() => !/connecting/.test(document.querySelector('#live-sub').textContent));
+  await page.click('#persona button[data-v="tunde"]');
+  await tap(page, 'English'); await tap(page, '21'); await tap(page, 'Yes, use my profile');
+  await tap(page, 'Record a voice note');
+  await waitChat(page, /demo only/i);
+  await page.waitForSelector('#mic.rec', { timeout: 10000 });
+  await page.click('#mic');
+  await waitChat(page, /I heard: .I sell provisions in the market/);
+  await page.waitForSelector('.skills-card');
   await ctx.close();
 });
 

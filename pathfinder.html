@@ -372,7 +372,7 @@ const FAC = {kano:'Hauwa at the Kano partner centre',lagos:'Tolu at the Yaba par
    This page only talks to /api/*. Opened as a file, it runs on the built-in sample data. */
 let dataMode = 'live';
 const LIVE = {status:'loading', source:null, opps:[], courses:[], metrics:null, fetchedAt:null, changes:null, error:null};
-const SERVER = {ok:false, ai:{provider:'none', chat:false, voice:false}};
+const SERVER = {ok:false, ai:{provider:'none', chat:false, voice:false}, demoVoice:false};
 async function getJSON(path, ms){
   const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), ms);
   try {
@@ -410,7 +410,7 @@ async function loadServer(){
     SERVER.ok = true;
   } catch (e) { LIVE.status = 'error'; LIVE.error = String(e.message || e); }
   const st = await status;
-  if (st) { SERVER.ok = true; SERVER.ai = st.ai; }
+  if (st) { SERVER.ok = true; SERVER.ai = st.ai; SERVER.demoVoice = !!st.demoVoice; }
   renderDataStatus(); renderOffline();
 }
 const liveOn = () => dataMode === 'live' && LIVE.status === 'ok';
@@ -1180,7 +1180,11 @@ function resume(){
 
 /* ---------- Work I already do: informal skills by voice or text ---------- */
 let pendingText = null, rec = null;
-const canRecord = () => SERVER.ai.voice && channel !== 'sms' && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && typeof MediaRecorder !== 'undefined';
+const BrowserSR = window.SpeechRecognition || window.webkitSpeechRecognition;
+// Demo only: Chrome's speech recognition when Azure voice is off and the server has DEMO_BROWSER_VOICE=true.
+const demoVoiceOn = () => !SERVER.ai.voice && SERVER.demoVoice && !!BrowserSR;
+const canRecord = () => channel !== 'sms' && (demoVoiceOn() ||
+  (SERVER.ai.voice && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && typeof MediaRecorder !== 'undefined'));
 async function askWork(){
   if (dataMode === 'live' && LIVE.status === 'loading') await liveReady;
   const opts = O.work.filter(o => o.v !== 'voice' || canRecord());
@@ -1188,7 +1192,7 @@ async function askWork(){
     if (v === 'skip') return askGoal();
     if (v === 'type') { await say(t('workType')); return awaitText(text => handleWork(text, false)); }
     await say(t('workVoice'));
-    return startRecording();
+    return demoVoiceOn() ? startBrowserVoice() : startRecording();
   });
 }
 function awaitText(handler){ pendingText = {handler, gen}; renderChat(); try { $('#msg-input').focus({preventScroll:true}); } catch {} }
@@ -1228,7 +1232,7 @@ async function startRecording(){
       if (g !== gen) return;
       run(sendVoice(new Blob(chunks, {type: (mr.mimeType || 'audio/webm').split(';')[0]}), secs));
     };
-    rec = {mr, started: Date.now(), tick: setInterval(renderRec, 1000), limit: setTimeout(stopRecording, 60000)};
+    rec = {stop: () => { if (mr.state === 'recording') mr.stop(); }, started: Date.now(), tick: setInterval(renderRec, 1000), limit: setTimeout(stopRecording, 60000)};
     mr.start(); renderRec(); announce(t('recording'));
   } catch (e) {
     rec = null; renderRec();
@@ -1236,7 +1240,26 @@ async function startRecording(){
     awaitText(text => handleWork(text, false));
   }
 }
-function stopRecording(){ if (rec && rec.mr.state === 'recording') rec.mr.stop(); }
+function stopRecording(){ if (rec) rec.stop(); }
+function startBrowserVoice(){
+  sys('Demo voice: Chrome speech recognition (audio goes to Google). Demo only, not for the pilot.');
+  const sr = new BrowserSR(), g = gen, heard = [];
+  sr.lang = {en: 'en-NG', pcm: 'en-NG', ha: 'ha-NG', yo: 'yo-NG'}[S.lang] || 'en-NG';
+  sr.continuous = true; sr.interimResults = false; sr.maxAlternatives = 1;
+  sr.onresult = e => { for (let i = e.resultIndex; i < e.results.length; i++) if (e.results[i].isFinal !== false) heard.push(e.results[i][0].transcript); };
+  sr.onerror = () => {};
+  sr.onend = () => {
+    if (!rec) return;
+    clearInterval(rec.tick); clearTimeout(rec.limit); rec = null; renderRec();
+    if (g !== gen) return;
+    const text = heard.join(' ').trim();
+    track('voice_used');
+    run(text ? handleWork(text, true) : (async () => { await say(t('voiceFail')); return askWork(); })());
+  };
+  rec = {stop: () => sr.stop(), started: Date.now(), tick: setInterval(renderRec, 1000), limit: setTimeout(stopRecording, 60000)};
+  try { sr.start(); } catch { rec = null; return run((async () => { await say(t('micDenied')); await say(t('workType')); awaitText(text => handleWork(text, false)); })()); }
+  renderRec(); announce(t('recording'));
+}
 function renderRec(){
   const b = $('#mic'), st = $('#rec-status');
   b.classList.toggle('rec', !!rec);
