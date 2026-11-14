@@ -1,0 +1,10 @@
+{
+  "name": "GenU Pathfinder",
+  "short_name": "Pathfinder",
+  "description": "Turn your goal into 3 clear steps, using live Yoma opportunities.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#EEF2EC",
+  "theme_color": "#1D6A4E",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

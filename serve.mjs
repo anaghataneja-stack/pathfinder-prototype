@@ -1,48 +1,26 @@
-// Tiny local server for the Pathfinder prototype. No dependencies; needs Node 18+.
-//
-//   node serve.mjs            -> http://localhost:4173
-//
-// It serves pathfinder.html and forwards /yoma-api/* to the public Yoma API. The forwarding is
-// needed because api.yoma.world only accepts browser requests from https://yoma.world (CORS),
-// so a page opened from a file or from localhost cannot call it directly.
-import { createServer } from "node:http";
-import { readFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+// Pathfinder server. No dependencies; needs Node 18+.
+//   cp .env.example .env   (add Azure keys, optional)
+//   node serve.mjs          -> http://localhost:4173
+import { loadEnv } from './lib/env.mjs';
+import { createSync } from './lib/sync.mjs';
+import { createAI } from './lib/ai.mjs';
+import { enrichListings } from './lib/ai-tasks.mjs';
+import { createApp } from './lib/server.mjs';
 
-const PORT = Number(process.env.PORT) || 4173;
-const UPSTREAM = (process.env.YOMA_UPSTREAM || "https://api.yoma.world/api/v3").replace(/\/$/, "");
-const HTML = join(dirname(fileURLToPath(import.meta.url)), "pathfinder.html");
-// Only the read-only public endpoints Pathfinder uses are forwarded.
-const ALLOWED = [/^\/opportunity\/search(\/filter\/[a-z]+)?$/i, /^\/opportunity\/[0-9a-f-]{36}\/info$/i, /^\/analytics\/platform\/metrics\/info$/i];
+loadEnv();
+const env = process.env;
+const log = m => console.log(`[${new Date().toISOString()}] ${m}`);
+const ai = createAI(env);
+const enrich = ai.features.chat && env.AI_ENRICH_LISTINGS !== 'false' ? ls => enrichListings(ai, ls) : null;
+const sync = createSync({ dataDir: 'data', base: (env.YOMA_API_BASE || 'https://api.yoma.world/api/v3').replace(/\/+$/, ''), enrich, log });
+const hour = Math.min(23, Math.max(0, Number(env.SYNC_HOUR ?? 5) || 0));
+sync.schedule(hour);
 
-createServer(async (req, res) => {
-  const url = new URL(req.url, "http://localhost");
-  try {
-    if (url.pathname.startsWith("/yoma-api/")) {
-      const path = url.pathname.slice("/yoma-api".length);
-      if (!ALLOWED.some((re) => re.test(path)) || !["GET", "POST"].includes(req.method)) {
-        res.writeHead(404).end("Not proxied");
-        return;
-      }
-      const chunks = [];
-      for await (const c of req) chunks.push(c);
-      const upstream = await fetch(UPSTREAM + path + url.search, {
-        method: req.method,
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: req.method === "POST" ? Buffer.concat(chunks) : undefined,
-      });
-      res.writeHead(upstream.status, { "Content-Type": upstream.headers.get("content-type") || "application/json" });
-      res.end(Buffer.from(await upstream.arrayBuffer()));
-      return;
-    }
-    if (url.pathname === "/" || url.pathname === "/pathfinder.html") {
-      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-      res.end(await readFile(HTML));
-      return;
-    }
-    res.writeHead(404).end("Not found");
-  } catch (e) {
-    res.writeHead(502, { "Content-Type": "text/plain" }).end("Could not reach Yoma: " + e.message);
-  }
-}).listen(PORT, () => console.log(`Pathfinder running at http://localhost:${PORT} (Yoma API: ${UPSTREAM})`));
+const port = Number(env.PORT) || 4173;
+const rateLimit = { max: Number(env.AI_RATE_LIMIT) || 60, windowMs: 10 * 60e3 };
+createApp({ sync, ai, accessCode: env.PILOT_ACCESS_CODE || '', trustProxy: env.TRUST_PROXY === 'true', rateLimit, log }).listen(port, () => {
+  log(`Pathfinder running at http://localhost:${port}`);
+  log(`AI: ${ai.provider === 'none' ? 'off (keyword rules and templates)' : `${ai.provider}, voice ${ai.features.voice ? 'on' : 'off'}`}`);
+  log(`Yoma: ${sync.get().source} copy loaded; daily sync at ${String(hour).padStart(2, '0')}:00`);
+  if (env.PILOT_ACCESS_CODE) log('Access code required (PILOT_ACCESS_CODE is set)');
+});

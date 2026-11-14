@@ -1,7 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pathfinder Prototype</title>
-<meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&display=swap">
+<meta name="description" content="Pathfinder turns a young person's goal into three steps using live Yoma opportunities.">
+<meta name="theme-color" content="#1D6A4E">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<script>
+// Web fonts are skipped when the phone asks to save data or the person chose "very little data" before.
+try {
+  if (!(navigator.connection && navigator.connection.saveData) && localStorage.getItem('pf-lite') !== '1') {
+    const l = document.createElement('link'); l.rel = 'stylesheet';
+    l.href = 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&display=swap';
+    document.head.appendChild(l);
+  }
+} catch (e) {}
+</script>
 <style>
 /* Layout: a working phone on the left runs the real flow; the right column shows what Pathfinder is doing behind the scenes. */
 :root{
@@ -154,6 +170,19 @@ ul.ex li span:first-child{min-width:0}
 .fac b{color:var(--warn)}
 ul.rules{margin:0;padding-left:18px;display:grid;gap:6px;font-size:14px}
 ul.rules b{font-weight:700}
+.offline{position:sticky;top:0;z-index:30;background:var(--warn);color:#fff;padding:8px 16px;text-align:center;font-weight:700;font-size:14px}
+.chip-st{font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2)}
+.chip-st.on{border-color:var(--ok);color:var(--ok);background:var(--ok-soft)}
+.composer button.mic.rec{background:#B3261E;color:#fff;border-color:transparent;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.7}}
+.rec-status{padding:6px 12px;font-size:13px;font-weight:700;color:#B3261E;background:var(--surface-2);border-top:1px solid var(--line)}
+.skills-card{align-self:flex-start;width:94%;background:var(--bot);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:8px}
+.skills-card h4{margin:0;font-family:var(--f-display);font-size:15px}
+.skills-card .sum{font-size:13.5px}
+.skills-card .src{font-size:11.5px;color:var(--muted);font-family:var(--f-mono)}
+.skills-card a{color:var(--accent);font-weight:700;font-size:13px}
+.sig{display:flex;flex-wrap:wrap;gap:4px}
+.sig span{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--ok-soft);color:var(--ok)}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .safe{font-size:12.5px;border-left:3px solid var(--warn);background:var(--warn-soft);color:var(--ink);border-radius:4px;padding:5px 8px;margin-top:4px}
 .safe b{color:var(--warn)}
@@ -169,9 +198,12 @@ ul.rules b{font-weight:700}
 .stats b{color:var(--ink)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;max-width:min(92vw,460px);z-index:20;box-shadow:0 10px 30px -10px rgba(0,0,0,.4)}
 footer{color:var(--muted);font-size:13px;max-width:80ch}
-@media (prefers-reduced-motion:reduce){.typing i{animation:none}.chat{scroll-behavior:auto}}
+@media (prefers-reduced-motion:reduce){.composer button.mic.rec{animation:none}.typing i{animation:none}.chat{scroll-behavior:auto}}
 </style>
 
+</head>
+<body>
+<div class="offline" id="offline" role="status" hidden></div>
 <div class="wrap">
   <header class="top">
     <div class="brand">
@@ -207,6 +239,7 @@ footer{color:var(--muted);font-size:13px;max-width:80ch}
         <button data-v="sample" aria-pressed="false">Sample<small>invented test data</small></button>
       </div>
     </div>
+    <div class="ctl"><span>AI</span><span class="chip-st" id="ai-chip">checking…</span></div>
     <button class="btn-ghost" id="restart">Start over</button>
   </div>
 
@@ -219,6 +252,7 @@ footer{color:var(--muted);font-size:13px;max-width:80ch}
         </div>
         <div class="chat" id="chat" role="region" aria-label="Conversation with Pathfinder" tabindex="-1"></div>
         <div id="sr-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+        <div class="rec-status" id="rec-status" aria-live="assertive" hidden></div>
         <form class="composer" id="composer" autocomplete="off">
           <button type="button" class="mic" id="mic" aria-label="Record a voice note"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3" fill="none"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" fill="none"/></svg></button>
           <input id="msg-input" placeholder="Type a number or message" aria-label="Message">
@@ -281,7 +315,9 @@ const SK = {
   comms:'Clear communication',customer:'Serving customers',spreadsheets:'Spreadsheets & data entry','social-media':'Social media marketing',
   cv:'Writing a CV',interview:'Interview skills',teamwork:'Working in a team',bookkeeping:'Basic bookkeeping',
   'business-plan':'Business planning',pricing:'Pricing & selling','agri-practice':'Modern farming practices',poultry:'Poultry care',
-  tailoring:'Sewing & tailoring','design-basics':'Graphic design basics','coding-basics':'Coding basics'
+  tailoring:'Sewing & tailoring','design-basics':'Graphic design basics','coding-basics':'Coding basics',
+  'phone-repair':'Phone & electronics repair','market-trading':'Market trading & stock','food-prep':'Cooking & food selling',
+  'hair-beauty':'Hair & beauty','driving-delivery':'Driving & delivery',childcare:'Caring for children'
 };
 const COURSES = [
   {id:'c1',title:'Digital Literacy Essentials',skills:['digital-basics','online-safety'],hours:6,entry:true,sectors:['all'],data:1,offline:true},
@@ -298,7 +334,7 @@ const COURSES = [
   {id:'c11',title:'Money Basics for Young People',skills:['bookkeeping'],hours:5,entry:true,sectors:['all'],data:1,offline:true},
   {id:'c12',title:'Digital Marketing (2024 cohort)',skills:['social-media'],hours:16,entry:false,sectors:['digital'],data:3,expired:true}
 ];
-COURSES.forEach(c => { c.src = 'Passport to Earning'; c.kind = 'course'; });
+COURSES.forEach(c => { c.src = 'Passport to Earning'; c.kind = 'course'; c.sample = true; });
 const OPPS = [
   {id:'o1',title:'Customer Care Trainee',org:'BrightLine Contact Centre',type:'job',skills:['customer','comms','digital-basics'],states:['lagos'],minAge:18,deadline:'2026-12-15',sectors:['customer']},
   {id:'o2',title:'Data Entry Assistant (part-time, remote)',org:'Kora Data Services',type:'job',skills:['spreadsheets','digital-basics','comms'],remote:true,minAge:18,deadline:'2026-12-05',sectors:['digital','customer']},
@@ -318,10 +354,10 @@ const OPPS = [
 OPPS.push({id:'o12',title:'Remote Typing Job (₦50,000 a week)',org:'QuickCash Jobs',type:'job',skills:['digital-basics'],remote:true,minAge:16,deadline:'2026-12-08',sectors:['digital','customer'],desc:'Start today. Pay a ₦5,000 registration fee to receive your work.'});
 // Listings that ask young people for money are a common scam. Anything mentioning a fee, deposit or upfront payment is removed and flagged.
 const SCAM_RE = /\b(registration|application|processing|training|starter|joining|form)\s+fees?\b|\bpay\s+(a|the|to|for)\b|\bdeposit\b|\bsend\s+money\b|\bupfront\b|\bpay\s+before\b/i;
-OPPS.forEach(o => { o.src = o.src || 'Yoma'; o.kind = 'opp'; o.scam = SCAM_RE.test(o.title + ' ' + (o.desc || '')); });
+OPPS.forEach(o => { o.src = o.src || 'Yoma'; o.kind = 'opp'; o.sample = true; o.scam = SCAM_RE.test(o.title + ' ' + (o.desc || '')); });
 const PROFILE_STEP = {id:'p1',title:'Complete your Yoma profile',src:'Yoma',kind:'course',skills:[],hours:1,pseudo:true,sectors:['all'],data:1};
-const TYPE_LABEL = {job:'Job',learnership:'Learnership',apprenticeship:'Apprenticeship',self:'Self-employment',volunteer:'Volunteering',task:'Yoma task',challenge:'imaGen challenge'};
-const GOAL_TYPES = {job:['job','learnership','apprenticeship','self'],skills:['learnership','volunteer','task','apprenticeship'],business:['challenge','self','apprenticeship'],notsure:['task','learnership','volunteer','challenge']};
+const TYPE_LABEL = {other:'Opportunity',job:'Job',learnership:'Learnership',apprenticeship:'Apprenticeship',self:'Self-employment',volunteer:'Volunteering',task:'Yoma task',challenge:'imaGen challenge'};
+const GOAL_TYPES = {earn:['task','self','apprenticeship','job'],job:['job','learnership','apprenticeship','self'],skills:['learnership','volunteer','task','apprenticeship'],business:['challenge','self','apprenticeship'],notsure:['task','learnership','volunteer','challenge']};
 const PERSONAS = {
   amina:{name:'Amina',creds:[{title:'Digital Literacy Essentials',src:'Passport to Earning',skills:['digital-basics','online-safety']}]},
   tunde:{name:'Tunde',creds:[{title:'Digital Literacy Essentials',src:'Passport to Earning',skills:['digital-basics','online-safety']},{title:'Get Job-Ready: Work Readiness',src:'Passport to Earning',skills:['cv','interview','comms','teamwork']}]},
@@ -331,127 +367,88 @@ const STATES = {lagos:'Lagos',kano:'Kano',fct:'FCT Abuja',oyo:'Oyo',rivers:'Rive
 const FAC = {kano:'Hauwa at the Kano partner centre',lagos:'Tolu at the Yaba partner centre',fct:'Chinedu at the Abuja partner centre',oyo:'Bisi at the Ibadan partner centre',rivers:'Ibim at the Port Harcourt partner centre'};
 
 
-/* ---------- Live Yoma listings ----------
-   Public, anonymous endpoints of the Yoma API (v3). No user data is read: Yoma does not expose
-   profiles publicly, so personas and their credentials stay as samples.
-   api.yoma.world only accepts browser calls from https://yoma.world (CORS), so requests go through
-   a same-origin proxy at /yoma-api (see serve.mjs). Results are cached on the device for 6 hours so
-   the app keeps working on a bad connection. */
-const YOMA_API = window.YOMA_API_BASE || '/yoma-api';
-const CACHE_MS = 6 * 3600e3;
+/* ---------- Server: live Yoma listings and AI ----------
+   The Pathfinder server (serve.mjs) syncs Yoma once a day and holds the Azure OpenAI keys.
+   This page only talks to /api/*. Opened as a file, it runs on the built-in sample data. */
 let dataMode = 'live';
-const LIVE = {status:'loading', opps:[], courses:[], metrics:null, error:null, fetchedAt:null, total:0};
-async function yoma(path, body){
-  const key = 'pf-yoma:' + path + (body ? '|' + JSON.stringify(body) : '');
-  let cached = null;
-  try { cached = JSON.parse(localStorage.getItem(key)); } catch {}
-  if (cached && Date.now() - cached.at < CACHE_MS) return cached;
+const LIVE = {status:'loading', source:null, opps:[], courses:[], metrics:null, fetchedAt:null, changes:null, error:null};
+const SERVER = {ok:false, ai:{provider:'none', chat:false, voice:false}};
+async function getJSON(path, ms){
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), ms);
   try {
-    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 12000);
-    const res = await fetch(YOMA_API + path, body
-      ? {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body), signal: ctl.signal}
-      : {signal: ctl.signal});
-    clearTimeout(timer);
+    const res = await fetch(path, {signal: ctl.signal, headers: {accept: 'application/json'}});
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const out = {at: Date.now(), data: await res.json()};
-    try { localStorage.setItem(key, JSON.stringify(out)); } catch {}
-    return out;
-  } catch (e) {
-    if (cached) return {...cached, stale:true};   // offline: use the last copy we had
-    throw e;
-  }
+    return await res.json();
+  } finally { clearTimeout(timer); }
 }
-// Map Yoma's free-text skills, categories and titles onto Pathfinder's skill keys.
-const SKILL_RULES = [
-  [/customer|client|call cent|hospitality|front desk/i, 'customer'],
-  [/communicat|writing|presentation|public speaking|english/i, 'comms'],
-  [/excel|spreadsheet|data entry|google sheets|data analy|analytics/i, 'spreadsheets'],
-  [/social media|digital marketing|content creat|marketing/i, 'social-media'],
-  [/python|coding|programming|software|developer|javascript|web dev|html|\bai\b|machine learning/i, 'coding-basics'],
-  [/design|canva|figma|graphic/i, 'design-basics'],
-  [/\bcv\b|resume|curriculum vitae/i, 'cv'],
-  [/interview/i, 'interview'],
-  [/job search|job seeking|employab|career|work readiness/i, 'job-search'],
-  [/team/i, 'teamwork'],
-  [/bookkeep|accounting|financ|money|budget/i, 'bookkeeping'],
-  [/entrepreneur|business plan|start.?up|venture/i, 'business-plan'],
-  [/sales|selling|pricing/i, 'pricing'],
-  [/agri|farm|crop|livestock/i, 'agri-practice'],
-  [/poultry|chicken/i, 'poultry'],
-  [/tailor|sewing|fashion|garment/i, 'tailoring'],
-  [/cyber|online safety|digital safety|privacy/i, 'online-safety'],
-  [/digital literacy|computer|microsoft office|ict|internet/i, 'digital-basics']
-];
-const SECTOR_RULES = [
-  [/technolog|digit|data|\bai\b|software|coding/i, 'digital'],
-  [/tourism|hospitality|customer|sales|retail/i, 'customer'],
-  [/agri|farm|environment|climate|green/i, 'agri'],
-  [/fashion|beauty|tailor/i, 'fashion']
-];
-const TYPE_MAP = {Job:'job', Task:'task', Event:'volunteer', Other:'task'};
-function mapYoma(x){
-  const names = (a) => (a || []).map(v => v.name).join(' | ');
-  const text = [x.title, x.summary, names(x.skills), names(x.categories), (x.keywords || []).join(' ')].join(' | ');
-  let skills = [...new Set(SKILL_RULES.filter(([re]) => re.test(text)).map(([, k]) => k))].slice(0, 4);
-  const online = x.engagementType === 'Online' || !x.engagementType;
-  if (!skills.length) skills = [online ? 'digital-basics' : 'comms'];
-  let sectors = [...new Set(SECTOR_RULES.filter(([re]) => re.test(text)).map(([, k]) => k))];
-  if (!sectors.length || /career|personal development|entrepreneur/i.test(names(x.categories))) sectors.push('all');
-  const deadline = x.dateEnd ? x.dateEnd.slice(0, 10) : null;
-  const scam = SCAM_RE.test([x.title, x.summary, x.description, x.instructions].join(' '));
-  const base = {id:'y-' + x.id, title:x.title, src:'Yoma', skills, sectors, live:true, scam,
-    link: x.yomaInfoURL || ('https://yoma.world/opportunities/' + x.id),
-    zlto: x.zltoReward || 0, commitment: x.commitmentIntervalDescription || null};
-  if (x.type === 'Learning') {
-    const hrs = x.commitmentIntervalTotalHours || 4;
-    return {...base, kind:'course', hours: Math.max(1, Math.min(hrs, 40)), entry: !/advanced|intermediate/i.test(x.difficulty || ''),
-      data: online ? 2 : 1, offline: !online, org: x.organizationName, deadline};
-  }
-  return {...base, kind:'opp', org: x.organizationName, type: TYPE_MAP[x.type] || 'task',
-    remote: online, states: online ? [] : ['all'], minAge: 15, deadline, openEnded: !deadline};
-}
-async function loadYoma(){
-  LIVE.status = 'loading'; renderDataStatus();
-  if (location.protocol === 'file:' && !window.YOMA_API_BASE) { LIVE.status = 'error'; LIVE.error = 'opened as a file'; return renderDataStatus(); }
+// POST to the server; body is JSON or a Blob (audio). Throws on network failure or non-2xx.
+async function api(path, body, ms = 12000){
+  if (!SERVER.ok) throw new Error('server not reachable');
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), ms);
   try {
-    const [countries, metrics] = await Promise.all([
-      yoma('/opportunity/search/filter/country'),
-      yoma('/analytics/platform/metrics/info').catch(() => null)
-    ]);
-    const ids = countries.data.filter(c => c.codeAlpha2 === 'NG' || c.codeAlpha2 === 'WW').map(c => c.id);
-    const res = await yoma('/opportunity/search', {pageNumber:1, pageSize:200, countries: ids.length ? ids : null});
-    const items = (res.data.items || []).filter(x => !x.hidden);
-    const mapped = items.map(mapYoma);
-    LIVE.opps = mapped.filter(x => x.kind === 'opp');
-    LIVE.courses = mapped.filter(x => x.kind === 'course');
-    LIVE.total = res.data.totalCount ?? items.length;
-    LIVE.metrics = metrics && metrics.data;
-    LIVE.fetchedAt = res.at; LIVE.stale = !!res.stale;
-    LIVE.hasNigeria = countries.data.some(c => c.codeAlpha2 === 'NG');
+    const blob = body instanceof Blob;
+    const res = await fetch(path, {method:'POST', signal: ctl.signal,
+      headers: {'content-type': blob ? (body.type || 'audio/webm') : 'application/json'}, body: blob ? body : JSON.stringify(body)});
+    if (!res.ok) throw Object.assign(new Error('HTTP ' + res.status), {status: res.status});
+    return await res.json();
+  } finally { clearTimeout(timer); }
+}
+const failMsg = e => t(e && e.status === 429 ? 'busy' : 'netFail');
+async function loadServer(){
+  LIVE.status = 'loading'; renderDataStatus();
+  if (location.protocol === 'file:') { LIVE.status = 'error'; LIVE.error = 'opened as a file'; return renderDataStatus(); }
+  const status = getJSON('/api/status', 8000).catch(() => null);
+  try {
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 15000);
+    const res = await fetch('/api/listings', {signal: ctl.signal, headers: {accept: 'application/json'}}).finally(() => clearTimeout(timer));
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    LIVE.fromCache = res.headers.get('x-pf-cache') === '1';
+    const l = await res.json();
+    Object.assign(LIVE, {source: l.source, opps: l.opps || [], courses: l.courses || [], metrics: l.metrics || null,
+      fetchedAt: l.fetchedAt || null, changes: l.changes || null, error: l.error || null});
     LIVE.status = LIVE.opps.length ? 'ok' : 'empty';
-  } catch (e) {
-    LIVE.status = 'error'; LIVE.error = String(e.message || e);
-  }
-  renderDataStatus();
+    SERVER.ok = true;
+  } catch (e) { LIVE.status = 'error'; LIVE.error = String(e.message || e); }
+  const st = await status;
+  if (st) { SERVER.ok = true; SERVER.ai = st.ai; }
+  renderDataStatus(); renderOffline();
 }
 const liveOn = () => dataMode === 'live' && LIVE.status === 'ok';
 const catalogue = () => liveOn()
   ? {courses: [...COURSES, ...LIVE.courses], opps: [...LIVE.opps, ...OPPS.filter(o => o.src === 'imaGen')]}
   : {courses: COURSES, opps: OPPS};
+const fmtTime = iso => new Date(iso).toLocaleString('en-GB', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
 function renderDataStatus(){
-  const on = liveOn(), sub = $('#live-sub');
-  $('#live-dot').classList.toggle('on', LIVE.status === 'ok');
+  const on = liveOn(), sub = $('#live-sub'), n = LIVE.opps.length + LIVE.courses.length;
+  $('#live-dot').classList.toggle('on', on && LIVE.source === 'live');
   sub.textContent = LIVE.status === 'loading' ? 'connecting…'
-    : LIVE.status === 'ok' ? `${LIVE.opps.length + LIVE.courses.length} listings${LIVE.stale ? ' · saved copy' : ''}`
-    : LIVE.status === 'empty' ? 'no listings found' : 'not reachable';
-  $('#data-badge').textContent = on ? 'Prototype · live Yoma listings' : 'Prototype · sample listings';
+    : LIVE.status !== 'ok' ? 'not reachable'
+    : LIVE.source === 'live' ? `${n} listings · synced ${fmtTime(LIVE.fetchedAt)}${LIVE.changes ? ` · ${LIVE.changes.added} new` : ''}`
+    : LIVE.source === 'saved' ? `saved copy · ${LIVE.fetchedAt ? fmtTime(LIVE.fetchedAt) : ''}`
+    : 'server sample · Yoma not reached yet';
+  $('#data-badge').textContent = !on ? 'Prototype · sample listings'
+    : LIVE.source === 'live' ? 'Prototype · live Yoma listings' : LIVE.source === 'saved' ? 'Prototype · saved Yoma listings' : 'Prototype · sample listings';
+  const ai = SERVER.ai, chip = $('#ai-chip');
+  chip.textContent = ai.chat ? `${ai.provider === 'azure' ? 'Azure OpenAI' : 'AI (compatible API)'} on${ai.voice ? ' · voice' : ''}` : 'Off · rules & templates';
+  chip.classList.toggle('on', !!ai.chat);
   $('#foot-data').textContent = on
-    ? `Yoma opportunities and courses are live from the public Yoma API (fetched ${new Date(LIVE.fetchedAt).toLocaleString('en-GB')}). Passport to Earning courses, imaGen challenges, personas and facilitators are still invented sample data. Dates use today's date.`
+    ? (LIVE.source === 'live' ? `Yoma opportunities and courses are live from the public Yoma API, synced daily (last sync ${fmtTime(LIVE.fetchedAt)}).`
+      : LIVE.source === 'saved' ? (LIVE.error ? `Yoma couldn't be reached on the last sync, so this is the saved copy from ${LIVE.fetchedAt ? fmtTime(LIVE.fetchedAt) : 'earlier'}.` : `Yoma listings from the saved copy of ${LIVE.fetchedAt ? fmtTime(LIVE.fetchedAt) : 'the last sync'}; the next daily sync refreshes them.`)
+      : 'The server has not reached Yoma yet, so these are representative sample listings (not real).')
+      + ' Passport to Earning courses, imaGen challenges, personas and facilitators are still invented sample data.'
     : 'All courses, openings, employers and facilitators shown are invented sample data for testing the flow. Prototype date is fixed at Monday 26 October 2026.'
-      + (dataMode === 'live' && LIVE.status === 'error' ? ` Live Yoma data couldn't load (${LIVE.error}); run "node serve.mjs" and open http://localhost:4173 to use it.` : '');
+      + (dataMode === 'live' && LIVE.status !== 'ok' && LIVE.status !== 'loading'
+        ? (/^(localhost|127\.0\.0\.1)$/.test(location.hostname) || location.protocol === 'file:'
+          ? ` The Pathfinder server couldn't be reached (${LIVE.error || 'no listings'}); run "node serve.mjs" and open http://localhost:4173.`
+          : ' Live listings could not load, so these are sample listings.') : '');
   const m = LIVE.metrics, st = $('#yoma-stats');
-  st.hidden = !(on && m);
-  if (on && m) st.innerHTML = `<span class="live-dot on"></span>Live on Yoma: <b>${esc(m.userCountDisplay)}</b> young people · <b>${esc(m.organizationCountDisplay)}</b> organisations · <b>${Number(m.opportunityCount).toLocaleString('en-GB')}</b> opportunities in <b>${esc(m.countryCount)}</b> countries`;
+  st.hidden = !(on && m && LIVE.source === 'live');
+  if (!st.hidden) st.innerHTML = `<span class="live-dot on"></span>Live on Yoma: <b>${esc(m.userCountDisplay)}</b> young people · <b>${esc(m.organizationCountDisplay)}</b> organisations · <b>${Number(m.opportunityCount).toLocaleString('en-GB')}</b> opportunities in <b>${esc(m.countryCount)}</b> countries`;
+}
+function renderOffline(){
+  const el = $('#offline'), L = T[(S && S.lang) || 'en'] || T.en;
+  el.hidden = navigator.onLine && !LIVE.fromCache;
+  el.textContent = navigator.onLine ? (L.slowData || T.en.slowData) : (L.offline || T.en.offline);
 }
 
 /* ---------- Words (English + Nigerian Pidgin) ---------- */
@@ -472,6 +469,21 @@ const T = {
   zlto:"This one also earns you {z} Zlto on Yoma once it's verified.",
   neverPaySms:"Never pay to apply. Real openings are free. If anyone asks you for money, reply REPORT {n}.",
   share:"Send my plan on WhatsApp", shareHead:"My Pathfinder plan", report:"Report", smsReport:"If anything looks wrong or asks for money, reply REPORT and the step number.",
+  workQ:"Tell me about work you already do, even if it's informal: selling, fixing phones, farming, cooking, hair, helping at a family shop... It all counts as experience.",
+  workType:"Type a few words about the work you do.",
+  workVoice:"I'm listening. Tap the red button to stop when you're done (up to 1 minute). Don't say your name or phone number.",
+  workThinking:"Let me look at that...", workHeard:"I heard: \"{text}\"", workFound:"From this, you already have these skills:", workConfirm:"Is that right?",
+  workSaved:"Great. These count as skills you have, so your plan won't make you learn them again.",
+  workNone:"I couldn't pick out skills from that. You can try again with a bit more detail, or skip.",
+  voiceFail:"I couldn't hear that clearly. Try again somewhere quieter, or type it instead.", voiceOff:"Voice notes aren't available right now. Please type it instead.",
+  micDenied:"I can't use the microphone. Please allow it in your browser, or type instead.", micWhen:"Voice notes work when Pathfinder asks about the work you do.",
+  netFail:"I couldn't reach Pathfinder's server. Check your connection, or skip this for now.",
+  recording:"Recording… tap the red button to stop", skillsTitle:"Skills I have", skillsShare:"Send my skills on WhatsApp", fromWork:"from your own work",
+  understood:"Understood as: {opt}", tagStart:"Start here", tagLearn:"Learn here", tagApply:"Apply here", stTodo:"To do", stDoing:"In progress", stDone:"Done",
+  step:"Step", openOn:"Open on {p}", oneSkill:"the one skill", allSkills:"all {m} skills", cert1:"1 certificate", certN:"{n} certificates",
+  facDefault:"a GenU Nigeria facilitator", whatNext:"What next?", shareNote:"No name or phone number is included.",
+  offline:"You're offline. Your saved plan and the last listings still work.", slowData:"Slow connection: showing the listings saved on this phone.",
+  busy:"Lots of people are using Pathfinder right now. Please try again in a minute.", sigEarn:"Earn now", sigPhone:"Do it on your phone", sigNoCert:"No certificate needed",
   greet:"Hi, I'm Pathfinder from GenU. I turn your goal into 3 clear steps: one to start, one to learn and one to apply. It takes about 5 minutes.",
   age:"Before we start: I only save your answers, your plan and your progress. Reply DELETE at any time to erase them.\n\nHow old are you?",
   under15:"Pathfinder is for young people aged 15 to 24. Please ask a teacher or parent about programmes for your age. Reply RESTART to begin again.",
@@ -534,6 +546,20 @@ const T = {
   zlto:"This one go also give you {z} Zlto for Yoma when dem verify am.",
   neverPaySms:"No pay money to apply. Real openings dey free. If anybody ask you for money, send REPORT {n}.",
   share:"Send my plan for WhatsApp", shareHead:"My Pathfinder plan", report:"Report", smsReport:"If anything no look correct or dem ask for money, send REPORT and the step number.",
+  workQ:"Tell me about work wey you don dey do, even if na informal: selling, fixing phone, farm work, cooking, hair, helping for family shop... E all count as experience.",
+  workType:"Type small about the work wey you dey do.",
+  workVoice:"I dey listen. Tap the red button to stop when you finish (up to 1 minute). No talk your name or phone number.",
+  workThinking:"Make I check am...", workHeard:"I hear: \"{text}\"", workFound:"From wetin you talk, you don get these skills:", workConfirm:"Na so?",
+  workSaved:"Correct. These ones na skills wey you get, so your plan no go make you learn am again.",
+  workNone:"I no fit see skill for wetin you talk. Try again with small more detail, or skip am.",
+  voiceFail:"I no hear am well. Try again for quiet place, or type am.", voiceOff:"Voice note no dey work now. Abeg type am.",
+  micDenied:"I no fit use the microphone. Abeg allow am for your browser, or type am.", micWhen:"Voice note dey work when Pathfinder ask about the work wey you dey do.",
+  netFail:"I no fit reach Pathfinder server. Check your network, or skip this one for now.",
+  recording:"I dey record… tap the red button to stop", skillsTitle:"Skills wey I get", skillsShare:"Send my skills for WhatsApp", fromWork:"from your own work",
+  understood:"I understand am as: {opt}", openOn:"Open for {p}", cert1:"one certificate", certN:"{n} certificates",
+  facDefault:"one GenU Nigeria facilitator", whatNext:"Wetin next?", shareNote:"E no get name or phone number inside.",
+  offline:"Network no dey. Your saved plan and the last listings still dey work.", slowData:"Network slow: I dey show the listings wey dey saved for this phone.",
+  busy:"Plenty people dey use Pathfinder now. Abeg try again after one minute.", sigEarn:"Make money now", sigPhone:"Do am for your phone", sigNoCert:"No need certificate",
   greet:"How far! I be Pathfinder from GenU. I go help you turn your goal into 3 clear steps: one to start, one to learn, one to apply. E go take like 5 minutes.",
   age:"Before we start: I go keep only your answers, your plan and how far you don go. Send DELETE anytime make I clear am.\n\nHow old you be?",
   under15:"Pathfinder na for young people wey dey 15 reach 24. Abeg ask your teacher or parent about programme for your age. Send RESTART to start again.",
@@ -582,10 +608,10 @@ const T = {
  }
 };
 const O = {
-  lang:[{v:'en',en:'English',pcm:'English'},{v:'pcm',en:'Naija Pidgin',pcm:'Naija Pidgin'}],
+  lang:[{v:'en',en:'English'},{v:'pcm',en:'Naija Pidgin'},{v:'ha',en:'Hausa'},{v:'yo',en:'Yorùbá'}],
   age:[...Array.from({length:10},(_,i)=>({v:15+i,en:String(15+i),pcm:String(15+i)})),{v:14,en:'Under 15',pcm:'Under 15'},{v:25,en:'25+',pcm:'25+'}],
   profile:[{v:true,en:'Yes, use my profile',pcm:'Yes, check am'},{v:false,en:'No, skip',pcm:'No, skip am'}],
-  goal:[{v:'job',en:'Get a job',pcm:'Find work'},{v:'skills',en:'Learn new skills',pcm:'Learn new skill'},{v:'business',en:'Start a business',pcm:'Start business'},{v:'notsure',en:"I'm not sure",pcm:'I never sure'}],
+  goal:[{v:'job',en:'Get a job',pcm:'Find work'},{v:'earn',en:'Earn money now',pcm:'Make money now'},{v:'skills',en:'Learn new skills',pcm:'Learn new skill'},{v:'business',en:'Start a business',pcm:'Start business'},{v:'notsure',en:"I'm not sure",pcm:'I never sure'}],
   sector:[{v:'digital',en:'Digital & tech',pcm:'Digital & tech'},{v:'customer',en:'Customer service & sales',pcm:'Customer service & sales'},{v:'agri',en:'Farming & agribusiness',pcm:'Farm work & agribusiness'},{v:'fashion',en:'Fashion & beauty',pcm:'Fashion & beauty'},{v:'notsure',en:'Not sure yet',pcm:'I never decide'}],
   state:[{v:'lagos',en:'Lagos',pcm:'Lagos'},{v:'kano',en:'Kano',pcm:'Kano'},{v:'fct',en:'FCT Abuja',pcm:'FCT Abuja'},{v:'oyo',en:'Oyo',pcm:'Oyo'},{v:'rivers',en:'Rivers',pcm:'Rivers'},{v:'other',en:'Another state',pcm:'Another state'},{v:'online',en:'Online only',pcm:'Online only'}],
   hours:[{v:2,en:'1–2 hours',pcm:'1–2 hours'},{v:4,en:'3–5 hours',pcm:'3–5 hours'},{v:8,en:'6–10 hours',pcm:'6–10 hours'},{v:12,en:'More than 10',pcm:'Pass 10 hours'}],
@@ -597,9 +623,193 @@ const O = {
   guardian:[{v:true,en:'Yes, they agree',pcm:'Yes, dem agree'},{v:false,en:'Not yet',pcm:'Not yet'}],
   resume:[{v:'yes',en:'Yes, continue',pcm:'Yes, continue'},{v:'no',en:'No, start a new plan',pcm:'No, start new plan'}],
   fb:[{v:'yes',en:'Yes, very',pcm:'Yes, well well'},{v:'bit',en:'A bit',pcm:'Small'},{v:'no',en:'Not really',pcm:'No really'}],
+  work:[{v:'voice',en:'Record a voice note',pcm:'Record voice note'},{v:'type',en:'Type it',pcm:'Type am'},{v:'skip',en:'Skip',pcm:'Skip am'}],
+  workOk:[{v:'yes',en:"Yes, that's right",pcm:'Yes, na so'},{v:'again',en:'Say it again',pcm:'Talk am again'},{v:'skip',en:'Skip',pcm:'Skip am'}],
   end:[{v:'new',en:'Make a new plan',pcm:'Make new plan'},{v:'done',en:"That's all for now",pcm:'Na all for now'}]
 };
-const LABEL = {lang:{en:'English',pcm:'Naija Pidgin'}};
+const LABEL = {lang:{en:'English',pcm:'Naija Pidgin',ha:'Hausa',yo:'Yorùbá'}};
+/* ---------- Hausa and Yoruba (written for this prototype; need native-speaker review) ---------- */
+T.ha = {
+  greet:"Sannu, ni ne Pathfinder daga GenU. Ina juya burinka zuwa matakai 3 masu sauƙi: ɗaya don farawa, ɗaya don koyo, ɗaya kuma don nema. Zai ɗauki kusan minti 5.",
+  reviewNote:"Rubutun Hausa sabo ne kuma masu magana da harshen suna duba shi. Kana iya amsa da kowane harshe.",
+  age:"Kafin mu fara: Ina ajiye amsoshinka, shirinka da ci gabanka kawai. Aika DELETE a kowane lokaci don goge su.\n\nShekarunka nawa?",
+  under15:"Pathfinder na matasa ne masu shekaru 15 zuwa 24. Don Allah ka tambayi malami ko iyaye game da shirye-shirye na shekarunka. Aika RESTART don sake farawa.",
+  over24:"An gina Pathfinder don masu shekaru 15 zuwa 24, don haka damar da nake gani ba za su dace da kai ba. Har yanzu kana iya duba duk damammaki a Yoma. Aika RESTART don sake farawa.",
+  guardianQ:"Saboda shekarunka ba su kai 18 ba, iyaye ko mai kula da kai dole su amince kafin in ajiye komai. A cikakken tsarin zan aika musu da lamba don tabbatarwa.\n\nShin iyayenka ko mai kula da kai sun amince?",
+  guardianYes:"Na gode. Zan kiyaye shirinka mai sauƙi kuma amintacce, kuma zan yi amfani da saƙonnin da aka duba kawai.",
+  guardianNo:"Ba komai. Ban ajiye komai ba. Idan sun amince, aika Hi don sake farawa. Har yanzu kana iya duba damammaki a Yoma.",
+  profile:"Zan iya duba kwasa-kwasai da takardun shaida a bayananka na Yoma? Zai taimaka min in tsallake abin da ka riga ka yi.",
+  profileFound:"Na sami {n} a bayananka na Yoma:\n{list}\nZan gina a kansu.", profileEmpty:"Bayananka na Yoma ba su da kwasa-kwasai tukuna, don haka za mu fara daga farko.",
+  profileSkip:"Babu matsala. Zan tsara daga amsoshinka kawai.",
+  workQ:"Faɗa min aikin da kake yi yanzu, ko da ba na hukuma ba ne: sayar da kaya, gyaran waya, noma, girki, kitso, taimakawa a shagon iyali... Duk yana da daraja a matsayin ƙwarewa.",
+  workType:"Rubuta 'yan kalmomi game da aikin da kake yi.",
+  workVoice:"Ina saurare. Danna maɓallin ja don tsayawa idan ka gama (har minti 1). Kada ka faɗi sunanka ko lambar wayarka.",
+  workThinking:"Bari in duba...", workHeard:"Na ji: \"{text}\"", workFound:"Daga wannan, ka riga ka mallaki waɗannan ƙwarewa:", workConfirm:"Haka ne?",
+  workSaved:"Madalla. Waɗannan ƙwarewa ne da kake da su, don haka shirinka ba zai sa ka sake koyon su ba.",
+  workNone:"Ban iya gano ƙwarewa daga wannan ba. Kana iya sake gwadawa da ƙarin bayani, ko ka tsallake.",
+  voiceFail:"Ban ji sosai ba. Sake gwadawa a wuri mai shiru, ko ka rubuta.", voiceOff:"Saƙon murya ba ya aiki yanzu. Don Allah ka rubuta.",
+  micDenied:"Ba zan iya amfani da makirufo ba. Don Allah ka ba da izini a burauzarka, ko ka rubuta.", micWhen:"Saƙon murya yana aiki idan Pathfinder ya tambaye ka game da aikinka.",
+  netFail:"Ban iya isa sabar Pathfinder ba. Duba haɗin intanet ɗinka, ko ka tsallake wannan yanzu.",
+  recording:"Ana nadawa… danna maɓallin ja don tsayawa", skillsTitle:"Ƙwarewar da nake da su", skillsShare:"Aika ƙwarewata ta WhatsApp", fromWork:"daga aikinka",
+  understood:"Na fahimta: {opt}",
+  goal:"Menene babban burinka yanzu?", sector:"Wane irin aiki kake so?", state:"A wace jiha kake zaune?",
+  hours:"Awa nawa a mako za ka iya bayarwa?", data:"Data nawa za ka iya amfani da ita don koyo?",
+  building:"Ina duba kwasa-kwasai da damammaki na yau...",
+  planIntro:"Ga shirinka. Kowane mataki ya faɗi dalilin da ya sa na zaɓe shi, kuma kana iya canza kowane mataki.",
+  planWeak:"Ban sami cikakken dacewa da amsoshinka yau ba, don haka wannan shi ne shiri mafi kusa. Mai taimako zai iya taimaka maka ka ƙara nema.",
+  tight:"Ka lura: za a rufe nema a {date}, kafin ka gama mataki na 1 da 2 (kusan mako {weeks}). Kana iya nema yanzu ka ci gaba da koyo.",
+  planAsk:"Me kake so ka yi?", saved:"An ajiye a bayananka na Yoma. Zan duba ka kowace Litinin don ganin yadda ake ciki.",
+  swapped:"An gama. Ga sabon shirinka.", swappedApply:"An gama. Canza inda za ka nema yana canza abin da kake buƙatar koya, don haka an sabunta mataki na 1 da 2 ma.",
+  noMore:"Wannan ne kaɗai dacewa mai kyau da nake da shi don wannan mataki yanzu. Gara in faɗa maka da in ba ka abin da bai dace ba.",
+  rejectWhy:"Yi haƙuri bai dace ba. Menene babbar matsalar?", lessTime:"Na yi shiri mafi sauƙi na awa {h} a mako.",
+  minTime:"Wannan shi ne shiri mafi sauƙi da zan iya yi. Mai taimako zai iya taimakawa a sami abu mafi gajarta.",
+  ciQ:"Dubawa ta mako {w}. Ka gama Mataki na {n}: {title}?", ciDone:"Madalla! Takardar shaidarka za ta bayyana a bayananka na Yoma kuma za ta taimaka a mataki na gaba.",
+  ciNext:"Na gaba shi ne Mataki na {n}: {title}.", ciDoing:"Da kyau. Gwada ɗan darasi guda yau, kusan minti 30. Kana iya sauke darussa idan kana da Wi-Fi ka karanta ba tare da data ba.",
+  ciStall:"Ba komai. Mu rage shi: buɗe kwas ɗin ka gama darasi na farko kawai a wannan makon.", applyQ:"Dubawa ta mako {w}. Ka nemi {title}?",
+  applied:"Madalla! Na yi masa alama Applied a bayananka na Yoma, don kada ya ɓace.",
+  complete:"Ka gama dukkan matakai 3. Shirinka da neman da ka yi an ajiye su a Yoma. Idan ka ji amsa, faɗa min zan taimaka maka da shirin na gaba.",
+  handoff:"Na roƙi {fac} su aika maka da saƙo cikin kwanakin aiki 2. Idan kun haɗu, zai kasance a cibiyar abokan hulɗa, ba a wuri na sirri ba. Shirinka yana nan a ajiye.",
+  fallback:"Na fi aiki da maɓallan. Danna zaɓi, ko aika lambarsa.", deleted:"An gama. An goge amsoshinka da shirinka. Aika Hi don sake farawa.",
+  bye:"Allah ya taimaka! Aika Hi a kowane lokaci don yin sabon shiri.",
+  rStart:"An ba da shawara saboda ba ya buƙatar wani sharaɗi kuma ya dace da awanninka {h} a mako.",
+  rStartPre:"An ba da shawara saboda yana koyar da {skill}, wanda kake buƙata kafin Mataki na 2, kuma ba ya buƙatar sharaɗi.",
+  rStartProfile:"An ba da shawara saboda masu ɗaukar aiki suna fara ganin bayananka na Yoma, kuma yana ɗaukar kusan awa ɗaya.",
+  rLearn:"An ba da shawara saboda {org} na neman {skills}. Wannan kwas ɗin ya ƙunshi {n} daga cikin ƙwarewa {m} da kake rasa.",
+  rLearnAll:"An ba da shawara saboda {org} na neman {skills}, kuma wannan kwas ɗin ya ƙunshi {all} da kake rasa.",
+  rLearnReady:"Bayananka sun riga sun nuna ƙwarewar da wannan dama ke buƙata. Wannan zai inganta CV ɗinka da hira.",
+  rApply:"An ba da shawara saboda yana {where}, ka cancanta a shekaru {age}, kuma za a rufe a {date}.",
+  rApplyOpen:"An ba da shawara saboda yana {where}, ya dace da abin da kake son yi, kuma a buɗe yake yanzu ba tare da ranar rufewa ba.",
+  openNow:"a buɗe yanzu", noMatch:"Ban sami damar da ta dace da amsoshinka yau ba. Gara in faɗa maka da in tura ka zuwa abin da ba zai yi aiki ba.",
+  whereState:"a {state}", whereOnline:"ta intanet", whereAll:"a buɗe a duk jihohi",
+  hrs:"awa {h}", weeks:"kusan mako {w}", closes:"rufewa {d}", planTitle:"Shirinka na Pathfinder", why:"Dalili: ",
+  informal:"Ayyukan da ba na hukuma ba da sana'ar kai suna da daraja.",
+  neverPay:"Kada ka biya kuɗi don nema. Damammaki na gaskiya kyauta ne. Idan wani ya nemi kuɗi, danna Report ko aika REPORT {n}.",
+  neverPaySms:"Kada ka biya kuɗi don nema. Damammaki na gaskiya kyauta ne. Idan wani ya nemi kuɗi, aika REPORT {n}.",
+  safeInPerson:"Za ka je da kanka? Ku haɗu a wurin jama'a, ka je da rana, kuma ka faɗa wa wanda ka amince da shi inda za ka.",
+  minorInPerson:"Shekarunka ba su kai 18 ba, don haka ka zo da iyaye ko mai kula da kai a ziyarar farko.",
+  reported:"Na gode da ka faɗa min. Na ɓoye shi daga shirinka kuma na aika wa ƙungiyar GenU don su duba. Ga sabon shirinka.",
+  reportedOld:"Na gode. An aika wannan dama ga ƙungiyar GenU don su duba.",
+  urgent:"Da alama ba ka cikin aminci. Idan kana cikin haɗari yanzu, kira 112. Kyauta ne.\n\nNa roƙi {fac} su tuntuɓe ka yau. Ba kai kaɗai ba ne, kuma ka yi daidai da ka faɗa min.",
+  welcomeBack:"Barka da dawowa. Akwai shirin Pathfinder da aka ajiye a wannan wayar. Naka ne?", resumed:"Ga inda ka tsaya.",
+  fbQ:"Ƙaramar tambaya: wannan shirin yana da amfani a gare ka?", fbThanks:"Na gode. Hakan zai taimaka mana mu inganta Pathfinder.",
+  zlto:"Wannan kuma zai ba ka Zlto {z} a Yoma idan an tabbatar.",
+  share:"Aika shirina ta WhatsApp", shareHead:"Shirina na Pathfinder", report:"Report",
+  smsReport:"Idan wani abu bai yi daidai ba ko an nemi kuɗi, aika REPORT da lambar matakin.",
+  tagStart:"Fara a nan", tagLearn:"Koyi a nan", tagApply:"Nema a nan", stTodo:"Ba a fara ba", stDoing:"Ana kan yi", stDone:"An gama",
+  step:"Mataki", openOn:"Buɗe a {p}", oneSkill:"ƙwarewa ɗaya", allSkills:"dukkan ƙwarewa {m}", cert1:"takardar shaida 1", certN:"takardun shaida {n}",
+  facDefault:"wani mai taimako na GenU Nigeria", whatNext:"Me za a yi na gaba?", shareNote:"Babu suna ko lambar waya a ciki.",
+  offline:"Ba ka da intanet. Shirinka da aka ajiye da damammaki na ƙarshe suna aiki.", slowData:"Intanet yana jinkiri: ina nuna damammakin da aka ajiye a wayarka.",
+  busy:"Mutane da yawa suna amfani da Pathfinder yanzu. Don Allah sake gwadawa bayan minti ɗaya.", sigEarn:"Samu kuɗi yanzu", sigPhone:"Yi ta wayarka", sigNoCert:"Ba a buƙatar takardar shaida"
+};
+T.yo = {
+  greet:"Ẹ n lẹ́, èmi ni Pathfinder láti GenU. Mo máa yí àfojúsùn rẹ padà sí ìgbésẹ̀ mẹ́ta tó ṣe kedere: ọ̀kan láti bẹ̀rẹ̀, ọ̀kan láti kọ́, àti ọ̀kan láti béèrè. Ó máa gba nǹkan bí ìṣẹ́jú márùn-ún.",
+  reviewNote:"Ọ̀rọ̀ Yorùbá yìí jẹ́ tuntun, àwọn tó ń sọ èdè náà ṣì ń ṣe àyẹ̀wò rẹ̀. O lè dáhùn ní èdè èyíkéyìí.",
+  age:"Kí a tó bẹ̀rẹ̀: ìdáhùn rẹ, ètò rẹ àti ìtẹ̀síwájú rẹ nìkan ni mo máa fipamọ́. Fi DELETE ránṣẹ́ nígbàkigbà láti pa wọ́n rẹ́.\n\nỌmọ ọdún mélòó ni ọ́?",
+  under15:"Pathfinder wà fún àwọn ọ̀dọ́ tí ọjọ́ orí wọn wà láàrin 15 sí 24. Jọ̀wọ́ bi olùkọ́ tàbí òbí rẹ nípa àwọn ètò fún ọjọ́ orí rẹ. Fi RESTART ránṣẹ́ láti bẹ̀rẹ̀ lẹ́ẹ̀kansi.",
+  over24:"A ṣe Pathfinder fún àwọn tí ọjọ́ orí wọn wà láàrin 15 sí 24, nítorí náà àwọn àǹfààní tí mo rí lè má bá ọ mu. O ṣì lè wo gbogbo àǹfààní lórí Yoma. Fi RESTART ránṣẹ́ láti bẹ̀rẹ̀ lẹ́ẹ̀kansi.",
+  guardianQ:"Nítorí pé o kò tíì pé ọmọ ọdún 18, òbí tàbí alágbàtọ́ rẹ gbọ́dọ̀ gbà kí n tó fi ohunkóhun pamọ́. Nínú ẹ̀yà kíkún, màá fi kóòdù ránṣẹ́ sí wọn láti fìdí rẹ̀ múlẹ̀.\n\nṢé òbí tàbí alágbàtọ́ rẹ gbà?",
+  guardianYes:"Ẹ ṣé. Màá jẹ́ kí ètò rẹ rọrùn kí ó sì wà láìléwu, màá sì lo àwọn ọ̀rọ̀ tí a ti ṣàyẹ̀wò nìkan.",
+  guardianNo:"Kò burú. Mi ò fi nǹkan kan pamọ́. Tí wọ́n bá gbà, fi Hi ránṣẹ́ láti bẹ̀rẹ̀ lẹ́ẹ̀kansi. O ṣì lè wo àwọn àǹfààní lórí Yoma.",
+  profile:"Ṣé mo lè wo àwọn ẹ̀kọ́ àti ìwé ẹ̀rí tó wà lórí àkọọ́lẹ̀ Yoma rẹ? Yóò ràn mí lọ́wọ́ láti fo ohun tí o ti ṣe tẹ́lẹ̀.",
+  profileFound:"Mo rí {n} lórí àkọọ́lẹ̀ Yoma rẹ:\n{list}\nMàá kọ́ lé wọn lórí.", profileEmpty:"Kò sí ẹ̀kọ́ kankan lórí àkọọ́lẹ̀ Yoma rẹ síbẹ̀, nítorí náà a máa bẹ̀rẹ̀ láti ìbẹ̀rẹ̀.",
+  profileSkip:"Kò sí wàhálà. Màá ṣètò láti inú ìdáhùn rẹ nìkan.",
+  workQ:"Sọ fún mi nípa iṣẹ́ tí o ti ń ṣe, kódà tí kì í bá ṣe iṣẹ́ ìjọba: títa ọjà, títún fóònù ṣe, iṣẹ́ oko, sísè oúnjẹ, irun dídì, ríran ṣọ́ọ̀bù ẹbí lọ́wọ́... Gbogbo rẹ̀ ka sí ìrírí.",
+  workType:"Kọ ọ̀rọ̀ díẹ̀ nípa iṣẹ́ tí o ń ṣe.",
+  workVoice:"Mò ń gbọ́. Tẹ bọ́tìnnì pupa láti dúró tí o bá parí (títí di ìṣẹ́jú kan). Má ṣe sọ orúkọ rẹ tàbí nọ́ńbà fóònù rẹ.",
+  workThinking:"Jẹ́ kí n wò ó...", workHeard:"Mo gbọ́: \"{text}\"", workFound:"Láti inú èyí, o ti ní àwọn ọgbọ́n wọ̀nyí:", workConfirm:"Ṣé bẹ́ẹ̀ ni?",
+  workSaved:"Ó dára. Àwọn wọ̀nyí ka sí ọgbọ́n tí o ní, nítorí náà ètò rẹ kò ní ní kí o tún kọ́ wọn.",
+  workNone:"Mi ò lè rí ọgbọ́n kankan nínú ìyẹn. O lè gbìyànjú lẹ́ẹ̀kansi pẹ̀lú àlàyé díẹ̀ sí i, tàbí kí o fò ó.",
+  voiceFail:"Mi ò gbọ́ ọ dáadáa. Gbìyànjú lẹ́ẹ̀kansi ní ibi tó dákẹ́, tàbí kí o kọ ọ́.", voiceOff:"Ohùn kò ṣiṣẹ́ báyìí. Jọ̀wọ́ kọ ọ́ dípò.",
+  micDenied:"Mi ò lè lo máíkírófóònù. Jọ̀wọ́ fún un láàyè nínú búrọ́ọ̀sà rẹ, tàbí kí o kọ ọ́.", micWhen:"Ohùn máa ń ṣiṣẹ́ nígbà tí Pathfinder bá béèrè nípa iṣẹ́ rẹ.",
+  netFail:"Mi ò lè dé sẹ́fà Pathfinder. Ṣàyẹ̀wò ìsopọ̀ rẹ, tàbí kí o fo èyí báyìí.",
+  recording:"Ó ń gba ohùn sílẹ̀… tẹ bọ́tìnnì pupa láti dúró", skillsTitle:"Àwọn ọgbọ́n tí mo ní", skillsShare:"Fi àwọn ọgbọ́n mi ránṣẹ́ lórí WhatsApp", fromWork:"láti inú iṣẹ́ rẹ",
+  understood:"Mo gbọ́ ọ bí: {opt}",
+  goal:"Kí ni àfojúsùn rẹ pàtàkì báyìí?", sector:"Irú iṣẹ́ wo ló wù ọ́?", state:"Ìpínlẹ̀ wo lo ń gbé?",
+  hours:"Wákàtí mélòó ní ọ̀sẹ̀ lo lè fi sí èyí?", data:"Dátà mélòó lo lè lò fún kíkọ́ ẹ̀kọ́?",
+  building:"Mò ń ṣàyẹ̀wò àwọn ẹ̀kọ́ àti àǹfààní òde òní fún ọ...",
+  planIntro:"Ètò rẹ nìyí. Ìgbésẹ̀ kọ̀ọ̀kan sọ ìdí tí mo fi yàn án, o sì lè pààrọ̀ ìgbésẹ̀ èyíkéyìí.",
+  planWeak:"Mi ò rí ohun tó bá ìdáhùn rẹ mu dáadáa lónìí, nítorí náà ètò tó sún mọ́ jù lọ nìyí. Olùrànlọ́wọ́ lè ràn ọ́ lọ́wọ́ láti wá síwájú sí i.",
+  tight:"Ṣọ́ra: wọ́n máa ti ìbéèrè ní {date}, kí o tó parí ìgbésẹ̀ 1 àti 2 (bí ọ̀sẹ̀ {weeks}). O lè béèrè báyìí kí o sì máa kọ́ ẹ̀kọ́ lọ.",
+  planAsk:"Kí lo fẹ́ ṣe?", saved:"Mo ti fi pamọ́ sí àkọọ́lẹ̀ Yoma rẹ. Màá yẹ̀ ọ́ wò ní gbogbo ọjọ́ Ajé láti mọ bí nǹkan ṣe ń lọ.",
+  swapped:"Ó ti parí. Ètò tuntun rẹ nìyí.", swappedApply:"Ó ti parí. Yíyí ibi tí o ti máa béèrè padà tún yí ohun tí o nílò láti kọ́ padà, nítorí náà mo ṣe àtúnṣe ìgbésẹ̀ 1 àti 2 pẹ̀lú.",
+  noMore:"Èyí nìkan ni àǹfààní tó dára tí mo ní fún ìgbésẹ̀ yìí báyìí. Ó sàn kí n sọ fún ọ ju kí n fún ọ ní ohun tí kò bá ọ mu.",
+  rejectWhy:"Má bínú pé kò bá ọ mu. Kí ni ìṣòro pàtàkì?", lessTime:"Mo ti ṣe ètò tó fúyẹ́ fún wákàtí {h} ní ọ̀sẹ̀.",
+  minTime:"Èyí ni ètò tó fúyẹ́ jù lọ tí mo lè ṣe. Olùrànlọ́wọ́ lè ràn ọ́ lọ́wọ́ láti rí èyí tó kúrú sí i.",
+  ciQ:"Àyẹ̀wò ọ̀sẹ̀ {w}. Ṣé o ti parí Ìgbésẹ̀ {n}: {title}?", ciDone:"O kú iṣẹ́! Ìwé ẹ̀rí rẹ máa hàn lórí àkọọ́lẹ̀ Yoma rẹ, yóò sì ràn ọ́ lọ́wọ́ fún ìgbésẹ̀ tó kàn.",
+  ciNext:"Èyí tó kàn ni Ìgbésẹ̀ {n}: {title}.", ciDoing:"Ó dára. Gbìyànjú ẹ̀kọ́ kúkúrú kan lónìí, bí ìṣẹ́jú 30. O lè gba àwọn ẹ̀kọ́ sílẹ̀ nígbà tí o bá ní Wi-Fi kí o sì kà wọ́n láìsí dátà.",
+  ciStall:"Kò burú. Jẹ́ ká dín in kù: ṣí ẹ̀kọ́ náà kí o sì parí ẹ̀kọ́ àkọ́kọ́ nìkan ní ọ̀sẹ̀ yìí.", applyQ:"Àyẹ̀wò ọ̀sẹ̀ {w}. Ṣé o ti béèrè fún {title}?",
+  applied:"O ṣeun! Mo ti sàmì sí i pé o ti béèrè (Applied) lórí àkọọ́lẹ̀ Yoma rẹ, kí ó má baà sọnù.",
+  complete:"O ti parí gbogbo ìgbésẹ̀ mẹ́ta. Ètò rẹ àti ìbéèrè rẹ wà ní ìpamọ́ lórí Yoma. Tí o bá gbọ́ èsì, sọ fún mi, màá sì ràn ọ́ lọ́wọ́ láti ṣètò ohun tó kàn.",
+  handoff:"Mo ti ní kí {fac} fi ọ̀rọ̀ ránṣẹ́ sí ọ láàrin ọjọ́ iṣẹ́ méjì. Tí ẹ bá pàdé, yóò jẹ́ ní ibùdó alábàáṣiṣẹ́pọ̀, kì í ṣe ní ibi ìkọ̀kọ̀. Ètò rẹ ṣì wà ní ìpamọ́.",
+  fallback:"Mo ń ṣiṣẹ́ dáadáa jù pẹ̀lú àwọn bọ́tìnnì. Tẹ ọ̀kan, tàbí fi nọ́ńbà rẹ̀ ránṣẹ́.", deleted:"Ó ti parí. Mo ti pa ìdáhùn àti ètò rẹ rẹ́. Fi Hi ránṣẹ́ láti bẹ̀rẹ̀ lẹ́ẹ̀kansi.",
+  bye:"Orí ire o! Fi Hi ránṣẹ́ nígbàkigbà láti ṣe ètò tuntun.",
+  rStart:"A dámọ̀ràn rẹ̀ nítorí pé kò nílò ohun àkọ́kọ́ kankan, ó sì bá wákàtí {h} rẹ ní ọ̀sẹ̀ mu.",
+  rStartPre:"A dámọ̀ràn rẹ̀ nítorí pé ó ń kọ́ni ní {skill}, èyí tí o nílò kí o tó dé Ìgbésẹ̀ 2, kò sì nílò ohun àkọ́kọ́ kankan.",
+  rStartProfile:"A dámọ̀ràn rẹ̀ nítorí pé àwọn agbanisíṣẹ́ máa ń kọ́kọ́ wo àkọọ́lẹ̀ Yoma rẹ, ó sì máa gba nǹkan bí wákàtí kan.",
+  rLearn:"A dámọ̀ràn rẹ̀ nítorí pé {org} ń wá {skills}. Ẹ̀kọ́ yìí bo {n} nínú ọgbọ́n {m} tí o kò tíì ní.",
+  rLearnAll:"A dámọ̀ràn rẹ̀ nítorí pé {org} ń wá {skills}, ẹ̀kọ́ yìí sì bo {all} tí o kò tíì ní.",
+  rLearnReady:"Àkọọ́lẹ̀ rẹ ti fihàn pé o ní àwọn ọgbọ́n tí àǹfààní yìí ń béèrè. Èyí máa mú CV rẹ àti ìfọ̀rọ̀wánilẹ́nuwò rẹ dára sí i.",
+  rApply:"A dámọ̀ràn rẹ̀ nítorí pé ó wà {where}, o tóótun ní ọmọ ọdún {age}, wọ́n sì máa tì í ní {date}.",
+  rApplyOpen:"A dámọ̀ràn rẹ̀ nítorí pé ó wà {where}, ó bá ohun tí o fẹ́ ṣe mu, ó sì ṣí sílẹ̀ báyìí láìsí ọjọ́ ìtìpa.",
+  openNow:"ó ṣí sílẹ̀ báyìí", noMatch:"Mi ò rí àǹfààní tó bá ìdáhùn rẹ mu lónìí. Ó sàn kí n sọ fún ọ ju kí n rán ọ lọ sí ohun tí kò ní ṣiṣẹ́.",
+  whereState:"ní {state}", whereOnline:"lórí ayélujára", whereAll:"ní gbogbo ìpínlẹ̀",
+  hrs:"wákàtí {h}", weeks:"bí ọ̀sẹ̀ {w}", closes:"ìtìpa {d}", planTitle:"Ètò Pathfinder rẹ", why:"Ìdí: ",
+  informal:"Iṣẹ́ àìjẹ́-ìjọba àti iṣẹ́ ara-ẹni náà ka.",
+  neverPay:"Má ṣe sanwó láti béèrè. Àwọn àǹfààní tòótọ́ jẹ́ ọ̀fẹ́. Tí ẹnikẹ́ni bá béèrè owó, tẹ Report tàbí fi REPORT {n} ránṣẹ́.",
+  neverPaySms:"Má ṣe sanwó láti béèrè. Àwọn àǹfààní tòótọ́ jẹ́ ọ̀fẹ́. Tí ẹnikẹ́ni bá béèrè owó, fi REPORT {n} ránṣẹ́.",
+  safeInPerson:"Ṣé o máa lọ fúnra rẹ? Ẹ pàdé ní ibi gbangba, lọ ní ọ̀sán, kí o sì sọ fún ẹni tí o fọkàn tán ibi tí o ń lọ.",
+  minorInPerson:"O kò tíì pé ọmọ ọdún 18, nítorí náà mú òbí tàbí alágbàtọ́ rẹ lọ ní ìgbà àkọ́kọ́.",
+  reported:"Ẹ ṣé fún sísọ fún mi. Mo ti yọ ọ́ kúrò nínú ètò rẹ, mo sì ti fi ránṣẹ́ sí ẹgbẹ́ GenU láti ṣàyẹ̀wò rẹ̀. Ètò tuntun rẹ nìyí.",
+  reportedOld:"Ẹ ṣé. A ti fi àǹfààní yẹn ránṣẹ́ sí ẹgbẹ́ GenU láti ṣàyẹ̀wò rẹ̀.",
+  urgent:"Ó dà bí ẹni pé o kò wà láìléwu. Tí ewu bá wà báyìí, pe 112. Ọ̀fẹ́ ni.\n\nMo ti ní kí {fac} kàn sí ọ lónìí. O kò dá wà, o sì ṣe dáadáa bí o ṣe sọ fún mi.",
+  welcomeBack:"Káàbọ̀. Ètò Pathfinder kan wà ní ìpamọ́ lórí fóònù yìí. Ṣé tìrẹ ni?", resumed:"Ibi tí o dúró sí nìyí.",
+  fbQ:"Ìbéèrè kékeré: ṣé ètò yìí wúlò fún ọ?", fbThanks:"Ẹ ṣé. Ìyẹn máa ràn wá lọ́wọ́ láti mú Pathfinder dára sí i.",
+  zlto:"Èyí tún máa fún ọ ní Zlto {z} lórí Yoma lẹ́yìn tí wọ́n bá fìdí rẹ̀ múlẹ̀.",
+  share:"Fi ètò mi ránṣẹ́ lórí WhatsApp", shareHead:"Ètò Pathfinder mi", report:"Report",
+  smsReport:"Tí nǹkan kan kò bá dára tàbí tí wọ́n bá béèrè owó, fi REPORT àti nọ́ńbà ìgbésẹ̀ náà ránṣẹ́.",
+  tagStart:"Bẹ̀rẹ̀ níbí", tagLearn:"Kọ́ níbí", tagApply:"Béèrè níbí", stTodo:"Kò tíì bẹ̀rẹ̀", stDoing:"Ó ń lọ lọ́wọ́", stDone:"Ó ti parí",
+  step:"Ìgbésẹ̀", openOn:"Ṣí lórí {p}", oneSkill:"ọgbọ́n kan ṣoṣo", allSkills:"gbogbo ọgbọ́n {m}", cert1:"ìwé ẹ̀rí 1", certN:"ìwé ẹ̀rí {n}",
+  facDefault:"olùrànlọ́wọ́ GenU Nigeria kan", whatNext:"Kí ló kàn?", shareNote:"Kò sí orúkọ tàbí nọ́ńbà fóònù nínú rẹ̀.",
+  offline:"O kò sí lórí ayélujára. Ètò rẹ tí o fi pamọ́ àti àwọn àǹfààní tó kẹ́yìn ṣì ń ṣiṣẹ́.", slowData:"Ìsopọ̀ rẹ lọ́ra: mò ń fi àwọn àǹfààní tí a fi pamọ́ sórí fóònù yìí hàn.",
+  busy:"Ọ̀pọ̀ ènìyàn ń lo Pathfinder báyìí. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kansi lẹ́yìn ìṣẹ́jú kan.", sigEarn:"Rí owó báyìí", sigPhone:"Ṣe é lórí fóònù rẹ", sigNoCert:"Kò nílò ìwé ẹ̀rí"
+};
+// Option labels by position, matching O below.
+const O_T = {
+  ha: {profile:['Ee, yi amfani da bayanaina',"A'a, tsallake"], goal:['Samun aiki','Samun kuɗi yanzu','Koyon sabbin ƙwarewa','Fara kasuwanci','Ban tabbata ba'],
+    sector:['Fasahar zamani','Hidimar abokan ciniki da tallace-tallace','Noma da kasuwancin noma','Kayan ado da kwalliya','Ban tabbata ba tukuna'],
+    state:['Legas','Kano','FCT Abuja','Oyo','Rivers','Wata jiha','Ta intanet kawai'], hours:['1–2 awanni','3–5 awanni','6–10 awanni','Fiye da 10'],
+    data:['Kaɗan (rubutu kawai)','Matsakaici (gajerun bidiyo)','Mai yawa (Wi-Fi ko babban data)'],
+    plan:['Ajiye shirina','Canza mataki na 1','Canza mataki na 2','Canza mataki na 3','Babu wanda ya dace'],
+    reject:['Yana ɗaukar lokaci da yawa','Ba irin aikin da nake so ba','Wurin bai dace ba','Ina son magana da mutum'],
+    ci:['Ee, na gama','Ina kan yi','Ban fara ba','Ina buƙatar taimako'], apply:['Ee, na nema','Tukuna','Ina buƙatar taimako'],
+    guardian:['Ee, sun amince','Tukuna'], resume:['Ee, ci gaba',"A'a, fara sabon shiri"], fb:['Ee, sosai','Kaɗan','Ba sosai ba'],
+    end:['Yi sabon shiri','Shi ke nan yanzu'], work:['Naɗa saƙon murya','Rubuta','Tsallake'], workOk:['Ee, haka ne','Sake faɗa','Tsallake']},
+  yo: {profile:['Bẹ́ẹ̀ ni, lo àkọọ́lẹ̀ mi','Rárá, fò ó'], goal:['Rí iṣẹ́','Rí owó báyìí','Kọ́ ọgbọ́n tuntun','Bẹ̀rẹ̀ òwò','Mi ò dá mi lójú'],
+    sector:['Ìmọ̀ ẹ̀rọ àti díjítà','Iṣẹ́ oníbàárà àti títà ọjà','Iṣẹ́ oko àti òwò oko','Aṣọ àti ẹwà','Mi ò tíì pinnu'],
+    state:['Èkó','Kano','FCT Àbújá','Ọ̀yọ́','Rivers','Ìpínlẹ̀ míràn','Lórí ayélujára nìkan'], hours:['1–2 wákàtí','3–5 wákàtí','6–10 wákàtí','Ju 10 lọ'],
+    data:['Díẹ̀ (ọ̀rọ̀ nìkan)','Díẹ̀díẹ̀ (fídíò kúkúrú)','Púpọ̀ (Wi-Fi tàbí dátà ńlá)'],
+    plan:['Fi ètò mi pamọ́','Pààrọ̀ ìgbésẹ̀ 1','Pààrọ̀ ìgbésẹ̀ 2','Pààrọ̀ ìgbésẹ̀ 3','Kò sí èyí tó bá mi mu'],
+    reject:['Ó ń gba àkókò púpọ̀','Kì í ṣe irú iṣẹ́ tí mo fẹ́','Ibẹ̀ kò bá mi mu','Mo fẹ́ bá ènìyàn sọ̀rọ̀'],
+    ci:['Bẹ́ẹ̀ ni, mo ti parí','Mo ṣì ń ṣe é','Mi ò tíì bẹ̀rẹ̀','Mo nílò ìrànlọ́wọ́'], apply:['Bẹ́ẹ̀ ni, mo ti béèrè','Kò tíì','Mo nílò ìrànlọ́wọ́'],
+    guardian:['Bẹ́ẹ̀ ni, wọ́n gbà','Kò tíì'], resume:['Bẹ́ẹ̀ ni, tẹ̀síwájú','Rárá, bẹ̀rẹ̀ ètò tuntun'], fb:['Bẹ́ẹ̀ ni, gan-an','Díẹ̀','Kò fi bẹ́ẹ̀'],
+    end:['Ṣe ètò tuntun','Ó tó fún báyìí'], work:['Gba ohùn sílẹ̀','Kọ ọ́','Fò ó'], workOk:['Bẹ́ẹ̀ ni, ó tọ̀nà','Tún un sọ','Fò ó']}
+};
+for (const [lang, table] of Object.entries(O_T)) for (const [key, labels] of Object.entries(table)) O[key].forEach((o, i) => { if (labels[i]) o[lang] = labels[i]; });
+O.age.forEach(o => { o.ha = o.v === 14 ? 'Ƙasa da 15' : o.en; o.yo = o.v === 14 ? 'Kò tó 15' : o.en; });
+const SK_T = {
+  ha: {'digital-basics':'Amfani da waya da kwamfuta','online-safety':'Tsaro a intanet','job-search':'Neman aiki',comms:'Sadarwa mai kyau',customer:'Hidimar abokan ciniki',
+    spreadsheets:'Shigar da bayanai da Excel','social-media':'Talla a kafofin sada zumunta',cv:'Rubuta CV',interview:'Ƙwarewar hira',teamwork:'Aiki tare da wasu',
+    bookkeeping:'Ajiye lissafin kuɗi','business-plan':'Tsara kasuwanci',pricing:'Saita farashi da sayarwa','agri-practice':'Noman zamani',poultry:'Kiwon kaji',
+    tailoring:'Ɗinki','design-basics':'Zane-zane na asali','coding-basics':'Rubuta lambar kwamfuta','phone-repair':"Gyaran waya da na'urori",
+    'market-trading':'Kasuwanci a kasuwa','food-prep':'Girki da sayar da abinci','hair-beauty':'Kitso da kwalliya','driving-delivery':'Tuƙi da isar da kaya',childcare:'Kula da yara'},
+  yo: {'digital-basics':'Lílo fóònù àti kọ̀ǹpútà','online-safety':'Ààbò lórí ayélujára','job-search':'Wíwá iṣẹ́',comms:'Ìbánisọ̀rọ̀ tó yé',customer:'Ṣíṣe iṣẹ́ fún oníbàárà',
+    spreadsheets:'Títẹ dátà àti Excel','social-media':'Ìpolówó lórí ìkànnì àjọlò',cv:'Kíkọ CV',interview:'Ọgbọ́n ìfọ̀rọ̀wánilẹ́nuwò',teamwork:'Ṣíṣiṣẹ́ pọ̀ pẹ̀lú àwọn mìíràn',
+    bookkeeping:'Kíkọ àkọsílẹ̀ owó','business-plan':'Ṣíṣètò òwò',pricing:'Fífi owó lé ọjà àti títà','agri-practice':'Iṣẹ́ oko òde òní',poultry:'Ọ̀sìn adìyẹ',
+    tailoring:'Aṣọ rírán','design-basics':'Àwòrán díjítà','coding-basics':'Kíkọ kóòdù','phone-repair':'Títún fóònù àti ẹ̀rọ ṣe',
+    'market-trading':'Òwò ọjà','food-prep':'Sísè àti títà oúnjẹ','hair-beauty':'Irun àti ẹwà','driving-delivery':'Wíwakọ̀ àti ìfijíṣẹ́',childcare:'Títọ́jú ọmọdé'}
+};
+const skillName = k => (SK_T[S && S.lang] || {})[k] || SK[k] || k;
+
 
 /* ---------- State ---------- */
 let S, pending = null, busy = false, gen = 0, persona = 'amina', channel = 'chat';
@@ -611,7 +821,7 @@ function fresh(){
 }
 function t(k, v={}){ let s = (T[S.lang][k] ?? T.en[k]); return s.replace(/\{(\w+)\}/g, (_,x) => v[x] ?? ''); }
 const lbl = o => o[S.lang] ?? o.en;
-const held = () => new Set(S.consent ? PERSONAS[persona].creds.flatMap(c => c.skills) : []);
+const held = () => new Set([...(S.consent ? PERSONAS[persona].creds.flatMap(c => c.skills) : []), ...(S.work ? S.work.skills : [])]);
 
 /* ---------- Chat engine ---------- */
 async function say(text, extra={}){
@@ -620,7 +830,7 @@ async function say(text, extra={}){
   await sleep(380 + Math.min(text.length, 160) * 3);
   if (g !== gen) throw ABORT;
   S.msgs.pop(); S.msgs.push({from:'bot', text, ...extra}); busy = false; renderAll();
-  announce(extra.card ? t('planTitle') + '. ' + extra.card.map((c, i) => `Step ${i+1}, ${TAG[c.kind]}: ${c.title}, ${c.src}. ${c.meta}.`).join(' ') : text);
+  announce(extra.skills ? text + ' ' + extra.skills.skills.map(skillName).join(', ') : extra.card ? t('planTitle') + '. ' + extra.card.map((c, i) => `Step ${i+1}, ${TAG[c.kind]}: ${c.title}, ${c.src}. ${c.meta}.`).join(' ') : text);
 }
 function announce(text){ const el = $('#sr-live'); el.textContent = ''; setTimeout(() => { el.textContent = text; }, 50); }
 function sys(text){ S.msgs.push({from:'sys', text}); renderChat(); }
@@ -667,6 +877,7 @@ function compute(){
     .map(o => {
       const pref = GOAL_TYPES[a.goal], ti = pref.indexOf(o.type);
       let s = ti >= 0 ? 4 - ti * .5 : -2;
+      if (a.goal === 'earn' && o.informal && o.informal.earnNow) s += 1.5;
       if (a.sector !== 'notsure') s += o.sectors.includes(a.sector) ? 4 : o.sectors.includes('all') ? 1 : -3;
       else if (o.sectors.includes('all')) s += 1;
       const st = o.states || [];
@@ -699,6 +910,7 @@ function buildPlan(){
     s += x.skills.filter(k => gap.includes(k) && !learn.cov.includes(k)).length * 2;
     if (x.sectors.includes(a.sector)) s += 2; else if (x.sectors.includes('all')) s += 1;
     if (x.hours <= a.hours * 3) s += 2; else s -= 1;
+    if (x.p2e) s += 3;   // Start Here is meant to be a Passport to Earning course; prefer the real ones on Yoma
     if (a.data === 'low' && x.data > 1) s -= 1;
     return {c:x, score:s, pre};
   }).sort((p, q) => q.score - p.score || p.c.hours - q.c.hours);
@@ -717,15 +929,15 @@ function reason(kind){
   const p = S.plan, a = S.a;
   if (kind === 'start') {
     if (p.start.profile) return t('rStartProfile');
-    if (p.start.pre) return t('rStartPre', {skill: SK[p.learn.c.prereq].toLowerCase()});
+    if (p.start.pre) return t('rStartPre', {skill: skillName(p.learn.c.prereq).toLowerCase()});
     return t('rStart', {h: hoursLabel()});
   }
   if (kind === 'learn') {
     if (p.learn.ready) return t('rLearnReady');
-    const names = p.learn.cov.map(k => SK[k].toLowerCase());
+    const names = p.learn.cov.map(k => skillName(k).toLowerCase());
     const o = p.target.o, org = ['task','challenge','self'].includes(o.type) ? o.title : o.org;
     const n = p.learn.cov.length, m = p.gap.length;
-    if (n === m) return t('rLearnAll', {org, skills: names.join(' and '), all: S.lang === 'pcm' ? (m === 1 ? 'the one skill' : `all ${m} skills`) : (m === 1 ? 'the one skill' : `all ${m} skills`)});
+    if (n === m) return t('rLearnAll', {org, skills: names.join(' and '), all: m === 1 ? t('oneSkill') : t('allSkills', {m})});
     return t('rLearn', {org, skills: names.join(' and '), n, m});
   }
   const o = p.target.o, st = o.states || [];
@@ -740,8 +952,12 @@ const weeksFor = h => Math.max(1, Math.ceil(h / S.a.hours));
 async function start(){
   gen++; S = fresh(); pending = null; busy = false; TODAY = liveOn() ? REAL_TODAY : SAMPLE_TODAY; renderAll();
   run((async () => {
-    await say(T.en.greet + '\n\n' + T.pcm.greet);
-    await ask('Which language do you prefer?\nWhich language you want?', O.lang, async v => { S.lang = v; S.a.lang = v; renderPanel(); await askAge(); });
+    await say(T.en.greet + '\n\nHow far! · Sannu! · Ẹ n lẹ́!');
+    await ask('Which language do you prefer?\nWhich language you want?\nWane harshe kake so?\nÈdè wo lo fẹ́?', O.lang, async v => {
+      S.lang = v; S.a.lang = v; document.documentElement.lang = v; renderPanel(); renderOffline();
+      if (v === 'ha' || v === 'yo') { await say(t('greet')); await say(t('reviewNote')); }
+      await askAge();
+    });
   })());
 }
 async function askAge(){
@@ -766,8 +982,8 @@ async function askProfile(){
     const creds = PERSONAS[persona].creds;
     if (!v) await say(t('profileSkip'));
     else if (!creds.length) await say(t('profileEmpty'));
-    else await say(t('profileFound', {n: creds.length === 1 ? (S.lang==='pcm'?'one certificate':'1 certificate') : `${creds.length} ${S.lang==='pcm'?'certificates':'certificates'}`, list: creds.map(c => `• ${c.title} (${c.src})`).join('\n')}));
-    await askGoal();
+    else await say(t('profileFound', {n: creds.length === 1 ? t('cert1') : t('certN', {n: creds.length}), list: creds.map(c => `• ${c.title} (${c.src})`).join('\n')}));
+    await askWork();
   });
 }
 async function askGoal(){ await ask(t('goal'), O.goal, async v => { S.a.goal = v; renderPanel(); await askSector(); }); }
@@ -777,6 +993,7 @@ async function askHours(){ await ask(t('hours'), O.hours, async v => { S.a.hours
 async function askData(){
   await ask(t('data'), O.data, async v => {
     S.a.data = v; S.stage = 'plan'; renderPanel();
+    if (v === 'low') { try { localStorage.setItem('pf-lite', '1'); } catch {} }
     await say(t('building'));
     if (dataMode === 'live' && LIVE.status === 'loading') await liveReady;
     TODAY = liveOn() ? REAL_TODAY : SAMPLE_TODAY;
@@ -787,6 +1004,7 @@ async function askData(){
 }
 async function showPlan(intro){
   if (intro) await say(intro);
+  await aiReasons();
   await say('', {card: snapshot()});
   const p = S.plan, learnWeeks = weeksFor(p.start.c.hours + p.learn.c.hours);
   const deadline = hasDeadline(p.target.o) ? parseD(p.target.o.deadline) : Infinity;
@@ -841,7 +1059,7 @@ async function checkin(){
         if (step.item.zlto) await say(t('zlto', {z: step.item.zlto}));
         await say('', {card: snapshot()});
         await say(t('complete'));
-        return ask(S.lang === 'pcm' ? 'Wetin next?' : 'What next?', O.end, async e => { if (e === 'new') start(); else await say(t('bye')); });
+        return ask(t('whatNext'), O.end, async e => { if (e === 'new') start(); else await say(t('bye')); });
       }
       return afterMiss(v, step);
     });
@@ -869,7 +1087,7 @@ async function afterMiss(v, step){
   S.awaitWeek = true; renderChat();
 }
 async function handoff(why, urgent=false){
-  const fac = FAC[S.a.state] || (S.lang === 'pcm' ? 'one GenU Nigeria facilitator' : 'a GenU Nigeria facilitator');
+  const fac = FAC[S.a.state] || t('facDefault');
   S.flagged = {why, fac, urgent, week: S.week, step: S.plan ? S.plan.steps[Math.max(0, currentStep())]?.item.title : null};
   S.stalls = 0; renderPanel();
   await say(t(urgent ? 'urgent' : 'handoff', {fac}));
@@ -917,23 +1135,144 @@ function resume(){
     if (v === 'no') return start();
     await say(t('resumed'));
     await say('', {card: snapshot()});
-    if (S.stage === 'done') return ask(S.lang === 'pcm' ? 'Wetin next?' : 'What next?', O.end, async e => { if (e === 'new') start(); else await say(t('bye')); });
+    if (S.stage === 'done') return ask(t('whatNext'), O.end, async e => { if (e === 'new') start(); else await say(t('bye')); });
     S.awaitWeek = wasWaiting || true; renderChat();
   }));
   return true;
 }
 
+
+/* ---------- Work I already do: informal skills by voice or text ---------- */
+let pendingText = null, rec = null;
+const canRecord = () => SERVER.ai.voice && channel !== 'sms' && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && typeof MediaRecorder !== 'undefined';
+async function askWork(){
+  if (dataMode === 'live' && LIVE.status === 'loading') await liveReady;
+  const opts = O.work.filter(o => o.v !== 'voice' || canRecord());
+  await ask(t('workQ'), opts, async v => {
+    if (v === 'skip') return askGoal();
+    if (v === 'type') { await say(t('workType')); return awaitText(text => handleWork(text, false)); }
+    await say(t('workVoice'));
+    return startRecording();
+  });
+}
+function awaitText(handler){ pendingText = {handler, gen}; renderChat(); try { $('#msg-input').focus({preventScroll:true}); } catch {} }
+async function handleWork(text, fromVoice){
+  const g = gen;
+  if (fromVoice) await say(t('workHeard', {text}));
+  await say(t('workThinking'));
+  let r = null, fail = t('netFail');
+  try { r = await api('/api/ai/skills', {text, lang: S.lang}, 15000); } catch (e) { fail = failMsg(e); }
+  if (g !== gen) return;
+  if (!r) { await say(fail); return askWork(); }
+  if (!r.skills || !r.skills.length) { await say(t('workNone')); return askWork(); }
+  const draft = {skills: r.skills, summary: r.summary || '', source: r.source};
+  await say(t('workFound'), {skills: draft});
+  await ask(t('workConfirm'), O.workOk, async v => {
+    if (v === 'again') return askWork();
+    if (v === 'yes') {
+      S.work = draft; renderPanel();
+      await say(t('workSaved'));
+      await say('', {skills: {...draft, final: true}});
+    }
+    return askGoal();
+  });
+}
+async function startRecording(){
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+    const type = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4'].find(m => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m));
+    const mr = new MediaRecorder(stream, type ? {mimeType: type, audioBitsPerSecond: 24000} : undefined);
+    const chunks = [], g = gen;
+    mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    mr.onstop = () => {
+      stream.getTracks().forEach(tr => tr.stop());
+      const secs = Math.max(1, Math.round((Date.now() - rec.started) / 1000));
+      clearInterval(rec.tick); clearTimeout(rec.limit); rec = null; renderRec();
+      if (g !== gen) return;
+      run(sendVoice(new Blob(chunks, {type: (mr.mimeType || 'audio/webm').split(';')[0]}), secs));
+    };
+    rec = {mr, started: Date.now(), tick: setInterval(renderRec, 1000), limit: setTimeout(stopRecording, 60000)};
+    mr.start(); renderRec(); announce(t('recording'));
+  } catch (e) {
+    rec = null; renderRec();
+    await say(t('micDenied')); await say(t('workType'));
+    awaitText(text => handleWork(text, false));
+  }
+}
+function stopRecording(){ if (rec && rec.mr.state === 'recording') rec.mr.stop(); }
+function renderRec(){
+  const b = $('#mic'), st = $('#rec-status');
+  b.classList.toggle('rec', !!rec);
+  b.setAttribute('aria-label', rec ? t('recording') : 'Record a voice note');
+  st.hidden = !rec;
+  if (rec) st.textContent = `● ${t('recording')} · ${Math.round((Date.now() - rec.started) / 1000)}s / 60s`;
+}
+async function sendVoice(blob, secs){
+  const g = gen;
+  S.msgs.push({from: 'user', text: `🎤 ${secs}s`}); renderChat();
+  if (blob.size < 1500) { await say(t('voiceFail')); return askWork(); }   // nothing recorded worth sending
+  let r = null, fail = t('netFail');
+  try { r = await api('/api/ai/transcribe?lang=' + encodeURIComponent(S.lang), blob, 30000); } catch (e) { fail = failMsg(e); }
+  if (g !== gen) return;
+  if (!r) { await say(fail); return askWork(); }
+  if (!r.text) { await say(t(r.why === 'voice_off' ? 'voiceOff' : 'voiceFail')); return askWork(); }
+  return handleWork(r.text, true);
+}
+function skillsCard(sk){
+  const names = sk.skills.map(skillName);
+  if (channel === 'sms') return `<div class="msg bot">${esc((sk.final ? t('skillsTitle').toUpperCase() + '\n' : '') + names.map(n => '• ' + n).join('\n') + (sk.summary ? '\n' + sk.summary : ''))}</div>`;
+  const share = 'https://wa.me/?text=' + encodeURIComponent(`${t('skillsTitle')}:\n${names.map(n => '• ' + n).join('\n')}${sk.summary ? '\n' + sk.summary : ''}`);
+  return `<div class="skills-card">${sk.final ? `<h4>${esc(t('skillsTitle'))}</h4>` : ''}
+    <div class="chips">${names.map(n => `<span class="chip have">${esc(n)}</span>`).join('')}</div>
+    ${sk.summary ? `<div class="sum">${esc(sk.summary)}</div>` : ''}
+    <div class="src">${sk.source === 'ai' ? 'Azure AI' : 'keyword rules (AI unavailable)'}</div>
+    ${sk.final ? `<a href="${esc(share)}" target="_blank" rel="noopener">${esc(t('skillsShare'))}</a>` : ''}</div>`;
+}
+
+/* ---------- AI-written plan reasons (adults only; checked on the server; templates otherwise) ---------- */
+const planKey = () => S.plan ? S.plan.steps.map(st => st.item.id).join('|') + '|' + S.lang : '';
+function factsFor(st){
+  const it = st.item, a = S.a, p = S.plan, f = {};
+  if (it.org) f.organisation = it.org;
+  f.from = it.src;
+  if (it.hours) { f.hours = it.hours; f.weeks = weeksFor(it.hours); }
+  if (st.kind === 'apply') f.closes = hasDeadline(it) ? fmtD(parseD(it.deadline)) : 'open now, no closing date';
+  f.skills = (it.skills || []).map(k => SK[k]).join(', ');
+  if (st.kind === 'learn') f.missingSkillsItCovers = p.learn.cov.map(k => SK[k]).join(', ') || 'none';
+  f.personGoal = (O.goal.find(o => o.v === a.goal) || {}).en || '';
+  f.personState = STATES[a.state] || '';
+  f.personHoursPerWeek = hoursLabel();
+  if (S.work) f.personOwnWork = S.work.skills.map(k => SK[k]).join(', ');
+  return f;
+}
+async function aiReasons(){
+  if (!S.plan || !SERVER.ai.chat || S.age === null || S.age < 18) return;
+  const key = planKey();
+  if (S.aiReasons && S.aiReasons.key === key) return;
+  S.msgs.push({from: 'typing'}); renderChat();
+  try {
+    const r = await api('/api/ai/reasons', {lang: S.lang, steps: S.plan.steps.map(st => ({kind: st.kind, title: st.item.title, facts: factsFor(st)}))}, 4000);
+    S.aiReasons = {key, reasons: r.reasons || [], source: r.source};
+  } catch { S.aiReasons = {key, reasons: [], source: 'fallback'}; }
+  S.msgs = S.msgs.filter(m => m.from !== 'typing');
+}
+const aiReason = i => (S.aiReasons && S.aiReasons.key === planKey() && S.aiReasons.reasons[i]) || null;
+const tag = k => t({start: 'tagStart', learn: 'tagLearn', apply: 'tagApply'}[k]);
+const statusLbl = s => t({todo: 'stTodo', doing: 'stDoing', done: 'stDone'}[s]);
+
 /* ---------- Snapshot of plan for chat card ---------- */
 function snapshot(){
   const p = S.plan;
-  return p.steps.map(st => {
-    const it = st.item;
+  return p.steps.map((st, i) => {
+    const it = st.item, inf = it.informal && typeof it.informal === 'object' ? it.informal : null;
     return {kind: st.kind, status: st.status, title: it.title,
-      src: st.kind === 'apply' ? `${it.org} · ${TYPE_LABEL[it.type]} on ${it.src}` : it.src,
+      src: (st.kind === 'apply' ? `${it.org} · ${TYPE_LABEL[it.type] || it.type} on ${it.src}` : it.src) + (it.sample ? ' (sample)' : ''),
+      signals: inf && st.kind === 'apply' ? [inf.earnNow && t('sigEarn'), inf.phoneOnly && t('sigPhone'), inf.noCert && t('sigNoCert')].filter(Boolean) : [],
+      whySrc: aiReason(i) ? 'ai' : 'template',
       meta: st.kind === 'apply'
         ? (hasDeadline(it) ? t('closes', {d: fmtD(parseD(it.deadline))}) : t('openNow')) + (it.zlto ? ` · ${it.zlto} Zlto` : '')
         : `${t('hrs', {h: it.hours})} · ${t('weeks', {w: weeksFor(it.hours)})}${it.offline ? ' · offline' : ''}`,
-      why: reason(st.kind), informal: !!it.informal, platform: it.src, link: it.link || '', id: it.id,
+      why: aiReason(i) || reason(st.kind), informal: it.informal === true || it.type === 'self' || it.type === 'apprenticeship', platform: it.src, link: it.link || '', id: it.id,
       inPerson: st.kind === 'apply' && !it.remote};
   });
 }
@@ -943,27 +1282,28 @@ const TAG = {start:'Start here', learn:'Learn here', apply:'Apply here'};
 const STATUS = {todo:'To do', doing:'In progress', done:'Done'};
 function planCard(steps){
   if (channel === 'sms') {
-    const lines = steps.map((s, i) => `${i+1}) ${TAG[s.kind].toUpperCase()}${S.saved ? ' [' + STATUS[s.status] + ']' : ''}\n${s.title}\n${s.src}\n${s.meta}\n${t('why')}${s.why}\nLink: ${s.link ? s.link.replace(/^https?:\/\//, '') : 'gen.u/' + s.kind[0] + (i+1)}`
+    const lines = steps.map((s, i) => `${i+1}) ${tag(s.kind).toUpperCase()}${S.saved ? ' [' + statusLbl(s.status) + ']' : ''}\n${s.title}\n${s.src}\n${s.meta}\n${t('why')}${s.why}\nLink: ${s.link ? s.link.replace(/^https?:\/\//, '') : 'gen.u/' + s.kind[0] + (i+1)}`
       + (s.kind === 'apply' ? '\n! ' + t('neverPaySms', {n: i+1}) + (s.inPerson ? '\n! ' + t('safeInPerson') + (S.age < 18 ? ' ' + t('minorInPerson') : '') : '') : ''));
     return `<div class="msg bot">${esc(t('planTitle').toUpperCase() + '\n\n' + lines.join('\n\n') + '\n\n' + t('smsReport'))}</div>`;
   }
   return `<div class="plan"><h4>${esc(t('planTitle'))}</h4>${steps.map((s, i) => `
     <div class="pstep ${s.status === 'done' ? 'isdone' : ''}">
-      <span class="tag t-${s.kind}">Step ${i+1} · ${TAG[s.kind]}</span>
+      <span class="tag t-${s.kind}">${esc(t('step'))} ${i+1} · ${esc(tag(s.kind))}</span>
       <div class="ttl">${esc(s.title)}</div>
       <div class="src">${esc(s.src)}</div>
       <div class="meta">${esc(s.meta)}</div>
+      ${s.signals && s.signals.length ? `<div class="sig">${s.signals.map(x => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
       <div class="why">${esc(s.why)}</div>
       ${s.informal ? `<div class="informal">${esc(t('informal'))}</div>` : ''}
       ${s.kind === 'apply' ? `<div class="safe"><b>!</b> ${esc(t('neverPay', {n: i+1}))}</div>` : ''}
       ${s.inPerson ? `<div class="safe"><b>!</b> ${esc(t('safeInPerson'))}${S.age < 18 ? ' ' + esc(t('minorInPerson')) : ''}</div>` : ''}
-      <div class="row"><button class="open" data-open="${esc(s.title)}|${esc(s.platform)}" data-link="${esc(s.link)}">Open on ${esc(s.platform)}<span class="sr-only">: ${esc(s.title)}</span></button>
-        <span>${S.saved ? `<span class="status ${s.status}">${STATUS[s.status]}</span> ` : ''}<button class="open report" data-report="${esc(s.id)}">${esc(t('report'))}<span class="sr-only"> ${esc(s.title)}</span></button></span></div>
+      <div class="row"><button class="open" data-open="${esc(s.title)}|${esc(s.platform)}" data-link="${esc(s.link)}">${esc(t('openOn', {p: s.platform}))}<span class="sr-only">: ${esc(s.title)}</span></button>
+        <span>${S.saved ? `<span class="status ${s.status}">${esc(statusLbl(s.status))}</span> ` : ''}<button class="open report" data-report="${esc(s.id)}">${esc(t('report'))}<span class="sr-only"> ${esc(s.title)}</span></button></span></div>
     </div>`).join('')}
-    <div class="plan-foot"><a href="${esc(shareLink(steps))}" target="_blank" rel="noopener">${esc(t('share'))}</a><span>No name or phone number is included.</span></div></div>`;
+    <div class="plan-foot"><a href="${esc(shareLink(steps))}" target="_blank" rel="noopener">${esc(t('share'))}</a><span>${esc(t('shareNote'))}</span></div></div>`;
 }
 function shareLink(steps){
-  const text = t('shareHead') + ':\n' + steps.map((s, i) => `${i+1}) ${TAG[s.kind]}: ${s.title} (${s.platform})${s.link ? ' ' + s.link : ''}`).join('\n');
+  const text = t('shareHead') + ':\n' + steps.map((s, i) => `${i+1}) ${tag(s.kind)}: ${s.title} (${s.platform})${s.link ? ' ' + s.link : ''}`).join('\n');
   return 'https://wa.me/?text=' + encodeURIComponent(text);
 }
 function renderChat(){
@@ -974,6 +1314,7 @@ function renderChat(){
     if (m.from === 'typing') { h += '<div class="typing" aria-hidden="true"><i></i><i></i><i></i></div>'; continue; }
     if (m.from === 'sys') { h += `<div class="msg sys">${esc(m.text)}</div>`; continue; }
     if (m.card) { h += planCard(m.card); continue; }
+    if (m.skills) { if (m.text) h += `<div class="msg bot">${esc(m.text)}</div>`; h += skillsCard(m.skills); continue; }
     let text = m.text;
     if (sms && m.options) text += '\n\n' + m.options.map((o, i) => `${i+1}. ${lbl(o)}`).join('\n');
     h += `<div class="msg ${m.from}">${esc(text)}</div>`;
@@ -1003,13 +1344,16 @@ function renderPanel(){
     <dt>Sector</dt>${ans(a.sector, optName('sector'))}
     <dt>State</dt>${ans(a.state, optName('state'))}
     <dt>Hours/week</dt>${ans(a.hours, optName('hours'))}
-    <dt>Data</dt>${ans(a.data, optName('data'))}</dl>
+    <dt>Data</dt>${ans(a.data, optName('data'))}
+    <dt>Own work</dt>${S.work ? `<dd>${S.work.skills.length} skills</dd>` : '<dd class="empty">—</dd>'}</dl>
     ${S.age !== null && S.age < 18 && S.age >= 15 ? '<p class="empty-note" style="margin-top:10px">Under 18: only reviewed message templates are used, and no free-text generation.</p>' : ''}`;
   const P = PERSONAS[persona];
   $('#p-profile').innerHTML = `<h3>Yoma profile <em>${S.consent === null ? 'not asked yet' : S.consent ? 'read with consent' : 'not shared'}</em></h3>
     ${S.consent ? (P.creds.length ? `<ul class="ex">${P.creds.map(c => `<li><span>${esc(c.title)}</span><span style="color:var(--ok)">${esc(c.src)}</span></li>`).join('')}</ul>
       <div class="chips" style="margin-top:10px">${[...held()].map(k => `<span class="chip have">${esc(SK[k])}</span>`).join('')}</div>` : '<p class="empty-note">No credentials on this profile yet.</p>')
-      : `<p class="empty-note">${S.consent === false ? 'The user chose not to share. Pathfinder plans from their answers only.' : `Sample profile for ${esc(P.name)}: ${P.creds.length} credential${P.creds.length === 1 ? '' : 's'}. Pathfinder asks before reading it.`}</p>`}`;
+      : `<p class="empty-note">${S.consent === false ? 'The user chose not to share. Pathfinder plans from their answers only.' : `Sample profile for ${esc(P.name)}: ${P.creds.length} credential${P.creds.length === 1 ? '' : 's'}. Pathfinder asks before reading it.`}</p>`}
+    ${S.work ? `<p class="empty-note" style="margin-top:10px">Skills from their own work (${S.work.source === 'ai' ? 'Azure AI' : 'keyword rules'}, confirmed by them):</p>
+      <div class="chips">${S.work.skills.map(k => `<span class="chip have">${esc(SK[k])}</span>`).join('')}</div>` : ''}`;
   const c = S.calc, p = S.plan, have = held();
   const CAT = catalogue();
   $('#p-match').innerHTML = !c ? `<h3>Live listings check</h3><p class="empty-note">After the intake, Pathfinder checks ${CAT.courses.length + CAT.opps.length} listings ${liveOn() ? `(${LIVE.opps.length + LIVE.courses.length} live from Yoma for Nigeria and worldwide, the rest sample P2E and imaGen)` : 'synced overnight from P2E, Yoma and imaGen (sample data)'} and removes anything the user can't actually act on.</p>`
@@ -1024,6 +1368,7 @@ function renderPanel(){
       <p class="empty-note" style="margin-top:10px">Green = already on Yoma profile. Orange = missing. Blue outline = covered by Step 2, <b>${esc(p.learn.c.title)}</b>${p.learn.ready ? ' (no gap, so a job-readiness step instead)' : ` (${p.learn.cov.length} of ${p.gap.length})`}.</p>`;
   $('#p-board').innerHTML = !p ? `<h3>Saved plan on Yoma</h3><p class="empty-note">The plan appears here once it's built, with each step's status as check-ins come in.</p>`
     : `<h3>Saved plan on Yoma <em>${S.saved ? (S.stage === 'done' ? 'complete' : 'week ' + S.week) : 'not saved yet'}</em></h3>
+      <p class="empty-note" style="margin-bottom:8px">Step reasons: ${(() => { const n = p.steps.filter((_, i) => aiReason(i)).length; return n ? `${n} of 3 written by Azure AI (checked: no promises, no invented numbers), ${3 - n} template` : S.age !== null && S.age < 18 ? 'reviewed templates (under 18)' : SERVER.ai.chat ? 'templates (AI reply failed checks or timed out)' : 'templates (AI off)'; })()}.</p>
       <div class="board">${p.steps.map((st, i) => `<div><span class="tag t-${st.kind}">${TAG[st.kind]}</span><span class="ttl">${esc(st.item.title)}</span><span class="status ${st.status}" style="width:max-content">${STATUS[st.status]}</span></div>`).join('')}</div>
       <div class="meter" aria-label="Missed check-ins">Missed check-ins: <i class="${S.stalls >= 1 ? 'on' : ''}"></i><i class="${S.stalls >= 2 ? 'on' : ''}"></i> <span>${S.stalls} of 2 before a facilitator steps in</span></div>
       ${S.feedback ? `<p class="empty-note" style="margin-top:10px">Plan feedback: <b>${esc({yes:'Useful',bit:'A bit useful',no:'Not useful'}[S.feedback])}</b>${S.reported.length ? ` · ${S.reported.length} listing${S.reported.length > 1 ? 's' : ''} reported` : ''}</p>` : S.reported.length ? `<p class="empty-note" style="margin-top:10px">${S.reported.length} listing${S.reported.length > 1 ? 's' : ''} reported for review</p>` : ''}
@@ -1067,35 +1412,65 @@ $('#composer').addEventListener('submit', e => {
   const rep = low.match(/^report\s*([1-3])$/);
   if (rep && S.plan) { S.msgs.push({from:'user', text:v}); renderChat(); return report(S.plan.steps[+rep[1] - 1].item.id); }
   // Words that suggest someone is unsafe go straight to a person, not back to the buttons.
-  const URGENT = /suicid|kill myself|want to die|end my life|hurt myself|abus|rape|beat(ing)? me|hit(ting)? me|touch(ed|ing)? me|threaten|unsafe|not safe|in danger|dem dey beat me|i no dey safe/;
+  // Hausa and Yoruba terms are first drafts for native-speaker review. Matched without tone marks.
+  const URGENT = /suicid|kill myself|want to die|end my life|hurt myself|abus|rape|beat(ing)? me|hit(ting)? me|touch(ed|ing)? me|threaten|unsafe|not safe|in danger|dem dey beat me|i no dey safe|ba ?na cikin aminci|ina cikin hadari|ana duka|ana dukana|fyade|zan kashe kaina|ana min barazana|mi o wa lailewu|mo wa ninu ewu|won n lu mi|won lu mi|ifipabanilopo|fipa ba mi lo|mo fe pa ara mi|won n halẹ mo mi|won n hale mo mi/;
+  const nlow = low.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ɗ/g, 'd').replace(/ƙ/g, 'k').replace(/ɓ/g, 'b');
   const wantsHelp = /^(help|i need help|talk to a person|agent|human)$/.test(low);
-  if (URGENT.test(low) || wantsHelp) {
+  if (URGENT.test(nlow) || wantsHelp) {
     S.msgs.push({from:'user', text:v}); renderChat();
     const p = pending; if (p) { p.msg.answered = true; pending = null; }
     run((async () => {
-      await handoff(URGENT.test(low) ? 'Urgent: message suggests they may be unsafe' : 'Asked for help in the chat', URGENT.test(low));
+      await handoff(URGENT.test(nlow) ? 'Urgent: message suggests they may be unsafe' : 'Asked for help in the chat', URGENT.test(nlow));
       if (p) await ask(p.msg.text, p.options, p.handler, {grid: p.msg.grid});
       else if (S.saved && S.stage !== 'done') { S.awaitWeek = true; renderChat(); }
     })());
     return;
   }
+  if (pendingText && pendingText.gen === gen) {
+    const h = pendingText.handler; pendingText = null;
+    S.msgs.push({from:'user', text:v}); renderChat();
+    return run(h(v));
+  }
   if (pending) {
-    const opts = pending.options;
-    let i = /^\d+$/.test(v) ? +v - 1 : opts.findIndex(o => lbl(o).toLowerCase() === low || o.en.toLowerCase().startsWith(low));
+    const opts = pending.options, labels = o => [o.en, o.pcm, o.ha, o.yo].filter(Boolean).map(x => String(x).toLowerCase());
+    let i = /^\d+$/.test(v) ? +v - 1 : opts.findIndex(o => labels(o).includes(low) || (low.length >= 3 && labels(o).some(l => l.startsWith(low))));
     if (i >= 0 && i < opts.length) return pick(i);
+    // Plain words ("I fit do like 4 hours"): ask the AI which option they mean. Not before age and guardian checks.
+    if (SERVER.ai.chat && S.age !== null && (S.age >= 18 || S.guardian)) {
+      const p = pending, g = gen; p.msg.answered = true; pending = null;
+      S.msgs.push({from:'user', text:v}); S.msgs.push({from:'typing'}); busy = true; renderChat();
+      run((async () => {
+        let val = null, busyNow = false;
+        try { const r = await api('/api/ai/understand', {text: v, question: p.msg.text, options: p.options.map((o, k) => ({v: k, labels: labels(o)}))}, 8000); val = r.value; } catch (e) { busyNow = e.status === 429; }
+        if (g !== gen) return;
+        S.msgs = S.msgs.filter(m => m.from !== 'typing'); busy = false;
+        if (val !== null && p.options[val]) { sys(t('understood', {opt: lbl(p.options[val])})); renderAll(); return p.handler(p.options[val].v); }
+        await say(t(busyNow ? 'busy' : 'fallback')); return ask(p.msg.text, p.options, p.handler, {grid: p.msg.grid});
+      })());
+      return;
+    }
   }
   S.msgs.push({from:'user', text:v}); renderChat();
   const p = pending;
   if (p) { p.msg.answered = true; pending = null; }
   run(say(t('fallback')).then(() => p && ask(p.msg.text, p.options, p.handler, {grid: p.msg.grid})));
 });
-$('#mic').addEventListener('click', () => toast('Voice notes in Hausa, Yoruba and Igbo come in a later phase. The MVP uses English and Nigerian Pidgin text.'));
+$('#mic').addEventListener('click', () => {
+  if (rec) return stopRecording();
+  if (pendingText && pendingText.gen === gen && canRecord()) { pendingText = null; return run((async () => { await say(t('workVoice')); await startRecording(); })()); }
+  toast(canRecord() ? t('micWhen') : t('voiceOff'));
+});
 $('#restart').addEventListener('click', () => { clearSaved(); start(); });
 function seg(id, set){ document.querySelectorAll(`#${id} button`).forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll(`#${id} button`).forEach(x => x.setAttribute('aria-pressed', x === b)); set(b.dataset.v); })); }
 seg('persona', v => { persona = v; clearSaved(); start(); });
 seg('channel', v => { channel = v; renderChat(); });
 seg('datamode', v => { dataMode = v; clearSaved(); renderDataStatus(); start(); });
-const liveReady = loadYoma().then(() => { if (S && S.stage === 'intake' && !S.calc) { TODAY = liveOn() ? REAL_TODAY : SAMPLE_TODAY; renderAll(); } });
+const liveReady = loadServer().then(() => { if (S && S.stage === 'intake' && !S.calc) { TODAY = liveOn() ? REAL_TODAY : SAMPLE_TODAY; renderAll(); } });
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('/sw.js').catch(() => {});
+addEventListener('online', renderOffline); addEventListener('offline', renderOffline);
 if (!resume()) start();
+renderOffline();
 </script>
+</body>
+</html>

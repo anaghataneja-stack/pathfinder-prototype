@@ -1,0 +1,556 @@
+{
+ "note": "Representative sample listings for Nigeria. NOT real opportunities. Used only when Yoma has never been reached.",
+ "opps": [
+  {
+   "id": "s-o1",
+   "kind": "opp",
+   "title": "Community Data Collector (micro-task)",
+   "org": "Yoma community task",
+   "type": "task",
+   "skills": [
+    "digital-basics",
+    "comms"
+   ],
+   "sectors": [
+    "all"
+   ],
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 50,
+   "commitment": null,
+   "scam": false,
+   "remote": true,
+   "states": [],
+   "minAge": 15,
+   "deadline": null,
+   "openEnded": true,
+   "informal": {
+    "earnNow": true,
+    "phoneOnly": true,
+    "noCert": true
+   }
+  },
+  {
+   "id": "s-o2",
+   "kind": "opp",
+   "title": "Phone Repair Apprenticeship",
+   "org": "Computer Village technicians cooperative, Lagos",
+   "type": "apprenticeship",
+   "skills": [
+    "phone-repair",
+    "customer"
+   ],
+   "sectors": [
+    "digital"
+   ],
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "remote": false,
+   "states": [
+    "lagos"
+   ],
+   "minAge": 16,
+   "deadline": "2027-01-31",
+   "openEnded": false,
+   "informal": {
+    "earnNow": false,
+    "phoneOnly": false,
+    "noCert": true
+   }
+  },
+  {
+   "id": "s-o3",
+   "kind": "opp",
+   "title": "Market Stall Bookkeeping Challenge",
+   "org": "Yoma community task",
+   "type": "task",
+   "skills": [
+    "bookkeeping",
+    "market-trading"
+   ],
+   "sectors": [
+    "customer"
+   ],
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 30,
+   "commitment": null,
+   "scam": false,
+   "remote": true,
+   "states": [],
+   "minAge": 15,
+   "deadline": "2027-01-31",
+   "openEnded": false,
+   "informal": {
+    "earnNow": true,
+    "phoneOnly": true,
+    "noCert": true
+   }
+  },
+  {
+   "id": "s-o4",
+   "kind": "opp",
+   "title": "Customer Care Trainee",
+   "org": "Contact centre, Lagos",
+   "type": "job",
+   "skills": [
+    "customer",
+    "comms",
+    "digital-basics"
+   ],
+   "sectors": [
+    "customer"
+   ],
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "remote": false,
+   "states": [
+    "lagos"
+   ],
+   "minAge": 18,
+   "deadline": "2026-12-15",
+   "openEnded": false,
+   "informal": {
+    "earnNow": false,
+    "phoneOnly": false,
+    "noCert": true
+   }
+  },
+  {
+   "id": "s-o5",
+   "kind": "opp",
+   "title": "Tailoring & Fashion Apprenticeship",
+   "org": "Kurmi Market tailors, Kano",
+   "type": "apprenticeship",
+   "skills": [
+    "tailoring",
+    "pricing"
+   ],
+   "sectors": [
+    "fashion"
+   ],
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "remote": false,
+   "states": [
+    "kano"
+   ],
+   "minAge": 15,
+   "deadline": "2027-01-15",
+   "openEnded": false,
+   "informal": {
+    "earnNow": false,
+    "phoneOnly": false,
+    "noCert": true
+   }
+  },
+  {
+   "id": "s-o6",
+   "kind": "opp",
+   "title": "Poultry Enterprise Starter Programme",
+   "org": "Agri-enterprise centre, Ibadan",
+   "type": "self",
+   "skills": [
+    "poultry",
+    "bookkeeping"
+   ],
+   "sectors": [
+    "agri"
+   ],
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "remote": false,
+   "states": [
+    "oyo",
+    "lagos"
+   ],
+   "minAge": 16,
+   "deadline": "2027-01-31",
+   "openEnded": false,
+   "informal": {
+    "earnNow": false,
+    "phoneOnly": false,
+    "noCert": true
+   }
+  },
+  {
+   "id": "s-o7",
+   "kind": "opp",
+   "title": "Food Vendor Hygiene & Sales Programme",
+   "org": "Youth enterprise hub, Abuja",
+   "type": "self",
+   "skills": [
+    "food-prep",
+    "pricing",
+    "customer"
+   ],
+   "sectors": [
+    "customer"
+   ],
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "remote": false,
+   "states": [
+    "fct"
+   ],
+   "minAge": 16,
+   "deadline": "2027-01-31",
+   "openEnded": false,
+   "informal": {
+    "earnNow": false,
+    "phoneOnly": false,
+    "noCert": true
+   }
+  },
+  {
+   "id": "s-o8",
+   "kind": "opp",
+   "title": "Delivery Rider (part-time)",
+   "org": "Logistics company, Port Harcourt",
+   "type": "job",
+   "skills": [
+    "driving-delivery",
+    "customer"
+   ],
+   "sectors": [
+    "customer"
+   ],
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "remote": false,
+   "states": [
+    "rivers"
+   ],
+   "minAge": 18,
+   "deadline": "2026-12-20",
+   "openEnded": false,
+   "informal": {
+    "earnNow": false,
+    "phoneOnly": false,
+    "noCert": true
+   }
+  },
+  {
+   "id": "s-o9",
+   "kind": "opp",
+   "title": "Salon Assistant Apprenticeship",
+   "org": "Beauty training centre, Kano",
+   "type": "apprenticeship",
+   "skills": [
+    "hair-beauty",
+    "customer"
+   ],
+   "sectors": [
+    "fashion"
+   ],
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "remote": false,
+   "states": [
+    "kano",
+    "fct"
+   ],
+   "minAge": 15,
+   "deadline": "2027-01-31",
+   "openEnded": false,
+   "informal": {
+    "earnNow": false,
+    "phoneOnly": false,
+    "noCert": true
+   }
+  },
+  {
+   "id": "s-o10",
+   "kind": "opp",
+   "title": "Digital Skills Learnership",
+   "org": "Tech hub, Kano",
+   "type": "learnership",
+   "skills": [
+    "digital-basics",
+    "teamwork"
+   ],
+   "sectors": [
+    "digital"
+   ],
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "remote": false,
+   "states": [
+    "kano"
+   ],
+   "minAge": 16,
+   "deadline": "2026-11-30",
+   "openEnded": false,
+   "informal": {
+    "earnNow": false,
+    "phoneOnly": false,
+    "noCert": true
+   }
+  },
+  {
+   "id": "s-o11",
+   "kind": "opp",
+   "title": "Social Media Assistant (remote)",
+   "org": "Small business network",
+   "type": "job",
+   "skills": [
+    "social-media",
+    "design-basics",
+    "comms"
+   ],
+   "sectors": [
+    "digital",
+    "fashion"
+   ],
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "remote": true,
+   "states": [],
+   "minAge": 18,
+   "deadline": "2027-01-31",
+   "openEnded": false,
+   "informal": {
+    "earnNow": false,
+    "phoneOnly": false,
+    "noCert": true
+   }
+  },
+  {
+   "id": "s-o12",
+   "kind": "opp",
+   "title": "Farm Extension Volunteer",
+   "org": "Young farmers network, Oyo",
+   "type": "volunteer",
+   "skills": [
+    "agri-practice",
+    "comms"
+   ],
+   "sectors": [
+    "agri"
+   ],
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "remote": false,
+   "states": [
+    "oyo"
+   ],
+   "minAge": 15,
+   "deadline": "2026-12-10",
+   "openEnded": false,
+   "informal": {
+    "earnNow": false,
+    "phoneOnly": false,
+    "noCert": true
+   }
+  },
+  {
+   "id": "s-o13",
+   "kind": "opp",
+   "title": "Childcare Assistant Training Placement",
+   "org": "Community creche network, Lagos",
+   "type": "learnership",
+   "skills": [
+    "childcare",
+    "comms"
+   ],
+   "sectors": [
+    "all"
+   ],
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "remote": false,
+   "states": [
+    "lagos",
+    "fct"
+   ],
+   "minAge": 18,
+   "deadline": "2027-01-31",
+   "openEnded": false,
+   "informal": {
+    "earnNow": false,
+    "phoneOnly": false,
+    "noCert": true
+   }
+  }
+ ],
+ "courses": [
+  {
+   "id": "s-c1",
+   "kind": "course",
+   "title": "Run Your Market Business: Records & Pricing",
+   "org": "Yoma learning partner (sample)",
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "skills": [
+    "bookkeeping",
+    "pricing",
+    "market-trading"
+   ],
+   "sectors": [
+    "all"
+   ],
+   "hours": 6,
+   "entry": true,
+   "data": 1,
+   "offline": true,
+   "deadline": null
+  },
+  {
+   "id": "s-c2",
+   "kind": "course",
+   "title": "Phone Repair Basics",
+   "org": "Yoma learning partner (sample)",
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "skills": [
+    "phone-repair",
+    "digital-basics"
+   ],
+   "sectors": [
+    "all"
+   ],
+   "hours": 10,
+   "entry": true,
+   "data": 2,
+   "offline": false,
+   "deadline": null
+  },
+  {
+   "id": "s-c3",
+   "kind": "course",
+   "title": "Customer Service for Small Businesses",
+   "org": "Yoma learning partner (sample)",
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "skills": [
+    "customer",
+    "comms"
+   ],
+   "sectors": [
+    "all"
+   ],
+   "hours": 5,
+   "entry": true,
+   "data": 1,
+   "offline": true,
+   "deadline": null
+  },
+  {
+   "id": "s-c4",
+   "kind": "course",
+   "title": "Selling Online with WhatsApp & Instagram",
+   "org": "Yoma learning partner (sample)",
+   "src": "Yoma",
+   "sample": true,
+   "live": false,
+   "tagged": "rules",
+   "link": "",
+   "zlto": 0,
+   "commitment": null,
+   "scam": false,
+   "skills": [
+    "social-media",
+    "pricing"
+   ],
+   "sectors": [
+    "all"
+   ],
+   "hours": 6,
+   "entry": false,
+   "data": 2,
+   "offline": false,
+   "deadline": null,
+   "prereq": "digital-basics"
+  }
+ ]
+}
