@@ -1,0 +1,6 @@
+.env
+node_modules/
+data/yoma-cache.json
+data/*.tmp
+*.log
+.superpowers/
