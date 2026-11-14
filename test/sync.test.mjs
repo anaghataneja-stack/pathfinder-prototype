@@ -194,3 +194,14 @@ test('real Passport to Earning courses on Yoma are labelled as P2E', () => {
   assert.equal(c.src, 'Passport to Earning'); assert.equal(c.p2e, true); assert.equal(c.live, true);
   assert.equal(mapListing(yomaItem(37, { type: 'Learning', title: 'Excel', organizationName: 'Alison Learning' })).src, 'Yoma');
 });
+
+test('a Yoma reply with courses but no opportunities is not accepted as live', async () => {
+  state.fail = false;
+  state.items = [yomaItem(1)];
+  const dir = freshDir();
+  const sync = createSync({ dataDir: dir, base: mock.base });
+  await sync.run();
+  state.items = [yomaItem(2, { type: 'Learning' })];
+  const r = await sync.run();
+  assert.equal(r.opps.length, 1); assert.equal(r.source, 'saved');
+});

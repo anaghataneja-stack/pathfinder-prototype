@@ -4,8 +4,8 @@ Last run: 13 November 2026, Node 22, Chromium (Playwright).
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit and API tests | `npm test` | **65 / 65 pass** (about 2 s) |
-| Browser scenarios | `npm run e2e` | **15 / 15 pass** |
+| Unit and API tests | `npm test` | **76 / 76 pass** (about 2 s) |
+| Browser scenarios | `npm run e2e` | **16 / 16 pass** |
 | Live check, real Yoma API | `node sync.mjs` + the app | **Done 14 Nov 2026**: 5,171 real listings. Results and fixes [below](#live-check-real-yoma-14-november-2026) |
 | Live check, real Azure OpenAI | see [Live check](#live-check-run-this-before-the-demo) | **Not run yet.** Needs the team's Azure keys |
 
@@ -41,6 +41,8 @@ The automated tests use **mock** Yoma and Azure servers (`test/helpers/`) that c
 | 12 | Slow data: listings take 12 s | The listings saved on the phone show within 8 s, with a "slow connection" banner | Pass |
 | 13 | The server returns a 404 page once | The 404 doesn't replace the offline copy, and the app still opens offline afterwards | Pass |
 | 14 | AI over its rate limit | Shows "try again in a minute", not a network error | Pass |
+| 15 | Real-data shape: Start step | A real P2E course on Yoma is chosen and labelled; sample courses say "(sample)" | Pass |
+| 16 | Pilot: urgent message | A case reaches the staff inbox with a code shown to the young person. No message text is stored. A listing report and the pilot counts are recorded | Pass |
 
 The test fake microphone is Chromium's `--use-fake-device-for-media-stream`.
 
@@ -95,7 +97,7 @@ Still weak: Yoma has no Kano jobs. The real P2E courses on Yoma are mostly green
 6. **Typing while Pathfinder is still "typing" is ignored.** The text stays in the box, so a fast typist may need to press Enter again.
 7. **Basic-phone mode is a simulation** in the browser. A real SMS/USSD gateway and guardian SMS codes are next sprint.
 8. **Facilitator handoffs and listing reports are only recorded on the phone.** They need a real queue (see [INTEGRATION.md](INTEGRATION.md)).
-9. Deferred from review: the access code has no guess limit; work-history years like "2019-2023" are removed as if they were phone numbers; a Yoma reply with only courses is accepted; the client stops waiting for AI reasons after 4 s while the server may keep trying for up to 10 s; skill summaries aren't checked for promise words.
+9. Fixed since review (with tests): access-code guess limit and Secure cookie; work-history years kept; a courses-only Yoma reply rejected; plan reasons now time out at 3.5 s with no retry; skill summaries checked for promises.
 10. **The urgent-help message only lists 112.** GenU needs to add vetted Nigerian youth and mental-health helplines.
 
 ## Live check (run this before the demo)

@@ -482,6 +482,7 @@ const T = {
   understood:"Understood as: {opt}", tagStart:"Start here", tagLearn:"Learn here", tagApply:"Apply here", stTodo:"To do", stDoing:"In progress", stDone:"Done",
   step:"Step", openOn:"Open on {p}", oneSkill:"the one skill", allSkills:"all {m} skills", cert1:"1 certificate", certN:"{n} certificates",
   facDefault:"a GenU Nigeria facilitator", whatNext:"What next?", shareNote:"No name or phone number is included.",
+  caseCode:"Your case number is {code}. Quote it if you call or visit the partner centre.", caseLater:"I'll pass this on to a facilitator as soon as you're back online.",
   offline:"You're offline. Your saved plan and the last listings still work.", slowData:"Slow connection: showing the listings saved on this phone.",
   busy:"Lots of people are using Pathfinder right now. Please try again in a minute.", sigEarn:"Earn now", sigPhone:"Do it on your phone", sigNoCert:"No certificate needed",
   greet:"Hi, I'm Pathfinder from GenU. I turn your goal into 3 clear steps: one to start, one to learn and one to apply. It takes about 5 minutes.",
@@ -558,6 +559,7 @@ const T = {
   recording:"I dey record… tap the red button to stop", skillsTitle:"Skills wey I get", skillsShare:"Send my skills for WhatsApp", fromWork:"from your own work",
   understood:"I understand am as: {opt}", openOn:"Open for {p}", cert1:"one certificate", certN:"{n} certificates",
   facDefault:"one GenU Nigeria facilitator", whatNext:"Wetin next?", shareNote:"E no get name or phone number inside.",
+  caseCode:"Your case number na {code}. Tell dem this number if you call or go the partner centre.", caseLater:"I go send am to facilitator once network come back.",
   offline:"Network no dey. Your saved plan and the last listings still dey work.", slowData:"Network slow: I dey show the listings wey dey saved for this phone.",
   busy:"Plenty people dey use Pathfinder now. Abeg try again after one minute.", sigEarn:"Make money now", sigPhone:"Do am for your phone", sigNoCert:"No need certificate",
   greet:"How far! I be Pathfinder from GenU. I go help you turn your goal into 3 clear steps: one to start, one to learn, one to apply. E go take like 5 minutes.",
@@ -698,6 +700,7 @@ T.ha = {
   tagStart:"Fara a nan", tagLearn:"Koyi a nan", tagApply:"Nema a nan", stTodo:"Ba a fara ba", stDoing:"Ana kan yi", stDone:"An gama",
   step:"Mataki", openOn:"Buɗe a {p}", oneSkill:"ƙwarewa ɗaya", allSkills:"dukkan ƙwarewa {m}", cert1:"takardar shaida 1", certN:"takardun shaida {n}",
   facDefault:"wani mai taimako na GenU Nigeria", whatNext:"Me za a yi na gaba?", shareNote:"Babu suna ko lambar waya a ciki.",
+  caseCode:"Lambar shari'arka ita ce {code}. Faɗa ta idan ka kira ko ka je cibiyar abokan hulɗa.", caseLater:"Zan tura wa mai taimako da zarar intanet ya dawo.",
   offline:"Ba ka da intanet. Shirinka da aka ajiye da damammaki na ƙarshe suna aiki.", slowData:"Intanet yana jinkiri: ina nuna damammakin da aka ajiye a wayarka.",
   busy:"Mutane da yawa suna amfani da Pathfinder yanzu. Don Allah sake gwadawa bayan minti ɗaya.", sigEarn:"Samu kuɗi yanzu", sigPhone:"Yi ta wayarka", sigNoCert:"Ba a buƙatar takardar shaida"
 };
@@ -770,6 +773,7 @@ T.yo = {
   tagStart:"Bẹ̀rẹ̀ níbí", tagLearn:"Kọ́ níbí", tagApply:"Béèrè níbí", stTodo:"Kò tíì bẹ̀rẹ̀", stDoing:"Ó ń lọ lọ́wọ́", stDone:"Ó ti parí",
   step:"Ìgbésẹ̀", openOn:"Ṣí lórí {p}", oneSkill:"ọgbọ́n kan ṣoṣo", allSkills:"gbogbo ọgbọ́n {m}", cert1:"ìwé ẹ̀rí 1", certN:"ìwé ẹ̀rí {n}",
   facDefault:"olùrànlọ́wọ́ GenU Nigeria kan", whatNext:"Kí ló kàn?", shareNote:"Kò sí orúkọ tàbí nọ́ńbà fóònù nínú rẹ̀.",
+  caseCode:"Nọ́ńbà ìrànlọ́wọ́ rẹ ni {code}. Sọ ọ́ tí o bá pè tàbí lọ sí ibùdó alábàáṣiṣẹ́pọ̀.", caseLater:"Màá fi ránṣẹ́ sí olùrànlọ́wọ́ ní kété tí ìsopọ̀ rẹ bá padà.",
   offline:"O kò sí lórí ayélujára. Ètò rẹ tí o fi pamọ́ àti àwọn àǹfààní tó kẹ́yìn ṣì ń ṣiṣẹ́.", slowData:"Ìsopọ̀ rẹ lọ́ra: mò ń fi àwọn àǹfààní tí a fi pamọ́ sórí fóònù yìí hàn.",
   busy:"Ọ̀pọ̀ ènìyàn ń lo Pathfinder báyìí. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kansi lẹ́yìn ìṣẹ́jú kan.", sigEarn:"Rí owó báyìí", sigPhone:"Ṣe é lórí fóònù rẹ", sigNoCert:"Kò nílò ìwé ẹ̀rí"
 };
@@ -952,9 +956,10 @@ const weeksFor = h => Math.max(1, Math.ceil(h / S.a.hours));
 async function start(){
   gen++; S = fresh(); pending = null; busy = false; TODAY = liveOn() ? REAL_TODAY : SAMPLE_TODAY; renderAll();
   run((async () => {
+    S.msgs.push({from: 'sys', link: '/privacy.html', text: 'How Pathfinder uses your data · Yadda muke amfani da bayananka · Bí a ṣe ń lo àlàyé rẹ'});
     await say(T.en.greet + '\n\nHow far! · Sannu! · Ẹ n lẹ́!');
     await ask('Which language do you prefer?\nWhich language you want?\nWane harshe kake so?\nÈdè wo lo fẹ́?', O.lang, async v => {
-      S.lang = v; S.a.lang = v; document.documentElement.lang = v; renderPanel(); renderOffline();
+      S.lang = v; S.a.lang = v; document.documentElement.lang = v; renderPanel(); renderOffline(); track('intake_started');
       if (v === 'ha' || v === 'yo') { await say(t('greet')); await say(t('reviewNote')); }
       await askAge();
     });
@@ -998,6 +1003,7 @@ async function askData(){
     if (dataMode === 'live' && LIVE.status === 'loading') await liveReady;
     TODAY = liveOn() ? REAL_TODAY : SAMPLE_TODAY;
     compute();
+    if (S.plan) track('plan_built');
     if (!S.plan) { renderPanel(); await say(t('noMatch')); await handoff('No opening matched their answers'); return; }
     await showPlan(t(S.plan.weak ? 'planWeak' : 'planIntro'));
   });
@@ -1014,7 +1020,7 @@ async function showPlan(intro){
 async function planMenu(){
   await ask(t('planAsk'), O.plan, async v => {
     if (v === 'save') {
-      S.saved = true; S.stage = 'checkin'; renderPanel();
+      S.saved = true; S.stage = 'checkin'; renderPanel(); track('plan_saved');
       await say(t('saved'));
       return ask(t('fbQ'), O.fb, async f => { S.feedback = f; renderPanel(); await say(t('fbThanks')); S.awaitWeek = true; renderChat(); });
     }
@@ -1054,7 +1060,7 @@ async function checkin(){
   if (step.kind === 'apply') {
     return ask(t('applyQ', {w: S.week, title: step.item.title}), O.apply, async v => {
       if (v === 'applied') {
-        step.status = 'done'; S.stalls = 0; S.stage = 'done'; renderPanel();
+        step.status = 'done'; S.stalls = 0; S.stage = 'done'; renderPanel(); track('applied');
         await say(t('applied'));
         if (step.item.zlto) await say(t('zlto', {z: step.item.zlto}));
         await say('', {card: snapshot()});
@@ -1066,7 +1072,7 @@ async function checkin(){
   }
   return ask(t('ciQ', {w: S.week, n: i + 1, title: step.item.title}), O.ci, async v => {
     if (v === 'done') {
-      step.status = 'done'; S.stalls = 0; renderPanel();
+      step.status = 'done'; S.stalls = 0; renderPanel(); track('step_done');
       await say(t('ciDone'));
       if (step.item.zlto) await say(t('zlto', {z: step.item.zlto}));
       const n = currentStep(); await say(t('ciNext', {n: n + 1, title: S.plan.steps[n].item.title}));
@@ -1090,7 +1096,34 @@ async function handoff(why, urgent=false){
   const fac = FAC[S.a.state] || t('facDefault');
   S.flagged = {why, fac, urgent, week: S.week, step: S.plan ? S.plan.steps[Math.max(0, currentStep())]?.item.title : null};
   S.stalls = 0; renderPanel();
+  track(urgent ? 'urgent' : 'handoff');
+  const reason = urgent ? 'urgent' : /Missed 2/.test(why) ? 'missed' : /no opening|no other opening/i.test(why) ? 'no_match' : /talk to a person/i.test(why) ? 'person' : 'help';
+  // The safety message comes first; creating the case may wait on a slow network.
   await say(t(urgent ? 'urgent' : 'handoff', {fac}));
+  const caseId = await sendCase({kind: 'handoff', urgent, reason, step: S.flagged.step || undefined});
+  S.flagged.caseId = caseId; renderPanel();
+  await say(caseId ? t('caseCode', {code: caseId}) : t('caseLater'));
+}
+
+/* ---------- Pilot records: cases reach a person; anonymous counts measure the pilot ---------- */
+// Only fixed values are sent: never names, numbers or what the person typed.
+async function sendCase(c){
+  const body = {...c, state: S.a.state, age: S.age, lang: S.lang};
+  try { const r = await api('/api/cases', body, 8000); return r.caseId; }
+  catch { S.pendingCases = [...(S.pendingCases || []), body]; persist(); return null; }
+}
+async function flushCases(){
+  if (!S || !S.pendingCases || !S.pendingCases.length || !SERVER.ok) return;
+  const left = [];
+  for (const body of S.pendingCases) {
+    try { const r = await api('/api/cases', body, 8000); if (body.kind === 'handoff') sys(t('caseCode', {code: r.caseId})); }
+    catch { left.push(body); }
+  }
+  S.pendingCases = left; persist();
+}
+function track(type){
+  if (!SERVER.ok || !navigator.sendBeacon) return;
+  try { navigator.sendBeacon('/api/events', new Blob([JSON.stringify({type, lang: S.lang, age: S.age})], {type: 'application/json'})); } catch {}
 }
 
 /* ---------- Reporting a step ---------- */
@@ -1099,6 +1132,9 @@ function report(id){
   if (S.reported.includes(id)) return;
   S.reported.push(id);
   const onPlan = S.plan && S.plan.steps.some(st => st.item.id === id);
+  const CAT = catalogue(), item = [...CAT.opps, ...CAT.courses].find(x => x.id === id);
+  track('report');
+  run(sendCase({kind: 'report', listingId: String(id), listingTitle: item ? item.title : ''}));
   if (!onPlan) { renderPanel(); return run(say(t('reportedOld'))); }
   if (pending) { pending.msg.answered = true; pending = null; }
   S.awaitWeek = false;
@@ -1165,12 +1201,13 @@ async function handleWork(text, fromVoice){
   if (g !== gen) return;
   if (!r) { await say(fail); return askWork(); }
   if (!r.skills || !r.skills.length) { await say(t('workNone')); return askWork(); }
+  if (r.source !== 'ai') track('ai_fallback');
   const draft = {skills: r.skills, summary: r.summary || '', source: r.source};
   await say(t('workFound'), {skills: draft});
   await ask(t('workConfirm'), O.workOk, async v => {
     if (v === 'again') return askWork();
     if (v === 'yes') {
-      S.work = draft; renderPanel();
+      S.work = draft; renderPanel(); track('work_skills_added');
       await say(t('workSaved'));
       await say('', {skills: {...draft, final: true}});
     }
@@ -1209,7 +1246,7 @@ function renderRec(){
 }
 async function sendVoice(blob, secs){
   const g = gen;
-  S.msgs.push({from: 'user', text: `🎤 ${secs}s`}); renderChat();
+  S.msgs.push({from: 'user', text: `🎤 ${secs}s`}); renderChat(); track('voice_used');
   if (blob.size < 1500) { await say(t('voiceFail')); return askWork(); }   // nothing recorded worth sending
   let r = null, fail = t('netFail');
   try { r = await api('/api/ai/transcribe?lang=' + encodeURIComponent(S.lang), blob, 30000); } catch (e) { fail = failMsg(e); }
@@ -1253,6 +1290,7 @@ async function aiReasons(){
   try {
     const r = await api('/api/ai/reasons', {lang: S.lang, steps: S.plan.steps.map(st => ({kind: st.kind, title: st.item.title, facts: factsFor(st)}))}, 4000);
     S.aiReasons = {key, reasons: r.reasons || [], source: r.source};
+    if (r.source !== 'ai') track('ai_fallback');
   } catch { S.aiReasons = {key, reasons: [], source: 'fallback'}; }
   S.msgs = S.msgs.filter(m => m.from !== 'typing');
 }
@@ -1312,7 +1350,7 @@ function renderChat(){
   let h = '';
   for (const m of S.msgs) {
     if (m.from === 'typing') { h += '<div class="typing" aria-hidden="true"><i></i><i></i><i></i></div>'; continue; }
-    if (m.from === 'sys') { h += `<div class="msg sys">${esc(m.text)}</div>`; continue; }
+    if (m.from === 'sys') { h += m.link ? `<a class="msg sys" href="${esc(m.link)}" target="_blank" rel="noopener">${esc(m.text)}</a>` : `<div class="msg sys">${esc(m.text)}</div>`; continue; }
     if (m.card) { h += planCard(m.card); continue; }
     if (m.skills) { if (m.text) h += `<div class="msg bot">${esc(m.text)}</div>`; h += skillsCard(m.skills); continue; }
     let text = m.text;
@@ -1372,7 +1410,7 @@ function renderPanel(){
       <div class="board">${p.steps.map((st, i) => `<div><span class="tag t-${st.kind}">${TAG[st.kind]}</span><span class="ttl">${esc(st.item.title)}</span><span class="status ${st.status}" style="width:max-content">${STATUS[st.status]}</span></div>`).join('')}</div>
       <div class="meter" aria-label="Missed check-ins">Missed check-ins: <i class="${S.stalls >= 1 ? 'on' : ''}"></i><i class="${S.stalls >= 2 ? 'on' : ''}"></i> <span>${S.stalls} of 2 before a facilitator steps in</span></div>
       ${S.feedback ? `<p class="empty-note" style="margin-top:10px">Plan feedback: <b>${esc({yes:'Useful',bit:'A bit useful',no:'Not useful'}[S.feedback])}</b>${S.reported.length ? ` · ${S.reported.length} listing${S.reported.length > 1 ? 's' : ''} reported` : ''}</p>` : S.reported.length ? `<p class="empty-note" style="margin-top:10px">${S.reported.length} listing${S.reported.length > 1 ? 's' : ''} reported for review</p>` : ''}
-      ${S.flagged ? `<div class="fac ${S.flagged.urgent ? 'urgent' : ''}" style="margin-top:12px"><b>${S.flagged.urgent ? 'URGENT, contact today · ' : 'Facilitator queue · '}${esc(S.flagged.fac)}</b>
+      ${S.flagged ? `<div class="fac ${S.flagged.urgent ? 'urgent' : ''}" style="margin-top:12px"><b>${S.flagged.urgent ? 'URGENT, contact today · ' : 'Facilitator queue · '}${esc(S.flagged.fac)}${S.flagged.caseId ? ' · case ' + esc(S.flagged.caseId) : ' · not sent yet (offline)'}</b>
         <span>${esc(PERSONAS[persona].name)}, ${S.age}, ${esc(STATES[a.state] || '')}. Messages in ${esc(LABEL.lang[a.lang])}.</span>
         <span>${esc(S.flagged.why)}.</span>
         <span class="empty-note">Shared with the facilitator: first name, age, state, language, plan and the stuck step. Nothing else.</span></div>` : ''}`;
@@ -1404,6 +1442,7 @@ $('#composer').addEventListener('submit', e => {
   if (low === 'restart') return start();
   if (low === 'delete') {
     gen++; pending = null; busy = false; clearSaved();
+    track('deleted');
     const msgs = S.msgs; S = fresh(); S.msgs = msgs; S.deleted = true;
     S.msgs.push({from:'user', text:v}); renderAll();
     run(say(T.en.deleted)); return;
@@ -1468,7 +1507,7 @@ seg('channel', v => { channel = v; renderChat(); });
 seg('datamode', v => { dataMode = v; clearSaved(); renderDataStatus(); start(); });
 const liveReady = loadServer().then(() => { if (S && S.stage === 'intake' && !S.calc) { TODAY = liveOn() ? REAL_TODAY : SAMPLE_TODAY; renderAll(); } });
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('/sw.js').catch(() => {});
-addEventListener('online', renderOffline); addEventListener('offline', renderOffline);
+addEventListener('online', () => { renderOffline(); run(flushCases()); }); addEventListener('offline', renderOffline);
 if (!resume()) start();
 renderOffline();
 </script>

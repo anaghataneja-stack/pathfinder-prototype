@@ -12,6 +12,7 @@ This version adds:
   - tags Yoma listings with skills during the daily sync.
 - **Informal work counts.** Market trading, phone repair, cooking, hair, driving and childcare are recognised skills. There's also an "Earn money now" goal, and each opening shows whether it earns now, works from a phone, or needs no certificate.
 - **Hausa and Yoruba**, alongside English and Nigerian Pidgin.
+- **Pilot-ready**: urgent and help requests reach facilitators through a staff inbox at `/staff`, with a case code the young person can quote. There are also anonymous pilot counts (`npm run pilot-report`), a privacy notice and a go-live checklist ([docs/PILOT.md](docs/PILOT.md)).
 - **Built for low access**:
   - works offline after the first visit and can be added to the home screen;
   - on slow data it shows the listings saved on the phone after 4 seconds instead of waiting;
@@ -66,7 +67,8 @@ Other settings:
 - `AI_RATE_LIMIT`: AI requests per person per 10 minutes (default 60).
 - `TRUST_PROXY`: set `true` when hosted behind a proxy such as App Service, so each phone gets its own rate limit instead of everyone sharing one.
 - `AI_ENRICH_LISTINGS`: AI tagging of listings during the sync.
-- `PILOT_ACCESS_CODE`: locks a hosted pilot behind a code. Open `/?code=…` once on each phone.
+- `PILOT_ACCESS_CODE`: locks a hosted pilot behind a code. Open `/?code=…` once on each phone. Wrong codes are limited to 10 tries per 10 minutes.
+- `STAFF_CODE`: turns on the facilitator case inbox at `/staff`. Open `/staff?code=…` once. Use a long random code.
 - `PORT`: the port the server listens on.
 - `AI_PROVIDER=openai-compatible` plus the `OPENAI_COMPAT_*` settings: lets teams without Azure use any OpenAI-compatible endpoint.
 
@@ -84,7 +86,8 @@ The keys stay on the server. The browser never sees them.
 | Passport to Earning courses | **Partly real**: 13 P2E courses published on Yoma are used and labelled. The rest are built-in samples marked "(sample)" |
 | imaGen challenges | **Sample**: no API access yet |
 | Test personas (Amina, Tunde) and their Yoma credentials | **Sample**: real profiles need Yoma sign-in and a partner agreement |
-| Facilitators, guardian SMS code, "saved to your Yoma profile", "sent to the GenU team" | **Simulated**: see [docs/INTEGRATION.md](docs/INTEGRATION.md) for what each needs |
+| Facilitator handoffs, urgent cases and listing reports | **Real**: stored on the server and shown in the staff inbox (`/staff`), with no names or numbers |
+| Facilitator names, guardian SMS code, "saved to your Yoma profile" | **Simulated**: see [docs/INTEGRATION.md](docs/INTEGRATION.md) for what each needs |
 | `data/sample-listings.json` | **Sample**: only used when Yoma has never been reached |
 
 ## How it fits together
@@ -137,17 +140,25 @@ The **Behind the scenes** panel shows:
 ## Tests
 
 ```bash
-npm test                    # 65 unit and API tests, no installs, about 2 seconds
+npm test                    # 76 unit and API tests, no installs, about 2 seconds
 ```
 
-Browser scenarios (15 of them) run the real server against a mock Yoma API and a mock Azure, in Chromium:
+Browser scenarios (16 of them) run the real server against a mock Yoma API and a mock Azure, in Chromium:
 
 ```bash
 npm i --no-save playwright && npx playwright install chromium
 npm run e2e
 ```
 
-Scenarios, results, issues fixed and open issues: [docs/TESTING.md](docs/TESTING.md).
+Scenarios, results, issues fixed and open issues: [docs/TESTING.md](docs/TESTING.md). GitHub runs both suites on every push (`.github/workflows/test.yml`).
+
+## Running the pilot
+
+- **Go-live checklist and measures:** [docs/PILOT.md](docs/PILOT.md).
+- **Staff inbox:** set `STAFF_CODE`, then open `/staff?code=…` to see handoffs and reports, with urgent ones first.
+- **Pilot numbers:** run `npm run pilot-report`.
+- **Privacy notice:** `/privacy.html`, linked at the top of every chat.
+- **What's stored on the server:** `data/cases.ndjson` and `data/events.ndjson` hold fixed values only (state, age band, language, step, reason). They're git-ignored.
 
 ## Hosting a pilot on Azure App Service
 
@@ -163,6 +174,7 @@ HTTPS is required for voice notes and offline mode on phones. App Service provid
 
 ## Privacy and safety
 
+- **On the server:** only cases (for facilitators) and anonymous counts, with fixed values and no names, numbers, exact ages or typed text.
 - **Only the six answers, the age check, the plan and its status are stored**, on the person's phone. Reply `DELETE` to erase them. Plans are dropped after 6 months without use.
 - **Personal details are removed before the AI sees anything.** Phone numbers, emails and long digit runs are stripped from text and transcripts, and the server never logs what people type or say. The recording screen says "Don't say your name or phone number".
 - **Under-18s need a guardian's agreement** before anything is saved or sent to the AI. Their plan reasons only use reviewed templates.
@@ -188,7 +200,10 @@ lib/                 env, rules, privacy, yoma, sync, ai, ai-tasks, server
 data/                sample-listings.json (+ yoma-cache.json at runtime, git-ignored)
 test/                unit/API tests (node:test) and mock Yoma/Azure servers
 e2e/scenarios.mjs    browser scenarios
-docs/                INTEGRATION.md, TESTING.md, design and plan
+docs/                PILOT.md, INTEGRATION.md, TESTING.md, design and plan
+privacy.html         privacy notice (draft for GenU review)
+pilot-report.mjs     pilot numbers from data/
+.github/workflows/   tests on every push
 ```
 
 ## Troubleshooting

@@ -4,3 +4,5 @@ data/yoma-cache.json
 data/*.tmp
 *.log
 .superpowers/
+data/cases.ndjson
+data/events.ndjson

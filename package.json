@@ -4,11 +4,14 @@
   "private": true,
   "description": "Pathfinder: goal-to-plan navigator for GenU, using live Yoma listings and Azure OpenAI.",
   "type": "module",
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node serve.mjs",
     "sync": "node sync.mjs",
     "test": "node --test",
-    "e2e": "node e2e/scenarios.mjs"
+    "e2e": "node e2e/scenarios.mjs",
+    "pilot-report": "node pilot-report.mjs"
   }
 }

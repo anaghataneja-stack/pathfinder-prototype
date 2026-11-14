@@ -139,3 +139,17 @@ test('speech-to-text filler from silence or noise counts as empty', async () => 
     assert.equal((await transcribeNote(ai(), { buffer: Buffer.from('x'.repeat(5000)), mime: 'audio/webm', lang: 'en' })).why, 'empty', filler);
   }
 });
+
+test('a skill summary that promises a job is replaced by the plain template', async () => {
+  state.chat = () => ({ content: { skills: ['customer'], summary: 'This guarantee you will get a job soon.' } });
+  const r = await extractSkills(ai(), { text: 'I sell in the market', lang: 'en' });
+  assert.ok(!/guarantee/i.test(r.summary)); assert.match(r.summary, /serving customers/i);
+});
+
+test('plan reasons give up quickly (no retry), so the page is not kept waiting', async () => {
+  state.calls = 0;
+  state.chat = () => ({ delay: 4500, content: { reasons: ['x'] } });
+  const t0 = Date.now();
+  const r = await writeReasons(createAI(az.env, fetch, { timeoutMs: 10000 }), { steps: [{ kind: 'start', title: 'x', facts: {} }], lang: 'en' });
+  assert.equal(r.source, 'fallback'); assert.ok(Date.now() - t0 < 4200, 'took ' + (Date.now() - t0)); assert.equal(state.calls, 1);
+});

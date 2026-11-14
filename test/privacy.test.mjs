@@ -16,3 +16,8 @@ test('long digit runs are removed but short numbers stay', () => {
 test('text is capped at 600 characters', () => {
   assert.equal(stripPII('a'.repeat(900)).length, 600);
 });
+
+test('work-history years are kept; Nigerian phone numbers are still removed', () => {
+  assert.equal(stripPII('I sold provisions 2019-2023 and 2021 2022'), 'I sold provisions 2019-2023 and 2021 2022');
+  assert.ok(!/8031234567/.test(stripPII('call 08031234567').replace(/\D/g, '')));
+});

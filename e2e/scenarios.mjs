@@ -9,6 +9,7 @@ import { startMockAzure } from '../test/helpers/mock-azure.mjs';
 import { createAI } from '../lib/ai.mjs';
 import { createSync } from '../lib/sync.mjs';
 import { createApp } from '../lib/server.mjs';
+import { createStore } from '../lib/store.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
@@ -54,7 +55,8 @@ aState.chat = aState.chat; // keep handler after mock init
 const dir = mkdtempSync(join(tmpdir(), 'pf-e2e-'));
 const sync = createSync({ dataDir: dir, base: yoma.base });
 await sync.run();
-const withAI = await listen(createApp({ sync, ai: createAI(azure.env, fetch, { timeoutMs: 3000 }), rateLimit: { max: 1000 } }));
+const store = createStore(mkdtempSync(join(tmpdir(), 'pf-e2e-store-')));
+const withAI = await listen(createApp({ sync, ai: createAI(azure.env, fetch, { timeoutMs: 3000 }), store, staffCode: 'staff', rateLimit: { max: 1000 } }));
 const noAI = await listen(createApp({ sync, ai: createAI({}), rateLimit: { max: 1000 } }));
 // A server whose Yoma is down but has yesterday's copy on disk.
 const savedDir = mkdtempSync(join(tmpdir(), 'pf-e2e-saved-'));
@@ -257,6 +259,29 @@ await scenario('Real-data shape: the Start step is relevant to the goal, not jus
   assert(/Serving Customers Well[\s\S]*?Passport to Earning/.test(card), 'real P2E course on Yoma should be the Start step: ' + start);
   const steps = await page.locator('.plan').last().locator('.pstep').evaluateAll(els => els.map(e => ({ t: e.querySelector('.ttl').textContent, src: e.querySelector('.src').textContent })));
   for (const st of steps) if (st.t !== 'Serving Customers Well' && /Passport to Earning/.test(st.src)) assert(/\(sample\)/.test(st.src), 'sample P2E course not labelled: ' + st.t);
+  await ctx.close();
+});
+
+await scenario('Pilot: an urgent message reaches the staff inbox with a case code; reports and counts are recorded', async () => {
+  const { ctx, page } = await open(withAI);
+  assert(await page.locator('#chat a[href="/privacy.html"]').count(), 'privacy notice link missing in the chat');
+  await page.click('#persona button[data-v="tunde"]');
+  await tap(page, 'English'); await tap(page, '21'); await tap(page, 'Yes, use my profile'); await tap(page, 'Skip');
+  await tap(page, 'Get a job'); await tap(page, 'Customer service'); await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some');
+  await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
+  await page.locator('.plan').last().locator('[data-report]').nth(2).click();
+  await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 15000 });
+  await typeMsg(page, 'my boss is threatening me');
+  await waitChat(page, /case number is [A-Z2-9]{6}/);
+  const code = (await chatText(page)).match(/case number is ([A-Z2-9]{6})/)[1];
+  await page.waitForTimeout(500);
+  const cases = store.listCases();
+  const c = cases.find(x => x.caseId === code);
+  assert(c && c.urgent && c.reason === 'urgent' && c.state === 'lagos' && c.ageBand === '18-24', 'urgent case not in the inbox: ' + JSON.stringify(cases));
+  assert(!JSON.stringify(cases).includes('threatening'), 'message text must not be stored');
+  assert(cases.some(x => x.kind === 'report'), 'report not recorded');
+  const types = store.events().map(e => e.type);
+  for (const t of ['intake_started', 'plan_built', 'report', 'urgent']) assert(types.includes(t), 'missing event ' + t + ' in ' + types);
   await ctx.close();
 });
 
