@@ -18,6 +18,13 @@ export async function startMockYoma(state) {
     const json = d => { res.writeHead(200, { 'content-type': 'application/json' }); res.end(JSON.stringify(d)); };
     if (req.url === '/opportunity/search/filter/country') return json([{ id: 'ng', name: 'Nigeria', codeAlpha2: 'NG' }, { id: 'ww', name: 'Worldwide', codeAlpha2: 'WW' }]);
     if (req.url === '/analytics/platform/metrics/info') return json({ userCountDisplay: '950,000+', organizationCountDisplay: '340+', opportunityCount: 4123, countryCount: 21 });
+    // Signed-in routes (need the bearer token issued by the mock Keycloak)
+    if (req.url === '/user/skills' || req.url.startsWith('/myopportunity/action/')) {
+      if (req.headers.authorization !== 'Bearer ' + (state.token || 'tok-123')) { res.writeHead(401).end(); return; }
+      if (req.url === '/user/skills') return json(state.userSkills || [{ id: 's1', name: 'Customer Service' }, { id: 's2', name: 'Microsoft Excel' }]);
+      const m = req.url.match(/^\/myopportunity\/action\/([0-9a-f-]{36})\/save$/);
+      if (m && req.method === 'PUT') { (state.saved = state.saved || []).push(m[1]); return json({ id: m[1] }); }
+    }
     if (req.url === '/opportunity/search') {
       const f = JSON.parse(body || '{}');
       state.lastFilter = f;

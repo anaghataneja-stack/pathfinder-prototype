@@ -20,7 +20,9 @@ sync.schedule(hour);
 const port = Number(env.PORT) || 4173;
 const rateLimit = { max: Number(env.AI_RATE_LIMIT) || 60, windowMs: 10 * 60e3 };
 const store = createStore('data');
-createApp({ sync, ai, store, staffCode: env.STAFF_CODE || '', accessCode: env.PILOT_ACCESS_CODE || '', trustProxy: env.TRUST_PROXY === 'true', demoVoice: env.DEMO_BROWSER_VOICE === 'true', rateLimit, log }).listen(port, () => {
+const yomaAuth = env.YOMA_AUTH_ISSUER && env.YOMA_AUTH_CLIENT_ID && env.PUBLIC_URL
+  ? { issuer: env.YOMA_AUTH_ISSUER, clientId: env.YOMA_AUTH_CLIENT_ID, clientSecret: env.YOMA_AUTH_CLIENT_SECRET || '', publicUrl: env.PUBLIC_URL } : null;
+createApp({ sync, ai, store, staffCode: env.STAFF_CODE || '', accessCode: env.PILOT_ACCESS_CODE || '', trustProxy: env.TRUST_PROXY === 'true', demoVoice: env.DEMO_BROWSER_VOICE === 'true', yomaAuth, yomaBase: (env.YOMA_API_BASE || 'https://api.yoma.world/api/v3').replace(/\/+$/, ''), rateLimit, log }).listen(port, () => {
   log(`Pathfinder running at http://localhost:${port}`);
   log(`AI: ${ai.provider === 'none' ? 'off (keyword rules and templates)' : `${ai.provider}, voice ${ai.features.voice ? 'on' : 'off'}`}`);
   log(`Yoma: ${sync.get().source} copy loaded; daily sync at ${String(hour).padStart(2, '0')}:00`);

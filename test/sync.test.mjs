@@ -205,3 +205,15 @@ test('a Yoma reply with courses but no opportunities is not accepted as live', a
   const r = await sync.run();
   assert.equal(r.opps.length, 1); assert.equal(r.source, 'saved');
 });
+
+// From the 24 Nov real-data check of 5- and 7-step plans.
+test('listings meant for organisations or for another country are marked', () => {
+  const m = t => mapListing(yomaItem(40, { title: t, type: 'Other' }));
+  assert.equal(m('Become a Yoma partner: AfriLabs hub webinar 2').forOrgs, true);
+  assert.equal(m('Grant Alert: Up to $2M Grants for AI Solutions in Public Services').forOrgs, true);
+  assert.equal(m('Free Digital Commerce Training for Nigerian SMEs with ICC & TikTok').forOrgs, true);
+  assert.equal(m('Customer sales support in Lagos').forOrgs, false);
+  assert.equal(m('Opportunity 3: [Botswana] Mapathons - Remote Mapping Contributions').otherCountry, true);
+  assert.equal(m('Opportunity 3: [South Africa] Mapathons').otherCountry, true);
+  assert.equal(m('[Nigeria] Community survey').otherCountry, false);
+});

@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { startMockAzure } from './helpers/mock-azure.mjs';
 import { createAI, parseJSON } from '../lib/ai.mjs';
-import { extractSkills, understand, writeReasons, enrichListings, transcribeNote } from '../lib/ai-tasks.mjs';
+import { extractSkills, understand, writeReasons, enrichListings, transcribeNote, rankCourses } from '../lib/ai-tasks.mjs';
 
 const state = {};
 let az;
@@ -152,4 +152,17 @@ test('plan reasons give up quickly (no retry), so the page is not kept waiting',
   const t0 = Date.now();
   const r = await writeReasons(createAI(az.env, fetch, { timeoutMs: 10000 }), { steps: [{ kind: 'start', title: 'x', facts: {} }], lang: 'en' });
   assert.equal(r.source, 'fallback'); assert.ok(Date.now() - t0 < 4200, 'took ' + (Date.now() - t0)); assert.equal(state.calls, 1);
+});
+
+test('rankCourses returns only known course ids, in the AI order', async () => {
+  state.chat = () => ({ content: { ids: ['c3', 'zzz', 'c1'] } });
+  const r = await rankCourses(ai(), { goal: 'Get a job', targets: ['Customer Care Trainee'], candidates: [{ id: 'c1', title: 'A' }, { id: 'c3', title: 'B' }] });
+  assert.deepEqual(r, { ids: ['c3', 'c1'], source: 'ai' });
+  assert.deepEqual(await rankCourses(createAI({}), { goal: '', targets: [], candidates: [{ id: 'c1', title: 'A' }] }), { ids: [], source: 'fallback' });
+});
+
+test('plan reasons accept up to 7 steps', async () => {
+  state.chat = (body) => ({ content: { reasons: JSON.parse(body.messages[1].content).map(s => `Good for ${s.title}.`) } });
+  const steps = Array.from({ length: 7 }, (_, i) => ({ kind: 'learn', title: 'Course ' + i, facts: {} }));
+  assert.equal((await writeReasons(ai(), { steps, lang: 'en' })).reasons.filter(Boolean).length, 7);
 });

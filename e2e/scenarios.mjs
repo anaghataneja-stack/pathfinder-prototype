@@ -1,6 +1,7 @@
 // Browser scenarios: real server + mock Yoma + mock Azure, driven with Playwright (Chromium).
 //   node e2e/scenarios.mjs            (needs Playwright: npm i -D playwright && npx playwright install chromium)
 import { createRequire } from 'node:module';
+import net from 'node:net';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -10,6 +11,7 @@ import { createAI } from '../lib/ai.mjs';
 import { createSync } from '../lib/sync.mjs';
 import { createApp } from '../lib/server.mjs';
 import { createStore } from '../lib/store.mjs';
+import { startMockKeycloak } from '../test/helpers/mock-keycloak.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
@@ -70,6 +72,13 @@ const busy = await listen(createApp({ sync, ai: createAI(azure.env, fetch, { tim
 const restartDir = mkdtempSync(join(tmpdir(), 'pf-e2e-restart-'));
 writeFileSync(join(restartDir, 'yoma-cache.json'), JSON.stringify(sync.get()));
 const demoVoice = await listen(createApp({ sync, ai: createAI({}), demoVoice: true, rateLimit: { max: 1000 } }));
+// "Continue with Yoma": a fake Keycloak, and the fake Yoma API for skills and saving.
+const kcState = {}; const kc = await startMockKeycloak(kcState);
+const port = await new Promise(r => { const t = net.createServer().listen(0, '127.0.0.1', () => { const p = t.address().port; t.close(() => r(p)); }); });
+const yomaApp = createApp({ sync, ai: createAI({}), rateLimit: { max: 1000 }, yomaBase: yoma.base,
+  yomaAuth: { issuer: kc.issuer, clientId: 'pathfinder', publicUrl: `http://127.0.0.1:${port}` } });
+await new Promise(r => yomaApp.listen(port, '127.0.0.1', r));
+const withYoma = `http://127.0.0.1:${port}`;
 const restarted = await listen(createApp({ sync: createSync({ dataDir: restartDir, base: yoma.base }), ai: createAI({}), rateLimit: { max: 1000 } }));
 
 const browser = await chromium.launch({ args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] });
@@ -109,6 +118,7 @@ await scenario('Amina, 17, Kano, Hausa: types her market work, AI turns it into 
   await tap(page, 'Kano');
   await tap(page, '3–5');
   await tap(page, 'Matsakaici');
+  await tap(page, 'Gajere');
   await page.waitForSelector('.plan', { timeout: 20000 });
   const panel = await page.locator('#p-profile').innerText();
   assert(/from their own work/i.test(panel), 'panel missing own-work skills');
@@ -126,7 +136,7 @@ await scenario('Tunde, 21, Lagos, English: plain-words answer understood by AI; 
   await page.waitForSelector('.opts button:has-text("3–5 hours")');
   await typeMsg(page, 'I fit do like 4 hours');
   await waitChat(page, /How much mobile data/);
-  await tap(page, 'Some');
+  await tap(page, 'Some'); await tap(page, 'Quick');
   await page.waitForSelector('.plan', { timeout: 20000 });
   const plan = await page.locator('.plan').last().innerText();
   assert(/AI: /.test(plan), 'AI reasons not shown: ' + plan.slice(0, 300));
@@ -147,7 +157,7 @@ await scenario('AI off: work description still mapped by keyword rules; reasons 
   await page.waitForSelector('.skills-card');
   assert(/Phone & electronics repair/.test(await page.locator('.skills-card').last().innerText()), 'rules did not find phone repair');
   await tap(page, "Yes, that's right");
-  await tap(page, 'Get a job'); await tap(page, 'Digital & tech'); await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some');
+  await tap(page, 'Get a job'); await tap(page, 'Digital & tech'); await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some'); await tap(page, 'Quick');
   await page.waitForSelector('.plan', { timeout: 20000 });
   assert(/Recommended because/.test(await page.locator('.plan').last().innerText()), 'template reasons missing');
   assert(/off/i.test(await page.locator('#ai-chip').innerText()), 'AI chip should say off');
@@ -170,7 +180,7 @@ await scenario('A live Yoma listing asking for a fee is removed and flagged', as
   const { ctx, page } = await open(withAI);
   await page.click('#persona button[data-v="tunde"]');
   await tap(page, 'English'); await tap(page, '21'); await tap(page, 'Yes, use my profile'); await tap(page, 'Skip');
-  await tap(page, 'Get a job'); await tap(page, 'Digital & tech'); await tap(page, 'Online only'); await tap(page, '6–10 hours'); await tap(page, 'Plenty');
+  await tap(page, 'Get a job'); await tap(page, 'Digital & tech'); await tap(page, 'Online only'); await tap(page, '6–10 hours'); await tap(page, 'Plenty'); await tap(page, 'Quick');
   await page.waitForSelector('.plan', { timeout: 20000 });
   const match = await page.locator('#p-match').innerText();
   assert(/Easy Online Data Job[\s\S]*fee or payment/i.test(match), 'scam listing not flagged');
@@ -252,7 +262,7 @@ await scenario('Real-data shape: the Start step is relevant to the goal, not jus
   const { ctx, page } = await open(withAI);
   await page.click('#persona button[data-v="tunde"]');
   await tap(page, 'English'); await tap(page, '21'); await tap(page, 'Yes, use my profile'); await tap(page, 'Skip');
-  await tap(page, 'Get a job'); await tap(page, 'Customer service'); await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some');
+  await tap(page, 'Get a job'); await tap(page, 'Customer service'); await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some'); await tap(page, 'Quick');
   await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
   const start = await page.locator('.plan').last().locator('.pstep').first().locator('.ttl').innerText();
   assert(!/Data Analyst/.test(start), 'unrelated course chosen as Start: ' + start);
@@ -268,7 +278,7 @@ await scenario('Pilot: an urgent message reaches the staff inbox with a case cod
   assert(await page.locator('#chat a[href="/privacy.html"]').count(), 'privacy notice link missing in the chat');
   await page.click('#persona button[data-v="tunde"]');
   await tap(page, 'English'); await tap(page, '21'); await tap(page, 'Yes, use my profile'); await tap(page, 'Skip');
-  await tap(page, 'Get a job'); await tap(page, 'Customer service'); await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some');
+  await tap(page, 'Get a job'); await tap(page, 'Customer service'); await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some'); await tap(page, 'Quick');
   await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
   await page.locator('.plan').last().locator('[data-report]').nth(2).click();
   await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 15000 });
@@ -311,6 +321,63 @@ await scenario('Demo voice (no Azure): Chrome speech recognition, clearly labell
   await ctx.close();
 });
 
+await scenario('Bigger plan: 5 steps, several openings per Apply step, and more openings on request', async () => {
+  const { ctx, page } = await open(withAI);
+  await page.click('#persona button[data-v="tunde"]');
+  await tap(page, 'English'); await tap(page, '21'); await tap(page, 'Yes, use my profile'); await tap(page, 'Skip');
+  await tap(page, 'Get a job'); await tap(page, 'Digital & tech'); await tap(page, 'Online only'); await tap(page, '6–10 hours'); await tap(page, 'Plenty');
+  await tap(page, 'Bigger');
+  await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
+  const plan = page.locator('.plan').last();
+  const steps = await plan.locator('.pstep').count();
+  assert(steps >= 4 && steps <= 5, 'expected a 5-step plan (fewer only if openings run out), got ' + steps);
+  const titles = await plan.locator('.opening .ttl').allInnerTexts();
+  assert(titles.length >= 2, 'expected several openings, got ' + titles.length);
+  assert(new Set(titles).size === titles.length, 'an opening appears twice: ' + titles);
+  await tap(page, 'Show more openings');
+  await waitChat(page, /more openings that fit you|every good match I have/);
+  await ctx.close();
+});
+
+await scenario('Finishing a plan offers a next plan that builds on the new skills', async () => {
+  const { ctx, page } = await open(withAI);
+  await page.click('#persona button[data-v="tunde"]');
+  await tap(page, 'English'); await tap(page, '21'); await tap(page, 'Yes, use my profile'); await tap(page, 'Skip');
+  await tap(page, 'Get a job'); await tap(page, 'Digital & tech'); await tap(page, 'Online only'); await tap(page, '6–10 hours'); await tap(page, 'Plenty'); await tap(page, 'Quick');
+  await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
+  const first = await page.locator('.plan').last().innerText();
+  await tap(page, 'Save my plan'); await tap(page, 'Yes, very');
+  for (const answer of ['Yes, finished', 'Yes, finished', 'One']) {
+    await page.waitForSelector('#weekbtn', { timeout: 15000 }); await page.click('#weekbtn');
+    await tap(page, answer);
+  }
+  await waitChat(page, /finished your plan\. What would you like to do next/);
+  await tap(page, 'Make my next plan');
+  await waitChat(page, /next plan\. It builds on the skills/);
+  await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
+  const second = await page.locator('.plan').last().innerText();
+  assert(second !== first, 'the next plan should differ from the finished one');
+  assert(/Plan 2/.test(await page.locator('#p-gap').innerText()), 'panel should show plan 2');
+  await ctx.close();
+});
+
+await scenario('Continue with Yoma: sign in, real Yoma skills are used, and the plan is saved to the Yoma account', async () => {
+  yState.saved = [];
+  const { ctx, page } = await open(withYoma);
+  await page.click('#persona button[data-v="tunde"]');
+  await tap(page, 'English'); await tap(page, '21');
+  await tap(page, 'Connect my Yoma account');
+  await waitChat(page, /Connected to Yoma\. I found 2 skills/, 20000);
+  assert(/connected · real account/i.test(await page.locator('#p-profile').innerText()), 'panel should show the real Yoma account');
+  await tap(page, 'Skip');
+  await tap(page, 'Get a job'); await tap(page, 'Customer service'); await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some'); await tap(page, 'Quick');
+  await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
+  await tap(page, 'Save my plan');
+  await waitChat(page, /Saved to your Yoma account \(\d+ opportunit/);
+  assert(yState.saved.length >= 1, 'nothing was saved to Yoma');
+  await ctx.close();
+});
+
 await scenario('Yoruba: choosing Yorùbá switches the conversation to Yoruba', async () => {
   const { ctx, page } = await open(withAI);
   await tap(page, 'Yorùbá');
@@ -323,13 +390,13 @@ await scenario('Earlier safety features still work: report a step, save, resume 
   const { ctx, page } = await open(withAI);
   await page.click('#persona button[data-v="tunde"]');
   await tap(page, 'English'); await tap(page, '21'); await tap(page, 'Yes, use my profile'); await tap(page, 'Skip');
-  await tap(page, 'Get a job'); await tap(page, 'Customer service'); await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some');
+  await tap(page, 'Get a job'); await tap(page, 'Customer service'); await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some'); await tap(page, 'Quick');
   await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
-  const before = await page.locator('.plan').last().locator('.pstep').nth(2).locator('.ttl').innerText();
+  const before = await page.locator('.plan').last().locator('.pstep').nth(2).locator('.opening .ttl').first().innerText();
   await page.locator('.plan').last().locator('[data-report]').nth(2).click();
   await page.waitForFunction(() => document.querySelectorAll('.plan').length >= 2, null, { timeout: 15000 });
   await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 15000 });
-  const after = await page.locator('.plan').last().locator('.pstep').nth(2).locator('.ttl').innerText();
+  const after = await page.locator('.plan').last().locator('.pstep').nth(2).locator('.opening .ttl').first().innerText();
   assert(before !== after, 'reported step was not replaced');
   await tap(page, 'Save my plan'); await tap(page, 'Yes, very');
   await page.waitForSelector('#weekbtn', { timeout: 15000 });
@@ -350,7 +417,7 @@ await scenario('Basic phone (SMS): numbered replies, plan as text with REPORT in
   for (const n of ['1', '7', '1']) await tap(page, n);          // English, 21, use profile
   await waitChat(page, /work you already do/);
   assert(!/Record a voice note/.test(await chatText(page)), 'voice offered on a basic phone');
-  for (const n of ['2', '1', '2', '1', '2', '2']) await tap(page, n);   // skip work, job, customer service, Lagos, 3-5 h, some data
+  for (const n of ['2', '1', '2', '1', '2', '2', '1']) await tap(page, n);   // skip work, job, customer service, Lagos, 3-5 h, some data, quick plan
   await waitChat(page, /YOUR PATHFINDER PLAN/, 20000);
   assert(/reply REPORT/i.test(await chatText(page)), 'SMS plan missing REPORT instruction');
   await ctx.close();
@@ -367,7 +434,7 @@ await scenario('Opened as a file (no server): runs on built-in sample data and s
 });
 
 await browser.close();
-await yoma.close(); await azure.close();
+await yoma.close(); await azure.close(); await kc.close(); yomaApp.close();
 const failed = results.filter(r => r[1] === 'FAIL').length;
 console.log(`\n${results.length - failed}/${results.length} scenarios passed`);
 process.exit(failed ? 1 : 0);

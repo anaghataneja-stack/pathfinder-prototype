@@ -4,6 +4,20 @@
 
 This version adds:
 
+- **Plans of 3, 5 or 7 steps**, the person's choice.
+  - **Several openings per Apply step** ("Apply now", "Apply after your courses", "Earn while you learn"), so one rejection doesn't end the plan.
+  - **More openings on request.**
+  - **A next plan after finishing**, building on the skills just gained.
+- **Stronger course matching.**
+  - Courses cover the skills needed across *all* the target openings, weighted by how many need each skill.
+  - Course titles are matched to job titles.
+  - Real Passport to Earning courses are reserved for Start Here.
+  - With Azure on, the AI re-orders the candidate courses.
+- **"Continue with Yoma" sign-in**, via Yoma's Keycloak.
+  - Reads the person's **real Yoma skills** and **saves the plan's opportunities to their Yoma account**.
+  - Off until Yoma registers a Pathfinder client; see [docs/INTEGRATION.md](docs/INTEGRATION.md).
+- **A plan for WhatsApp:** [docs/RAPIDPRO.md](docs/RAPIDPRO.md) maps Pathfinder onto Yoma's RapidPro sandbox.
+
 - **Real Yoma data, refreshed daily.** The server syncs every published Nigeria and Worldwide opportunity from the public Yoma API once a day. If Yoma is down it keeps the last good copy.
 - **Azure OpenAI**, with a checked fallback for every call:
   - turns informal work someone already does (typed, or as a voice note) into recognised skills;
@@ -68,6 +82,7 @@ Other settings:
 - `TRUST_PROXY`: set `true` when hosted behind a proxy such as App Service, so each phone gets its own rate limit instead of everyone sharing one.
 - `AI_ENRICH_LISTINGS`: AI tagging of listings during the sync.
 - `PILOT_ACCESS_CODE`: locks a hosted pilot behind a code. Open `/?code=…` once on each phone. Wrong codes are limited to 10 tries per 10 minutes.
+- `YOMA_AUTH_ISSUER`, `YOMA_AUTH_CLIENT_ID`, `YOMA_AUTH_CLIENT_SECRET`, `PUBLIC_URL`: turn on **"Continue with Yoma"**. These need a Keycloak client registered by Yoma for Pathfinder, with redirect URI `<PUBLIC_URL>/auth/yoma/callback`.
 - `DEMO_BROWSER_VOICE`: **demo only.** `true` lets voice notes use Chrome's built-in speech recognition when Azure voice isn't set up. The audio goes to Google, so it must stay `false` for the pilot. The app labels it "Demo only" whenever it's used.
 - `STAFF_CODE`: turns on the facilitator case inbox at `/staff`. Open `/staff?code=…` once. Use a long random code.
 - `PORT`: the port the server listens on.
@@ -86,7 +101,8 @@ The keys stay on the server. The browser never sees them.
 | Scam check, safety rules, matching and scoring | **Real logic** running on whatever listings are loaded |
 | Passport to Earning courses | **Partly real**: 13 P2E courses published on Yoma are used and labelled. The rest are built-in samples marked "(sample)" |
 | imaGen challenges | **Sample**: no API access yet |
-| Test personas (Amina, Tunde) and their Yoma credentials | **Sample**: real profiles need Yoma sign-in and a partner agreement |
+| Test personas (Amina, Tunde) and their Yoma credentials | **Sample**. With "Continue with Yoma" configured, the person's **real** Yoma skills are used instead |
+| "Saved to your Yoma account" | **Real** when signed in with Yoma (opportunities saved through the Yoma API). Otherwise it says "Saved on this phone" |
 | Facilitator handoffs, urgent cases and listing reports | **Real**: stored on the server and shown in the staff inbox (`/staff`), with no names or numbers |
 | Facilitator names, guardian SMS code, "saved to your Yoma profile" | **Simulated**: see [docs/INTEGRATION.md](docs/INTEGRATION.md) for what each needs |
 | `data/sample-listings.json` | **Sample**: only used when Yoma has never been reached |
@@ -141,10 +157,10 @@ The **Behind the scenes** panel shows:
 ## Tests
 
 ```bash
-npm test                    # 77 unit and API tests, no installs, about 2 seconds
+npm test                    # 87 unit and API tests, no installs, about 2 seconds
 ```
 
-Browser scenarios (17 of them) run the real server against a mock Yoma API and a mock Azure, in Chromium:
+Browser scenarios (20 of them) run the real server against a mock Yoma API and a mock Azure, in Chromium:
 
 ```bash
 npm i --no-save playwright && npx playwright install chromium
@@ -201,7 +217,7 @@ lib/                 env, rules, privacy, yoma, sync, ai, ai-tasks, server
 data/                sample-listings.json (+ yoma-cache.json at runtime, git-ignored)
 test/                unit/API tests (node:test) and mock Yoma/Azure servers
 e2e/scenarios.mjs    browser scenarios
-docs/                PILOT.md, INTEGRATION.md, TESTING.md, design and plan
+docs/                DEMO.md, PILOT.md, INTEGRATION.md, RAPIDPRO.md, TESTING.md, HANDOFF.md, design and plan
 privacy.html         privacy notice (draft for GenU review)
 pilot-report.mjs     pilot numbers from data/
 .github/workflows/   tests on every push

@@ -4,8 +4,8 @@ Last run: 13 November 2026, Node 22, Chromium (Playwright).
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit and API tests | `npm test` | **77 / 77 pass** (about 2 s) |
-| Browser scenarios | `npm run e2e` | **17 / 17 pass** |
+| Unit and API tests | `npm test` | **87 / 87 pass** (about 2 s) |
+| Browser scenarios | `npm run e2e` | **20 / 20 pass** |
 | Live check, real Yoma API | `node sync.mjs` + the app | **Done 14 Nov 2026**: 5,171 real listings. Results and fixes [below](#live-check-real-yoma-14-november-2026) |
 | Live check, real Azure OpenAI | see [Live check](#live-check-run-this-before-the-demo) | **Not run yet.** Needs the team's Azure keys |
 
@@ -42,6 +42,9 @@ The automated tests use **mock** Yoma and Azure servers (`test/helpers/`) that c
 | 13 | The server returns a 404 page once | The 404 doesn't replace the offline copy, and the app still opens offline afterwards | Pass |
 | 14 | AI over its rate limit | Shows "try again in a minute", not a network error | Pass |
 | 15 | Real-data shape: Start step | A real P2E course on Yoma is chosen and labelled; sample courses say "(sample)" | Pass |
+| 18 | Bigger plan (5 steps) | Several openings per Apply step, no opening twice, "Show more openings" works | Pass |
+| 19 | Finishing a plan | Check-ins through to the end, then "Make my next plan" builds a different plan and the panel shows plan 2 | Pass |
+| 20 | Continue with Yoma | Sign-in through a fake Yoma Keycloak (PKCE). Real Yoma skills are read. "Save my plan" saves the opportunities to the Yoma account | Pass |
 | 17 | Demo voice without Azure | With `DEMO_BROWSER_VOICE=true`, voice uses Chrome speech recognition (a stand-in in the test), is labelled "Demo only", and the words become skills | Pass |
 | 16 | Pilot: urgent message | A case reaches the staff inbox with a code shown to the young person. No message text is stored. A listing report and the pilot counts are recorded | Pass |
 
@@ -87,6 +90,17 @@ Plans on real data after the fixes:
 - **Amina, 17, Kano, earn money now, typed market and tailoring work:** no adult listings. Apply is a real UNICEF Nigeria phone task that earns.
 
 Still weak: Yoma has no Kano jobs. The real P2E courses on Yoma are mostly green-skills and hospitality, so Start/Learn matches are approximate until AI tagging is on.
+
+## Real-data check of 5- and 7-step plans (24 November 2026)
+
+Run on 2,706 live opportunities and 2,312 courses. Fixed with tests:
+- **Off-goal openings** filled Apply groups → groups now use only openings above a minimum fit score.
+- **Noisy "earn now" tasks drove the course choice** → courses now follow the career openings only.
+- **"Hospitality" was read as a customer-service skill** → it now counts as a sector only.
+- **Organisation-only listings and other-country listings** reached young Nigerians, e.g. "Become a Yoma partner", "Grant Alert", "…for Nigerian SMEs", "[Botswana] Mapathons" → now removed, with the reason shown.
+- **Bigger plans came out short** → spare Learn slots now get job-readiness courses.
+
+Still approximate: tags come from keyword rules, so some Learn picks are loosely related. Azure AI tagging during the daily sync, plus AI course re-ranking, is the planned fix once keys arrive.
 
 ## Open issues for the next sprint
 

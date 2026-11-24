@@ -45,3 +45,8 @@ test('"Marketer" is not market trading either', () => {
   assert.ok(!skillsFromText('Become a Digital Marketer: Grow Brands').includes('market-trading'));
   assert.ok(!sectorsFromText('Become a Digital Marketer').includes('customer'));
 });
+
+test('"hospitality" alone is a sector, not a customer-service skill', () => {
+  assert.ok(!skillsFromText('Sustainable Food Management in Hospitality').includes('customer'));
+  assert.ok(sectorsFromText('Sustainable Food Management in Hospitality').includes('customer'));
+});
