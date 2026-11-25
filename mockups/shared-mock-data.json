@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "BBS x GenU shared mock data",
-    "version": "1.0",
+    "version": "1.1",
     "updated": "2026-11-24",
     "warning": "FICTIONAL SAMPLE DATA. Every person, business, listing, ID and link is made up for prototypes and mock-ups. Not real Yoma, YoID or partner data.",
     "country": "Nigeria",
@@ -581,37 +581,21 @@
         "verifiedOnly": true
       },
       "resultCount": 214,
-      "sampleResults": [
-        {
-          "anonCode": "A12",
-          "ageBand": "18-24",
-          "lga": "Kaduna North",
-          "verifiedSkills": [
-            "digital-basics",
-            "customer",
-            "solar-install"
-          ],
-          "isHalima": true
+      "partnerSees": "counts only, then sends an opt-in notification",
+      "breakdown": {
+        "byLga": {
+          "Kaduna North": 61,
+          "Kaduna South": 48,
+          "Chikun": 39,
+          "Zaria": 66
         },
-        {
-          "anonCode": "B07",
-          "ageBand": "18-24",
-          "lga": "Chikun",
-          "verifiedSkills": [
-            "digital-basics",
-            "social-media"
-          ]
-        },
-        {
-          "anonCode": "C15",
-          "ageBand": "18-24",
-          "lga": "Zaria",
-          "verifiedSkills": [
-            "digital-basics",
-            "spreadsheets"
-          ]
+        "alsoVerified": {
+          "social-media": 52,
+          "spreadsheets": 37,
+          "customer": 90
         }
-      ],
+      },
+      "includesYoungPerson": "yp-001",
       "notification": "New on Yoma: Kaduna Green Youth Network has a digital volunteer role that fits your skills. Tap to see it. You choose whether to share your profile."
     },
     "roleMap": {
@@ -651,36 +635,29 @@
         "withinKm": 15,
         "count": 38,
         "countBeforeRemovingDiploma": 9,
-        "sample": [
-          {
-            "anonCode": "A12",
-            "distanceKm": 4,
-            "languages": [
-              "ha",
-              "en"
-            ],
-            "mustHavesVerified": "3/3",
-            "isHalima": true
-          },
-          {
-            "anonCode": "F33",
-            "distanceKm": 12,
-            "languages": [
-              "ha"
-            ],
-            "mustHavesVerified": "3/3"
-          },
-          {
-            "anonCode": "C07",
-            "distanceKm": 9,
-            "languages": [
-              "ha",
-              "pcm"
-            ],
-            "mustHavesVerified": "2/3"
-          }
-        ]
+        "employerSees": "counts only, no names or profiles until a young person opts in",
+        "allHaveMustHaves": true,
+        "alsoHaveCanLearnSkill": {
+          "solar-install": 11,
+          "digital-basics": 29
+        },
+        "byDistanceKm": {
+          "0-5": 12,
+          "5-10": 15,
+          "10-15": 11
+        },
+        "byLanguage": {
+          "ha": 38,
+          "en": 21,
+          "pcm": 9
+        },
+        "includesYoungPerson": "yp-001"
       },
+      "prePublishCheck": {
+        "by": "Ziqi",
+        "grade": "A-"
+      },
+      "fitsYomaUseCase": "AI-assisted opportunity management (co-author for partners), Yoma roadmap v7 score 28/30; RoleMap is its job-listing mode",
       "output": "opp-job-001"
     }
   },
@@ -691,7 +668,7 @@
     "Phase 4 YoCV": "Builds cv from credentials (verified vs self-declared), shows the QR, and submits application to opp-job-001: the Job Application.",
     "New idea: AI proof review": "newIdeas.proofReview for opp-impact-001; Halima's proof-001 is approved and becomes cred-004.",
     "New idea: AI co-author": "newIdeas.coAuthor turns Arewa Tech Hub's one-line note into opp-event-001.",
-    "New idea: Talent Finder": "newIdeas.talentFinder; Halima appears as A12.",
-    "New idea: RoleMap": "newIdeas.roleMap; Sunrise Solar creates opp-job-001, and Halima is match A12."
+    "New idea: Talent Finder": "newIdeas.talentFinder; the partner sees counts only (214), Halima is one of them, then an opt-in notification.",
+    "New idea: RoleMap": "newIdeas.roleMap; Sunrise Solar creates opp-job-001, sees 38 matches as counts only (Halima is one), Ziqi checks the listing before it goes live."
   }
 }

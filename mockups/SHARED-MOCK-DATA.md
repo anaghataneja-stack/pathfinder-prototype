@@ -1,6 +1,6 @@
 # BBS x GenU shared mock data
 
-**Everything here is fictional.** Use it in all four prototypes and all four new-idea mock-ups so GenU sees the same person, job, course and credential the whole way through. The full data is in `shared-mock-data.json`.
+**Everything here is fictional.** Version 1.1 (counts-only update). Use it in all four prototypes and all four new-idea mock-ups so GenU sees the same person, job, course and credential the whole way through. The full data is in `shared-mock-data.json`.
 
 ## The story in one line
 
@@ -18,7 +18,7 @@ Halima, 20, fixes phones at a market stall in Kaduna. She finds a solar trainee 
 | Informal work | Fixes phones and sells accessories at her aunt's stall in Kaduna Central Market |
 | Goal | A paid job in solar or electronics |
 | YoID | `yoid-ng-7f3a0123` |
-| Anonymous code (Talent Finder, RoleMap) | **A12** |
+| Internal anonymous code | A12 (partners never see it: Talent Finder and RoleMap show counts only) |
 
 ## The handoffs (same names on every slide)
 
@@ -64,10 +64,12 @@ Halima, 20, fixes phones at a market stall in Kaduna. She finds a solar trainee 
 | Phase 4 YoCV | CV from verified credentials plus self-declared phone repair; QR check; applies to `opp-job-001` |
 | AI proof review (Charisse) | 4 proofs for the tree planting day: Halima's passes (0.93); a reused photo, an AI-looking image and a mismatched certificate go to a reviewer |
 | AI co-author (Jongmin) | Arewa Tech Hub's one-line note → full listing for the jobs fair |
-| Talent Finder (Nathan) | Search "young women 18 to 24, digital skills, Kaduna" → 214 matches; Halima is A12 |
-| RoleMap (Anagha) | Sunrise Solar's description → tasks → 38 matches (9 before dropping the diploma); Halima is A12 |
+| Talent Finder (Nathan) | Search "young women 18 to 24, digital skills, Kaduna" → 214 matches as **counts only** (by area and extra skills), then an opt-in notification; Halima is one of them |
+| RoleMap (Anagha) | Sunrise Solar's description → 5 tasks → 38 matches as **counts only** (9 before dropping the diploma; by distance and language) → Ziqi checks the listing (A-) → opt-in invites; Halima is one of the 38 |
 
 ## Rules for the team
+
+- **Partners see counts, not people.** Yoma's AI use-case note (19 Nov) asks for Talent Finder to "see counts only" and send opt-in notifications. Any partner-facing screen shows numbers, never individual young people, until a young person opts in.
 
 - Use these names, ids and numbers exactly; don't invent new people for your screens.
 - Need something that isn't here? Add it to the JSON and tell the team, so the next person sees it.
