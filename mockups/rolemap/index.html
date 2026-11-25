@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RoleMap clickable mock-up</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* VOICE: friendly product walkthrough for a UNICEF client
+   IDEA: a phone on the table, tapped through like a usability test
+   PICTURE: the RoleMap phone itself, large, with the flow beside it
+   COLOUR and TYPE: UNICEF navy, cyan, yellow, orange on white; Inter
+   LAYOUT: banner, title, phone left, steps and notes right; stacks on phones */
+:root{color-scheme:light dark;--bg:light-dark(#FFFFFF,#0B1C33);--ink:light-dark(#0B2D5B,#EAF4FB);--mute:light-dark(#4A6385,#A9C1D8);--card:light-dark(#F3F8FC,#132A48);--line:light-dark(#DCE7F0,#24426A);--blue:#1CABE2;--navy:#0B2D5B;--or:#F26A21;--yel:#FFC20E}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+.banner{background:var(--or);color:#fff;text-align:center;font-weight:700;font-size:14px;padding:8px 16px}
+.wrap{max-width:1180px;margin:0 auto;padding:clamp(20px,4vw,48px) max(5vw,16px)}
+h1{font-size:clamp(28px,4vw,44px);line-height:1.08;margin:0 0 6px;text-wrap:balance}
+.lede{color:var(--mute);margin:0 0 28px;max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:clamp(24px,5vw,64px);align-items:start}
+.stage{position:relative;background:light-dark(#D7EFFA,#17385F);border-radius:32px;padding:28px 32px;cursor:pointer}
+.screen svg{width:100%;height:auto;display:block;filter:drop-shadow(0 18px 28px rgba(11,45,91,.22))}
+.hint{text-align:center;color:var(--mute);font-size:13px;margin-top:10px}
+ol{list-style:none;padding:0;margin:0 0 20px;display:grid;gap:8px}
+.step{width:100%;display:flex;gap:12px;align-items:center;text-align:left;font:inherit;font-weight:600;color:var(--ink);background:var(--card);border:2px solid transparent;border-radius:14px;padding:10px 14px;min-height:48px;cursor:pointer}
+.step .n{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--line);font-weight:800}
+.step[aria-current=step]{border-color:var(--blue)}.step[aria-current=step] .n{background:var(--or);color:#fff}
+.step:focus-visible,.nav button:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+.note{background:var(--card);border-radius:18px;padding:20px 22px}
+.note h2{font-size:22px;margin:0 0 8px}.note p{margin:0 0 12px}
+.note .data{font-size:14px;color:var(--mute);margin:0}.note .data b{color:var(--ink)}
+.nav{display:flex;gap:10px;margin-top:18px}
+.nav button{font:inherit;font-weight:700;border-radius:24px;padding:11px 22px;min-height:44px;border:2px solid var(--navy);cursor:pointer}
+#prev{background:transparent;color:var(--ink);border-color:var(--line)}#next{background:var(--navy);color:#fff}
+.nav button:disabled{opacity:.4;cursor:default}
+.foot{margin-top:28px;font-size:13px;color:var(--mute)}
+@media(max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}.stage{max-width:380px;margin:0 auto}}
+@media(prefers-reduced-motion:no-preference){.screen:not([hidden]){animation:in .25s ease-out}@keyframes in{from{opacity:0;transform:translateY(8px)}}}
+</style></head><body>
+<div class="banner" role="note">MOCK-UP · not a working build · sample data, no AI or backend</div>
+<main class="wrap">
+<h1>RoleMap in the Yoma partner app: describe the work, not a job ad</h1>
+<p class="lede">Tap the phone or use the steps to walk through the flow, from a plain description to verified matches. Employer, job and candidates come from the team's shared mock data.</p>
+<div class="grid">
+<div><div class="stage" id="stage" role="button" tabindex="0" aria-label="Next screen"><div class="screen" data-i="0" ><svg xmlns="http://www.w3.org/2000/svg" viewBox="16 0 312 600" role="img" aria-label="Screen 1: New job"><g id="phone-1">
+<rect x="19" y="128" width="4" height="44" rx="2" fill="#2A2D34"/>
+<rect x="19" y="184" width="4" height="44" rx="2" fill="#2A2D34"/>
+<rect x="321" y="158" width="4" height="70" rx="2" fill="#2A2D34"/>
+<rect x="22" y="8" width="300" height="584" rx="50" fill="#1C1D22"/>
+<rect x="25" y="11" width="294" height="578" rx="47" fill="#3A3D45"/>
+<rect x="28" y="14" width="288" height="572" rx="45" fill="#1C1D22"/>
+<rect x="32" y="18" width="280" height="564" rx="41" fill="#F5F7FA"/>
+<text x="62" y="46" font-family="Inter, -apple-system, Arial, sans-serif" font-size="15" font-weight="700" fill="#0F1B2D" text-anchor="start">9:41</text>
+<rect x="126.0" y="29" width="92" height="26" rx="13" fill="#0A0A0C"/>
+<rect x="238" y="41" width="3.2" height="5" rx="1" fill="#0F1B2D"/>
+<rect x="243" y="38" width="3.2" height="8" rx="1" fill="#0F1B2D"/>
+<rect x="248" y="35" width="3.2" height="11" rx="1" fill="#0F1B2D"/>
+<rect x="253" y="32" width="3.2" height="14" rx="1" fill="#0F1B2D"/>
+<path d="M266 39 a8 8 0 0 1 12 0" fill="none" stroke="#0F1B2D" stroke-width="2"/>
+<path d="M269 42 a4 4 0 0 1 6 0" fill="none" stroke="#0F1B2D" stroke-width="2"/>
+<circle cx="272" cy="45" r="1.6" fill="#0F1B2D"/>
+<rect x="284" y="33" width="24" height="12" rx="3.5" fill="none" stroke="#0F1B2D" stroke-width="1.4"/>
+<rect x="286" y="35" width="17" height="8" rx="2" fill="#0F1B2D"/>
+<rect x="309" y="37" width="2" height="4" rx="1" fill="#0F1B2D"/>
+<text x="52" y="94" font-family="Inter, -apple-system, Arial, sans-serif" font-size="24" font-weight="800" fill="#0B2D5B" text-anchor="start">yoma</text>
+<circle cx="119" cy="89" r="4" fill="#1CABE2"/>
+<text x="128" y="94" font-family="Inter, -apple-system, Arial, sans-serif" font-size="14" font-weight="600" fill="#5B6B80" text-anchor="start">partner</text>
+<rect x="216" y="74" width="78" height="26" rx="13" fill="#D7EFFA"/>
+<text x="255" y="92" font-family="Inter, -apple-system, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0B2D5B" text-anchor="middle">RoleMap</text>
+<text x="52" y="126" font-family="Inter, -apple-system, Arial, sans-serif" font-size="11" font-weight="700" fill="#5B6B80" text-anchor="start">STEP 1 OF 4 · NEW JOB</text>
+<rect x="52" y="134" width="56" height="5" rx="2.5" fill="#1CABE2"/>
+<rect x="113" y="134" width="56" height="5" rx="2.5" fill="#E3E7EE"/>
+<rect x="174" y="134" width="56" height="5" rx="2.5" fill="#E3E7EE"/>
+<rect x="235" y="134" width="56" height="5" rx="2.5" fill="#E3E7EE"/>
+<text x="52" y="170" font-family="Inter, -apple-system, Arial, sans-serif" font-size="15" font-weight="700" fill="#0F1B2D" text-anchor="start">Describe the job</text>
+<text x="52" y="190" font-family="Inter, -apple-system, Arial, sans-serif" font-size="12.5" font-weight="500" fill="#5B6B80" text-anchor="start">Say what they'll do each day</text>
+<rect x="50" y="202" width="244" height="124" rx="14" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<text x="64" y="228" font-family="Inter, -apple-system, Arial, sans-serif" font-size="14.5" font-weight="500" fill="#0F1B2D" text-anchor="start">I need a helper to carry</text>
+<text x="64" y="249" font-family="Inter, -apple-system, Arial, sans-serif" font-size="14.5" font-weight="500" fill="#0F1B2D" text-anchor="start">solar panels and talk to</text>
+<text x="64" y="270" font-family="Inter, -apple-system, Arial, sans-serif" font-size="14.5" font-weight="500" fill="#0F1B2D" text-anchor="start">customers in Hausa.</text>
+<rect x="206" y="257" width="1.6" height="17" rx="1" fill="#1CABE2"/>
+<text x="282" y="314" font-family="Inter, -apple-system, Arial, sans-serif" font-size="11" font-weight="500" fill="#5B6B80" text-anchor="end">86 / 500</text>
+<rect x="50" y="338" width="244" height="52" rx="26" fill="#D7EFFA"/>
+<circle cx="76" cy="364" r="16" fill="#1CABE2"/>
+<rect x="72" y="354" width="8" height="13" rx="4" fill="#FFFFFF"/>
+<path d="M68 364 a8 8 0 0 0 16 0 M76 372 v4" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+<rect x="104" y="360.0" width="4.5" height="8" rx="2.2" fill="#1CABE2"/>
+<rect x="113" y="356.0" width="4.5" height="16" rx="2.2" fill="#1CABE2"/>
+<rect x="122" y="358.5" width="4.5" height="11" rx="2.2" fill="#1CABE2"/>
+<rect x="131" y="353.0" width="4.5" height="22" rx="2.2" fill="#1CABE2"/>
+<rect x="140" y="357.0" width="4.5" height="14" rx="2.2" fill="#1CABE2"/>
+<rect x="149" y="354.5" width="4.5" height="19" rx="2.2" fill="#1CABE2"/>
+<rect x="158" y="360.5" width="4.5" height="7" rx="2.2" fill="#1CABE2"/>
+<rect x="167" y="356.5" width="4.5" height="15" rx="2.2" fill="#1CABE2"/>
+<rect x="176" y="359.0" width="4.5" height="10" rx="2.2" fill="#1CABE2"/>
+<rect x="185" y="355.0" width="4.5" height="18" rx="2.2" fill="#1CABE2"/>
+<rect x="194" y="359.5" width="4.5" height="9" rx="2.2" fill="#1CABE2"/>
+<rect x="203" y="357.5" width="4.5" height="13" rx="2.2" fill="#1CABE2"/>
+<rect x="212" y="361.0" width="4.5" height="6" rx="2.2" fill="#1CABE2"/>
+<text x="282" y="369" font-family="Inter, -apple-system, Arial, sans-serif" font-size="12" font-weight="600" fill="#0B2D5B" text-anchor="end">0:12</text>
+<text x="52" y="416" font-family="Inter, -apple-system, Arial, sans-serif" font-size="13" font-weight="700" fill="#5B6B80" text-anchor="start">Details</text>
+<rect x="50" y="426" width="66.0" height="30" rx="15" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<text x="62" y="446" font-family="Inter, -apple-system, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0F1B2D" text-anchor="start">Kaduna</text>
+<rect x="122.0" y="426" width="94.0" height="30" rx="15" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<text x="134.0" y="446" font-family="Inter, -apple-system, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0F1B2D" text-anchor="start">₦85k/month</text>
+<rect x="222.0" y="426" width="66.0" height="30" rx="15" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<text x="234.0" y="446" font-family="Inter, -apple-system, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0F1B2D" text-anchor="start">6 days</text>
+<rect x="50" y="498" width="244" height="50" rx="25" fill="#0B2D5B"/>
+<text x="172.0" y="529" font-family="Inter, -apple-system, Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF" text-anchor="middle">Break into tasks</text>
+<text x="172.0" y="561" font-family="Inter, -apple-system, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#F26A21" text-anchor="middle">MOCK-UP · SAMPLE DATA</text>
+<rect x="112.0" y="568" width="120" height="5" rx="2.5" fill="#0F1B2D"/>
+</g></svg></div><div class="screen" data-i="1" hidden><svg xmlns="http://www.w3.org/2000/svg" viewBox="442 0 312 600" role="img" aria-label="Screen 2: Tasks and skills"><g id="phone-2">
+<rect x="445" y="128" width="4" height="44" rx="2" fill="#2A2D34"/>
+<rect x="445" y="184" width="4" height="44" rx="2" fill="#2A2D34"/>
+<rect x="747" y="158" width="4" height="70" rx="2" fill="#2A2D34"/>
+<rect x="448" y="8" width="300" height="584" rx="50" fill="#1C1D22"/>
+<rect x="451" y="11" width="294" height="578" rx="47" fill="#3A3D45"/>
+<rect x="454" y="14" width="288" height="572" rx="45" fill="#1C1D22"/>
+<rect x="458" y="18" width="280" height="564" rx="41" fill="#F5F7FA"/>
+<text x="488" y="46" font-family="Inter, -apple-system, Arial, sans-serif" font-size="15" font-weight="700" fill="#0F1B2D" text-anchor="start">9:41</text>
+<rect x="552.0" y="29" width="92" height="26" rx="13" fill="#0A0A0C"/>
+<rect x="664" y="41" width="3.2" height="5" rx="1" fill="#0F1B2D"/>
+<rect x="669" y="38" width="3.2" height="8" rx="1" fill="#0F1B2D"/>
+<rect x="674" y="35" width="3.2" height="11" rx="1" fill="#0F1B2D"/>
+<rect x="679" y="32" width="3.2" height="14" rx="1" fill="#0F1B2D"/>
+<path d="M692 39 a8 8 0 0 1 12 0" fill="none" stroke="#0F1B2D" stroke-width="2"/>
+<path d="M695 42 a4 4 0 0 1 6 0" fill="none" stroke="#0F1B2D" stroke-width="2"/>
+<circle cx="698" cy="45" r="1.6" fill="#0F1B2D"/>
+<rect x="710" y="33" width="24" height="12" rx="3.5" fill="none" stroke="#0F1B2D" stroke-width="1.4"/>
+<rect x="712" y="35" width="17" height="8" rx="2" fill="#0F1B2D"/>
+<rect x="735" y="37" width="2" height="4" rx="1" fill="#0F1B2D"/>
+<text x="478" y="94" font-family="Inter, -apple-system, Arial, sans-serif" font-size="24" font-weight="800" fill="#0B2D5B" text-anchor="start">yoma</text>
+<circle cx="545" cy="89" r="4" fill="#1CABE2"/>
+<text x="554" y="94" font-family="Inter, -apple-system, Arial, sans-serif" font-size="14" font-weight="600" fill="#5B6B80" text-anchor="start">partner</text>
+<rect x="642" y="74" width="78" height="26" rx="13" fill="#D7EFFA"/>
+<text x="681" y="92" font-family="Inter, -apple-system, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0B2D5B" text-anchor="middle">RoleMap</text>
+<text x="478" y="126" font-family="Inter, -apple-system, Arial, sans-serif" font-size="11" font-weight="700" fill="#5B6B80" text-anchor="start">STEP 2 OF 4 · TASKS AND SKILLS</text>
+<rect x="478" y="134" width="56" height="5" rx="2.5" fill="#1CABE2"/>
+<rect x="539" y="134" width="56" height="5" rx="2.5" fill="#1CABE2"/>
+<rect x="600" y="134" width="56" height="5" rx="2.5" fill="#E3E7EE"/>
+<rect x="661" y="134" width="56" height="5" rx="2.5" fill="#E3E7EE"/>
+<text x="478" y="170" font-family="Inter, -apple-system, Arial, sans-serif" font-size="15" font-weight="700" fill="#0F1B2D" text-anchor="start">Is this the job? 5 tasks found</text>
+<rect x="476" y="182" width="244" height="46" rx="12" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<text x="488" y="201" font-family="Inter, -apple-system, Arial, sans-serif" font-size="13.5" font-weight="600" fill="#0F1B2D" text-anchor="start">Mount panels on roofs</text>
+<rect x="488" y="207" width="70" height="15" rx="7.5" fill="#D7EFFA"/>
+<text x="496" y="218" font-family="Inter, -apple-system, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#0B2D5B" text-anchor="start">MUST HAVE</text>
+<circle cx="702" cy="205" r="9" fill="#1CABE2"/>
+<path d="M697.5 205 l3 3 l5.5 -6" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+<rect x="476" y="232" width="244" height="46" rx="12" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<text x="488" y="251" font-family="Inter, -apple-system, Arial, sans-serif" font-size="13.5" font-weight="600" fill="#0F1B2D" text-anchor="start">Talk to customers in Hausa</text>
+<rect x="488" y="257" width="70" height="15" rx="7.5" fill="#D7EFFA"/>
+<text x="496" y="268" font-family="Inter, -apple-system, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#0B2D5B" text-anchor="start">MUST HAVE</text>
+<circle cx="702" cy="255" r="9" fill="#1CABE2"/>
+<path d="M697.5 255 l3 3 l5.5 -6" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+<rect x="476" y="282" width="244" height="46" rx="12" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<text x="488" y="301" font-family="Inter, -apple-system, Arial, sans-serif" font-size="13.5" font-weight="600" fill="#0F1B2D" text-anchor="start">Work in a team of four</text>
+<rect x="488" y="307" width="70" height="15" rx="7.5" fill="#D7EFFA"/>
+<text x="496" y="318" font-family="Inter, -apple-system, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#0B2D5B" text-anchor="start">MUST HAVE</text>
+<circle cx="702" cy="305" r="9" fill="#1CABE2"/>
+<path d="M697.5 305 l3 3 l5.5 -6" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+<rect x="476" y="332" width="244" height="46" rx="12" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<text x="488" y="351" font-family="Inter, -apple-system, Arial, sans-serif" font-size="13.5" font-weight="600" fill="#0F1B2D" text-anchor="start">Wire the inverter</text>
+<rect x="488" y="357" width="112" height="15" rx="7.5" fill="#FFF1C2"/>
+<text x="496" y="368" font-family="Inter, -apple-system, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#8A5A00" text-anchor="start">CAN LEARN ON P2E</text>
+<circle cx="702" cy="355" r="9" fill="#1CABE2"/>
+<path d="M697.5 355 l3 3 l5.5 -6" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+<rect x="476" y="382" width="244" height="46" rx="12" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<text x="488" y="401" font-family="Inter, -apple-system, Arial, sans-serif" font-size="13.5" font-weight="600" fill="#0F1B2D" text-anchor="start">Log jobs and payments</text>
+<rect x="488" y="407" width="112" height="15" rx="7.5" fill="#FFF1C2"/>
+<text x="496" y="418" font-family="Inter, -apple-system, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#8A5A00" text-anchor="start">CAN LEARN ON P2E</text>
+<circle cx="702" cy="405" r="9" fill="#1CABE2"/>
+<path d="M697.5 405 l3 3 l5.5 -6" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+<rect x="476" y="432" width="244" height="46" rx="12" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<text x="488" y="451" font-family="Inter, -apple-system, Arial, sans-serif" font-size="13.5" font-weight="600" fill="#5B6B80" text-anchor="start">Diploma required</text>
+<line x1="488" y1="446.5" x2="593.6" y2="446.5" stroke="#F26A21" stroke-width="2"/>
+<rect x="488" y="457" width="76" height="15" rx="7.5" fill="#FDD8C0"/>
+<text x="496" y="468" font-family="Inter, -apple-system, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#B23F00" text-anchor="start">NOT NEEDED</text>
+<circle cx="702" cy="455" r="8" fill="none" stroke="#E3E7EE" stroke-width="2"/>
+<rect x="476" y="498" width="244" height="50" rx="25" fill="#0B2D5B"/>
+<text x="598.0" y="529" font-family="Inter, -apple-system, Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF" text-anchor="middle">See who matches</text>
+<text x="598.0" y="561" font-family="Inter, -apple-system, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#F26A21" text-anchor="middle">MOCK-UP · SAMPLE DATA</text>
+<rect x="538.0" y="568" width="120" height="5" rx="2.5" fill="#0F1B2D"/>
+</g></svg></div><div class="screen" data-i="2" hidden><svg xmlns="http://www.w3.org/2000/svg" viewBox="868 0 312 600" role="img" aria-label="Screen 3: Matches"><g id="phone-3">
+<rect x="871" y="128" width="4" height="44" rx="2" fill="#2A2D34"/>
+<rect x="871" y="184" width="4" height="44" rx="2" fill="#2A2D34"/>
+<rect x="1173" y="158" width="4" height="70" rx="2" fill="#2A2D34"/>
+<rect x="874" y="8" width="300" height="584" rx="50" fill="#1C1D22"/>
+<rect x="877" y="11" width="294" height="578" rx="47" fill="#3A3D45"/>
+<rect x="880" y="14" width="288" height="572" rx="45" fill="#1C1D22"/>
+<rect x="884" y="18" width="280" height="564" rx="41" fill="#F5F7FA"/>
+<text x="914" y="46" font-family="Inter, -apple-system, Arial, sans-serif" font-size="15" font-weight="700" fill="#0F1B2D" text-anchor="start">9:41</text>
+<rect x="978.0" y="29" width="92" height="26" rx="13" fill="#0A0A0C"/>
+<rect x="1090" y="41" width="3.2" height="5" rx="1" fill="#0F1B2D"/>
+<rect x="1095" y="38" width="3.2" height="8" rx="1" fill="#0F1B2D"/>
+<rect x="1100" y="35" width="3.2" height="11" rx="1" fill="#0F1B2D"/>
+<rect x="1105" y="32" width="3.2" height="14" rx="1" fill="#0F1B2D"/>
+<path d="M1118 39 a8 8 0 0 1 12 0" fill="none" stroke="#0F1B2D" stroke-width="2"/>
+<path d="M1121 42 a4 4 0 0 1 6 0" fill="none" stroke="#0F1B2D" stroke-width="2"/>
+<circle cx="1124" cy="45" r="1.6" fill="#0F1B2D"/>
+<rect x="1136" y="33" width="24" height="12" rx="3.5" fill="none" stroke="#0F1B2D" stroke-width="1.4"/>
+<rect x="1138" y="35" width="17" height="8" rx="2" fill="#0F1B2D"/>
+<rect x="1161" y="37" width="2" height="4" rx="1" fill="#0F1B2D"/>
+<text x="904" y="94" font-family="Inter, -apple-system, Arial, sans-serif" font-size="24" font-weight="800" fill="#0B2D5B" text-anchor="start">yoma</text>
+<circle cx="971" cy="89" r="4" fill="#1CABE2"/>
+<text x="980" y="94" font-family="Inter, -apple-system, Arial, sans-serif" font-size="14" font-weight="600" fill="#5B6B80" text-anchor="start">partner</text>
+<rect x="1068" y="74" width="78" height="26" rx="13" fill="#D7EFFA"/>
+<text x="1107" y="92" font-family="Inter, -apple-system, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0B2D5B" text-anchor="middle">RoleMap</text>
+<text x="904" y="126" font-family="Inter, -apple-system, Arial, sans-serif" font-size="11" font-weight="700" fill="#5B6B80" text-anchor="start">STEP 3 OF 4 · MATCHES</text>
+<rect x="904" y="134" width="56" height="5" rx="2.5" fill="#1CABE2"/>
+<rect x="965" y="134" width="56" height="5" rx="2.5" fill="#1CABE2"/>
+<rect x="1026" y="134" width="56" height="5" rx="2.5" fill="#1CABE2"/>
+<rect x="1087" y="134" width="56" height="5" rx="2.5" fill="#E3E7EE"/>
+<rect x="902" y="158" width="244" height="74" rx="16" fill="#0B2D5B"/>
+<text x="918" y="196" font-family="Inter, -apple-system, Arial, sans-serif" font-size="30" font-weight="800" fill="#FFFFFF" text-anchor="start">38</text>
+<text x="970" y="188" font-family="Inter, -apple-system, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#FFFFFF" text-anchor="start">verified matches</text>
+<text x="970" y="207" font-family="Inter, -apple-system, Arial, sans-serif" font-size="12.5" font-weight="500" fill="#BFE6F7" text-anchor="start">within 15 km · up from 9</text>
+<text x="904" y="256" font-family="Inter, -apple-system, Arial, sans-serif" font-size="11.5" font-weight="500" fill="#5B6B80" text-anchor="start">Verified on YoID · names hidden until yes</text>
+<rect x="902" y="268" width="244" height="58" rx="14" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<circle cx="926" cy="297" r="15" fill="#1CABE2"/>
+<circle cx="926" cy="292" r="5" fill="#FFFFFF"/>
+<path d="M918 306 q8 -10 16 0z" fill="#FFFFFF"/>
+<text x="950" y="293" font-family="Inter, -apple-system, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F1B2D" text-anchor="start">Candidate A12</text>
+<text x="950" y="312" font-family="Inter, -apple-system, Arial, sans-serif" font-size="11" font-weight="500" fill="#5B6B80" text-anchor="start">4 km · Hausa, English</text>
+<rect x="1068" y="286" width="66" height="22" rx="11" fill="#DDF3E7"/>
+<text x="1101" y="301" font-family="Inter, -apple-system, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#1E8E5A" text-anchor="middle">YoID 3/3 ✓</text>
+<rect x="902" y="334" width="244" height="58" rx="14" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<circle cx="926" cy="363" r="15" fill="#F26A21"/>
+<circle cx="926" cy="358" r="5" fill="#FFFFFF"/>
+<path d="M918 372 q8 -10 16 0z" fill="#FFFFFF"/>
+<text x="950" y="359" font-family="Inter, -apple-system, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F1B2D" text-anchor="start">Candidate F33</text>
+<text x="950" y="378" font-family="Inter, -apple-system, Arial, sans-serif" font-size="11" font-weight="500" fill="#5B6B80" text-anchor="start">12 km · Hausa</text>
+<rect x="1068" y="352" width="66" height="22" rx="11" fill="#DDF3E7"/>
+<text x="1101" y="367" font-family="Inter, -apple-system, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#1E8E5A" text-anchor="middle">YoID 3/3 ✓</text>
+<rect x="902" y="400" width="244" height="58" rx="14" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<circle cx="926" cy="429" r="15" fill="#FFC20E"/>
+<circle cx="926" cy="424" r="5" fill="#FFFFFF"/>
+<path d="M918 438 q8 -10 16 0z" fill="#FFFFFF"/>
+<text x="950" y="425" font-family="Inter, -apple-system, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F1B2D" text-anchor="start">Candidate C07</text>
+<text x="950" y="444" font-family="Inter, -apple-system, Arial, sans-serif" font-size="11" font-weight="500" fill="#5B6B80" text-anchor="start">9 km · Hausa, Pidgin</text>
+<rect x="1068" y="418" width="66" height="22" rx="11" fill="#DDF3E7"/>
+<text x="1101" y="433" font-family="Inter, -apple-system, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#1E8E5A" text-anchor="middle">YoID 2/3 ✓</text>
+<text x="1024" y="484" font-family="Inter, -apple-system, Arial, sans-serif" font-size="13" font-weight="700" fill="#1CABE2" text-anchor="middle">+ 35 more</text>
+<rect x="902" y="498" width="244" height="50" rx="25" fill="#FFC20E"/>
+<text x="1024.0" y="529" font-family="Inter, -apple-system, Arial, sans-serif" font-size="16" font-weight="700" fill="#0B2D5B" text-anchor="middle">Invite all 38</text>
+<text x="1024.0" y="561" font-family="Inter, -apple-system, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#F26A21" text-anchor="middle">MOCK-UP · SAMPLE DATA</text>
+<rect x="964.0" y="568" width="120" height="5" rx="2.5" fill="#0F1B2D"/>
+</g></svg></div><div class="screen" data-i="3" hidden><svg xmlns="http://www.w3.org/2000/svg" viewBox="1294 0 312 600" role="img" aria-label="Screen 4: Live on Yoma"><g id="phone-4">
+<rect x="1297" y="128" width="4" height="44" rx="2" fill="#2A2D34"/>
+<rect x="1297" y="184" width="4" height="44" rx="2" fill="#2A2D34"/>
+<rect x="1599" y="158" width="4" height="70" rx="2" fill="#2A2D34"/>
+<rect x="1300" y="8" width="300" height="584" rx="50" fill="#1C1D22"/>
+<rect x="1303" y="11" width="294" height="578" rx="47" fill="#3A3D45"/>
+<rect x="1306" y="14" width="288" height="572" rx="45" fill="#1C1D22"/>
+<rect x="1310" y="18" width="280" height="564" rx="41" fill="#F5F7FA"/>
+<text x="1340" y="46" font-family="Inter, -apple-system, Arial, sans-serif" font-size="15" font-weight="700" fill="#0F1B2D" text-anchor="start">9:41</text>
+<rect x="1404.0" y="29" width="92" height="26" rx="13" fill="#0A0A0C"/>
+<rect x="1516" y="41" width="3.2" height="5" rx="1" fill="#0F1B2D"/>
+<rect x="1521" y="38" width="3.2" height="8" rx="1" fill="#0F1B2D"/>
+<rect x="1526" y="35" width="3.2" height="11" rx="1" fill="#0F1B2D"/>
+<rect x="1531" y="32" width="3.2" height="14" rx="1" fill="#0F1B2D"/>
+<path d="M1544 39 a8 8 0 0 1 12 0" fill="none" stroke="#0F1B2D" stroke-width="2"/>
+<path d="M1547 42 a4 4 0 0 1 6 0" fill="none" stroke="#0F1B2D" stroke-width="2"/>
+<circle cx="1550" cy="45" r="1.6" fill="#0F1B2D"/>
+<rect x="1562" y="33" width="24" height="12" rx="3.5" fill="none" stroke="#0F1B2D" stroke-width="1.4"/>
+<rect x="1564" y="35" width="17" height="8" rx="2" fill="#0F1B2D"/>
+<rect x="1587" y="37" width="2" height="4" rx="1" fill="#0F1B2D"/>
+<text x="1330" y="94" font-family="Inter, -apple-system, Arial, sans-serif" font-size="24" font-weight="800" fill="#0B2D5B" text-anchor="start">yoma</text>
+<circle cx="1397" cy="89" r="4" fill="#1CABE2"/>
+<text x="1406" y="94" font-family="Inter, -apple-system, Arial, sans-serif" font-size="14" font-weight="600" fill="#5B6B80" text-anchor="start">partner</text>
+<rect x="1494" y="74" width="78" height="26" rx="13" fill="#D7EFFA"/>
+<text x="1533" y="92" font-family="Inter, -apple-system, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0B2D5B" text-anchor="middle">RoleMap</text>
+<text x="1330" y="126" font-family="Inter, -apple-system, Arial, sans-serif" font-size="11" font-weight="700" fill="#5B6B80" text-anchor="start">STEP 4 OF 4 · LIVE ON YOMA</text>
+<rect x="1330" y="134" width="56" height="5" rx="2.5" fill="#1CABE2"/>
+<rect x="1391" y="134" width="56" height="5" rx="2.5" fill="#1CABE2"/>
+<rect x="1452" y="134" width="56" height="5" rx="2.5" fill="#1CABE2"/>
+<rect x="1513" y="134" width="56" height="5" rx="2.5" fill="#1CABE2"/>
+<circle cx="1450" cy="190" r="30" fill="#DDF3E7"/>
+<path d="M1437 190 l9 9 l17 -18" fill="none" stroke="#1E8E5A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="1450" y="246" font-family="Inter, -apple-system, Arial, sans-serif" font-size="16" font-weight="700" fill="#0F1B2D" text-anchor="middle">Your job is live on Yoma</text>
+<text x="1450" y="266" font-family="Inter, -apple-system, Arial, sans-serif" font-size="12.5" font-weight="500" fill="#5B6B80" text-anchor="middle">38 young people were invited</text>
+<rect x="1328" y="282" width="244" height="112" rx="14" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<text x="1342" y="308" font-family="Inter, -apple-system, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F1B2D" text-anchor="start">Solar Installation Assistant</text>
+<text x="1342" y="327" font-family="Inter, -apple-system, Arial, sans-serif" font-size="11" font-weight="500" fill="#5B6B80" text-anchor="start">Trainee · Sunrise Solar · ₦85k/month</text>
+<rect x="1342" y="340" width="97.19999999999999" height="22" rx="11" fill="#D7EFFA"/>
+<text x="1351" y="355" font-family="Inter, -apple-system, Arial, sans-serif" font-size="11" font-weight="700" fill="#0B2D5B" text-anchor="start">Skills-based</text>
+<rect x="1445.2" y="340" width="84.0" height="22" rx="11" fill="#FDD8C0"/>
+<text x="1454.2" y="355" font-family="Inter, -apple-system, Arial, sans-serif" font-size="11" font-weight="700" fill="#B23F00" text-anchor="start">No diploma</text>
+<rect x="1342" y="368" width="104" height="22" rx="11" fill="#FFF1C2"/>
+<text x="1351" y="383" font-family="Inter, -apple-system, Arial, sans-serif" font-size="11" font-weight="700" fill="#8A5A00" text-anchor="start">2 P2E courses</text>
+<rect x="1328" y="406" width="244" height="62" rx="14" fill="#FFFFFF" stroke="#E3E7EE" stroke-width="1"/>
+<circle cx="1352" cy="437" r="15" fill="#25D366"/>
+<path d="M1345 431 h14 a3 3 0 0 1 3 3 v6 a3 3 0 0 1 -3 3 h-9 l-5 4 v-4 a3 3 0 0 1 -3 -3 v-6 a3 3 0 0 1 3 -3z" fill="#FFFFFF"/>
+<text x="1376" y="432" font-family="Inter, -apple-system, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0F1B2D" text-anchor="start">Invites sent on Yoma</text>
+<text x="1376" y="451" font-family="Inter, -apple-system, Arial, sans-serif" font-size="13.5" font-weight="700" fill="#0F1B2D" text-anchor="start">and WhatsApp</text>
+<text x="1450" y="492" font-family="Inter, -apple-system, Arial, sans-serif" font-size="12" font-weight="600" fill="#1CABE2" text-anchor="middle">Replies arrive as YoCV CVs</text>
+<rect x="1328" y="498" width="244" height="50" rx="25" fill="#0B2D5B"/>
+<text x="1450.0" y="529" font-family="Inter, -apple-system, Arial, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF" text-anchor="middle">View applications</text>
+<text x="1450.0" y="561" font-family="Inter, -apple-system, Arial, sans-serif" font-size="9.5" font-weight="700" fill="#F26A21" text-anchor="middle">MOCK-UP · SAMPLE DATA</text>
+<rect x="1390.0" y="568" width="120" height="5" rx="2.5" fill="#0F1B2D"/>
+</g></svg></div></div><p class="hint">Tap the phone, or use the arrow keys</p></div>
+<div>
+<ol><li><button class="step" data-go="0"><span class="n">1</span><span>Say it in plain words</span></button></li><li><button class="step" data-go="1"><span class="n">2</span><span>Must have or can learn</span></button></li><li><button class="step" data-go="2"><span class="n">3</span><span>See verified matches</span></button></li><li><button class="step" data-go="3"><span class="n">4</span><span>Invite and publish</span></button></li></ol>
+<div class="note" aria-live="polite"><h2 id="nt"></h2><p id="nb"></p><p class="data"><b>Data it would use: </b><span id="nd"></span></p></div>
+<div class="nav"><button id="prev">Back</button><button id="next">Next</button></div>
+</div></div>
+<p class="foot">Sample data: BBS shared mock data v1.0. Sunrise Solar Ltd (org-sunrise) creates the Solar Installation Assistant (Trainee) job, opp-job-001, the same job the young person saves in Phase 1. Candidate A12 is Halima Y. (yp-001), shown anonymously until she says yes.<br>BBS x GenU final phase · Anagha · Not connected to Yoma, YoID or any AI model.</p>
+</main>
+<script>
+{
+const STEPS=[["Say it in plain words", "The employer types or records what the job involves, in English, Hausa, Yoruba or Pidgin. No job description needed.", "Nothing yet. A voice note is transcribed by the same swappable model setup Ziqi uses."], ["Must have or can learn", "AI splits the description into tasks and tags each with a Yoma skill. The employer marks each one must have or can learn, and RoleMap flags requirements the tasks don't need, like a diploma.", "Yoma skills list; Passport to Earning course catalogue for the skills that can be learned."], ["See verified matches", "RoleMap counts young people nearby whose YoID credentials cover every must-have task. Names and profiles stay hidden until a young person says yes.", "YoID credentials, location and languages, counted in aggregate only."], ["Invite and publish", "The listing goes live on Yoma as a skills-based job. Invitations go out on Yoma and WhatsApp through Talent Finder, and replies arrive as YoCV CVs.", "Yoma opportunity API, Talent Finder (Nathan's idea), YoCV (Phase 4)."]];
+const screens=[...document.querySelectorAll('.screen')], btns=[...document.querySelectorAll('.step')];
+const nt=document.getElementById('nt'), nb=document.getElementById('nb'), nd=document.getElementById('nd');
+const prev=document.getElementById('prev'), next=document.getElementById('next');
+let cur=0;
+function show(i){
+  cur=Math.max(0,Math.min(STEPS.length-1,i));
+  screens.forEach((s,k)=>s.hidden=k!==cur);
+  btns.forEach((b,k)=>b.toggleAttribute('aria-current',k===cur)||(k===cur&&b.setAttribute('aria-current','step')));
+  btns[cur].setAttribute('aria-current','step');
+  nt.textContent=(cur+1)+'. '+STEPS[cur][0]; nb.textContent=STEPS[cur][1]; nd.textContent=STEPS[cur][2];
+  prev.disabled=cur===0; next.textContent=cur===STEPS.length-1?'Start again':'Next';
+}
+btns.forEach(b=>b.addEventListener('click',()=>show(+b.dataset.go)));
+prev.addEventListener('click',()=>show(cur-1));
+next.addEventListener('click',()=>show(cur===STEPS.length-1?0:cur+1));
+const stage=document.getElementById('stage');
+stage.addEventListener('click',()=>show(cur===STEPS.length-1?0:cur+1));
+stage.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(cur===STEPS.length-1?0:cur+1);}});
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')show(cur+1);if(e.key==='ArrowLeft')show(cur-1);});
+show(0);
+}
+</script></body></html>
