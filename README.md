@@ -1,5 +1,5 @@
 # Pathfinder
-
+> **For GenU:** start with the [handover note](docs/GENU-HANDOVER.md), which covers what's live, costs, the handover plan and next steps. Prompts are in [prompts/](prompts), the plan-scoring rubric in [rubrics/](rubrics), and test cases in `test/` and `e2e/`. The RoleMap mock-up is [here](https://anaghataneja-stack.github.io/pathfinder-prototype/mockups/rolemap/index.html), and the team's shared mock data is in [mockups/](mockups).
 **Pathfinder** (Concept 1, the Goal-to-Plan Navigator) is a GenU prototype for the Nigeria pilot. It turns a young person's goal into three ordered steps across Passport to Earning (P2E), Yoma and imaGen, then keeps them moving with weekly check-ins.
 
 This version adds:
