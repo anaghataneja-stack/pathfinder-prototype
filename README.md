@@ -19,7 +19,7 @@ This version adds:
 - **Yoma's look:** colours, fonts and spacing come from the shared tokens file `tokens/yoma-tokens.css` (Yoma's own brand values). No colours are hard-coded.
 - **YoID as the thread:** skills, the plan, finished courses and applications are recorded on the young person's YoID (mocked writes). There's also a link to the next prototype in the joined-up demo. See [docs/COHESION.md](docs/COHESION.md).
 - **WhatsApp through RapidPro:** a ready-to-import RapidPro file and two webhooks, using the same plan engine as the web app. It follows UNICEF's FunDoo bot: the same Skills Backpack question, YoID only from 16, and 1️⃣ 2️⃣ 3️⃣ menus. Setup: [docs/RAPIDPRO.md](docs/RAPIDPRO.md).
-- **One journey across four prototypes:** Yoma's design tokens, YoID records, shared mock data and handoffs in and out. Open `/?journey=demo`. See [docs/COHESION.md](docs/COHESION.md).
+- **One journey across four prototypes:** Yoma's design tokens, YoID records, shared mock data and handoffs in and out. Open `/?journey=demo` to see Halima's journey from the team's shared mock data. See [docs/COHESION.md](docs/COHESION.md).
 
 - **Real Yoma data, refreshed daily.** The server syncs every published Nigeria and Worldwide opportunity from the public Yoma API once a day. If Yoma is down it keeps the last good copy.
 - **Azure OpenAI**, with a checked fallback for every call:
@@ -220,11 +220,13 @@ engine/              plan-engine.js: matching and plan building, shared by the w
 flows/               RapidPro import file and its builder
 sw.js, manifest.webmanifest, icon.svg   offline + add to home screen
 lib/                 env, rules, privacy, yoma, sync, ai, ai-tasks, server, plan-server, store, yoma-auth
-data/                sample-listings.json, shared-journey.json (shared mock data) (+ yoma-cache.json at runtime, git-ignored)
+data/                sample-listings.json (+ yoma-cache.json at runtime, git-ignored)
 test/                unit/API tests (node:test) and mock Yoma/Azure servers
 e2e/scenarios.mjs    browser scenarios
 docs/                DEMO.md, PILOT.md, INTEGRATION.md, RAPIDPRO.md, COHESION.md, TESTING.md, HANDOFF.md, design and plan
 tokens/              yoma-tokens.css: shared Yoma design tokens for all four prototypes
+mockups/             the team's shared mock data (Halima) and the RoleMap mock-up
+prompts/, rubrics/   the AI prompts and the plan-scoring rubric, as reviewable files
 privacy.html         privacy notice (draft for GenU review)
 pilot-report.mjs     pilot numbers from data/
 .github/workflows/   tests on every push

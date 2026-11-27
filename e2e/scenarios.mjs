@@ -421,24 +421,31 @@ await scenario('15-year-old: guardian agrees, plan saved, but no Skills Backpack
   await ctx.close();
 });
 
-await scenario('Journey: Phase 1 hands over a verified opportunity and goal; PathFinder hands a P2E course to SkillLens', async () => {
+await scenario('Journey (team shared mock data): Ziqi hands over the Saved Opportunity; PathFinder hands the Learning Plan to SkillLens', async () => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage(); page.errors = []; page.on('pageerror', e => page.errors.push(e.message));
   await page.goto(journeyApp + '/?journey=demo');
   await waitChat(page, /From Ziqi/);
-  assert(/A verified opportunity and the user's goal/.test(await chatText(page)), 'incoming handoff item not named as in the journey');
-  assert(/Customer Care Trainee/.test(await chatText(page)), 'verified listing not shown');
-  await tap(page, 'English'); await tap(page, '21'); await tap(page, 'Yes, use my profile'); await tap(page, 'Skip');
+  const intro = await chatText(page);
+  assert(/Saved Opportunity/.test(intro) && /A verified opportunity and the user's goal/.test(intro), 'incoming handoff item not named as in the shared data and the journey');
+  assert(/Solar Installation Assistant \(Trainee\)/.test(intro) && /Sunrise Solar Ltd/.test(intro), 'the shared job not shown');
+  await tap(page, 'English'); await tap(page, '20'); await tap(page, 'Yes, use my profile'); await tap(page, 'Skip');
   await waitChat(page, /Which state do you live in/);   // the goal came from Phase 1, so it isn't asked again
-  await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some'); await tap(page, 'Quick');
+  await tap(page, 'Another state'); await tap(page, '6–10 hours'); await tap(page, 'Very little'); await tap(page, 'Quick');
   await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
   const plan = await page.locator('.plan').last().innerText();
-  assert(/Customer Care Trainee/.test(plan) && /Verified on Yoma/.test(plan), 'the verified opportunity should be in the plan');
+  // The same plan as the shared Learning Plan (plan-001): safety course, solar course, the saved job
+  assert(/Solar Installation Assistant/.test(plan) && /Verified on Yoma/.test(plan), 'the saved job should be in the plan');
+  assert(/Working Safely at Height/.test(plan) && /Solar PV Installation Basics/.test(plan), 'the shared courses should be in the plan: ' + plan);
+  assert(!/Solar Sales Agent/.test(plan), 'the pay-to-apply job must be filtered out');
+  assert(/Asks for a fee/.test(await page.locator('#p-match').innerText()), 'the scam job should be listed as removed');
   await tap(page, 'Save my plan'); await tap(page, 'Yes, activate it');
-  await waitChat(page, /Plan step: complete a P2E course/);
+  await waitChat(page, /Learning Plan/);
+  assert(/Plan step: complete a P2E course/.test(await chatText(page)), 'outgoing handoff should also use the journey wording');
   const next = page.locator('a.next-proto').last();
   const href = new URL(await next.getAttribute('href'));
-  assert(href.origin === 'https://skilllens.example.org' && href.searchParams.get('from') === 'pathfinder' && href.searchParams.get('course'), 'SkillLens link should carry the course: ' + href);
+  assert(href.origin === 'https://skilllens.example.org' && href.searchParams.get('from') === 'pathfinder', 'wrong SkillLens link: ' + href);
+  assert(href.searchParams.get('course') === 'opp-course-001' && href.searchParams.get('plan') === 'plan-001' && href.searchParams.get('listing') === 'opp-job-001', 'SkillLens link should carry the shared ids: ' + href);
   assert(/continue in SkillLens/.test(await next.innerText()), 'next button should name SkillLens');
   assert(!page.errors.length, page.errors.join('; '));
   await ctx.close();

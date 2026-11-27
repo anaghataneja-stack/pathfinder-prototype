@@ -9,9 +9,9 @@ test('informal work description maps to informal skills', () => {
   assert.ok(s.length <= 6);
 });
 
-test('skill list keeps the original 18 skills and adds 6 informal ones', () => {
-  assert.equal(Object.keys(SKILLS).length, 24);
-  for (const k of ['phone-repair', 'market-trading', 'food-prep', 'hair-beauty', 'driving-delivery', 'childcare', 'customer', 'digital-basics']) assert.ok(k in SKILLS, k);
+test('skill list: the original 18, 6 informal ones, and 2 from the team\'s shared mock data', () => {
+  assert.equal(Object.keys(SKILLS).length, 26);
+  for (const k of ['phone-repair', 'market-trading', 'food-prep', 'hair-beauty', 'driving-delivery', 'childcare', 'customer', 'digital-basics', 'solar-install', 'work-at-height']) assert.ok(k in SKILLS, k);
 });
 
 test('sectors default to all when nothing matches', () => {

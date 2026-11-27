@@ -46,7 +46,7 @@ The automated tests use **mock** Yoma and Azure servers (`test/helpers/`) that c
 | 19 | Finishing a plan | Check-ins through to the end, then "Make my next plan" builds a different plan and the panel shows plan 2 | Pass |
 | 20 | Continue with Yoma | Sign-in through a fake Yoma Keycloak (PKCE). Real Yoma skills are read. "Save my plan" saves the opportunities to the Yoma account | Pass |
 | 21 | Skills Backpack (YoID) and next prototype | Nothing is written before the Skills Backpack question. "Tell me more" then "Yes, activate it" adds the confirmed skills and the plan. "Not now" (scenarios 9 and 19) writes nothing. The "Next: continue in YoCV" button has the right link and readable colours | Pass |
-| 22 | Journey from Ziqi to SkillLens | `?journey=demo`: "From Ziqi" card, goal not asked again, verified listing in the plan, SkillLens link carries the course | Pass |
+| 22 | Journey from Ziqi to SkillLens (team's shared mock data) | `?journey=demo`: "Saved Opportunity" card for Halima's solar job, goal not asked again. The plan matches the shared Learning Plan (height safety → solar PV → the saved job). The pay-to-apply job is removed. The SkillLens link carries `plan-001`, `opp-course-001` and `opp-job-001` | Pass |
 | 23 | 15-year-old | Guardian agrees and the plan is saved, but the Skills Backpack isn't offered (YoID starts at 16, as in FunDoo) | Pass |
 | 17 | Demo voice without Azure | With `DEMO_BROWSER_VOICE=true`, voice uses Chrome speech recognition (a stand-in in the test), is labelled "Demo only", and the words become skills | Pass |
 | 16 | Pilot: urgent message | A case reaches the staff inbox with a code shown to the young person. No message text is stored. A listing report and the pilot counts are recorded | Pass |

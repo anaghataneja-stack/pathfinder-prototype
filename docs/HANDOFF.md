@@ -124,15 +124,17 @@ DEMO_BROWSER_VOICE=true STAFF_CODE=demo node serve.mjs  # demo setup
 - **Pushing workflow files from the owner's token was refused.** `.github/workflows/test.yml` had to be created on the GitHub website. Watch for a trailing "." in the file name.
 - **Never commit `.env`.** It is git-ignored.
 
-## Update, 25 November 2026 (cloud chat, branch `plans-v2`)
+## Update, 25 to 27 November 2026 (cloud chat)
 
-Added since the notes above:
-- **Plans of 3, 5 or 7 steps**, several openings per Apply step, a next plan after finishing, "Continue with Yoma" sign-in (commit 8f36ade).
-- **Yoma design tokens** (`tokens/yoma-tokens.css`), YoID mocked writes, the next-prototype link (commit bcd10e6).
-- **Journey handoffs and shared mock data**: `?journey=demo`, `data/shared-journey.json`, `GET /api/journey` (commit 525e1c0).
-- **RapidPro/WhatsApp**: plan engine moved to `engine/plan-engine.js`, shared by the web app and the webhooks `/api/rapidpro/plan` and `/api/rapidpro/checkin`. The import file is `flows/pathfinder-rapidpro.json`. Career Apply steps now keep to the goal's kinds of opening (a job goal gets jobs). See docs/RAPIDPRO.md.
+All of this is on GitHub `main`. It went up as one commit, e72f878 ("feat: FunDoo Skills Backpack, RapidPro flows, journey handoffs, Yoma colours"), uploaded from the Codespace. The cloud chat's own working commits were never pushed, so they aren't cited here.
+
+Added:
+- **Plans of 3, 5 or 7 steps**, several openings per Apply step, a next plan after finishing, "Continue with Yoma" sign-in.
+- **Yoma design tokens** (`tokens/yoma-tokens.css`) and the next-prototype link.
+- **Skills Backpack on YoID** (mocked writes), worded as in UNICEF's FunDoo bot: asked once, nothing written before a yes, 16 and over only.
+- **RapidPro/WhatsApp**: plan engine in `engine/plan-engine.js`, shared by the web app and the webhooks `/api/rapidpro/plan`, `/checkin` and `/backpack`. Import file `flows/pathfinder-rapidpro.json`. See docs/RAPIDPRO.md.
+- **Journey handoffs** using the team's shared mock data (Halima): `?journey=demo`, `GET /api/journey`. See docs/COHESION.md.
 
 Waiting on others:
-- Camila: the RapidPro sandbox (the flow file has not been imported anywhere yet).
-- The other three teams: agreeing the shared mock data, link formats and the SkillLens address.
-
+- Camila: the FunDoo/RapidPro sandbox (the flow file has not been imported anywhere yet).
+- The other three teams: link formats, and SkillLens's address.

@@ -73,6 +73,6 @@ Halima, 20, fixes phones at a market stall in Kaduna. She finds a solar trainee 
 
 - Use these names, ids and numbers exactly; don't invent new people for your screens.
 - Need something that isn't here? Add it to the JSON and tell the team, so the next person sees it.
-- Two skill keys are new and not in PathFinder yet: `solar-install` and `work-at-height`.
+- `solar-install` and `work-at-height` are now in PathFinder's skill list too. PathFinder's `?journey=demo` loads this file (served at `/api/journey`).
 - All links point to `example.org`; none are real.
 - Label every screen that uses this data as a mock-up or sample data.

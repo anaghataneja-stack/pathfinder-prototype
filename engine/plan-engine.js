@@ -13,7 +13,8 @@ const SK = {
   'business-plan':'Business planning',pricing:'Pricing & selling','agri-practice':'Modern farming practices',poultry:'Poultry care',
   tailoring:'Sewing & tailoring','design-basics':'Graphic design basics','coding-basics':'Coding basics',
   'phone-repair':'Phone & electronics repair','market-trading':'Market trading & stock','food-prep':'Cooking & food selling',
-  'hair-beauty':'Hair & beauty','driving-delivery':'Driving & delivery',childcare:'Caring for children'
+  'hair-beauty':'Hair & beauty','driving-delivery':'Driving & delivery',childcare:'Caring for children',
+  'solar-install':'Solar panel installation','work-at-height':'Working safely at height'
 };
 
 const PROFILE_STEP = {id:'p1',title:'Complete your Yoma profile',src:'Yoma',kind:'course',skills:[],hours:1,pseudo:true,sectors:['all'],data:1};
@@ -58,7 +59,9 @@ function compute(){
   const a = S.a, have = held(), excluded = [], CAT = catalogue();
   const pin = S.journey && S.journey.listing;
   if (pin && !CAT.opps.some(o => o.id === pin.id)) CAT.opps = [pin, ...CAT.opps];
-  if (S.journey && S.journey.course && !CAT.courses.some(c => c.id === S.journey.course.id)) CAT.courses = [S.journey.course, ...CAT.courses];
+  // Journey mode: the shared mock data's courses and listings join the catalogue (the scam one is then filtered like any other)
+  for (const jc of S.journey ? [S.journey.course, S.journey.learnCourse].filter(Boolean) : []) if (!CAT.courses.some(c => c.id === jc.id)) CAT.courses = [jc, ...CAT.courses];
+  for (const jo of S.journey ? S.journey.extraOpps || [] : []) if (!CAT.opps.some(o => o.id === jo.id)) CAT.opps = [...CAT.opps, jo];
   const courses = CAT.courses.filter(c => { const r = courseBlock(c); if (r) excluded.push({name:c.title, src:c.src, why:r}); return !r; });
   const teachable = new Set(courses.flatMap(c => c.skills));
   // The verified opportunity from Phase 1 stays in the plan (only scam and age checks apply to it)
@@ -160,6 +163,7 @@ function buildPlan(){
       s += x.hours <= a.hours * 3 ? 1 : -1;
       if (a.data === 'low' && x.data > 1) s -= 1;
       s += aiBonus(x.id);
+      if (S.journey && S.journey.learnCourse && x.id === S.journey.learnCourse.id) s += 10;   // the course the shared Learning Plan names
       return {c: x, cov, score: s};
     }).filter(Boolean).sort((p, q) => q.score - p.score || p.c.hours - q.c.hours);
     const off = sw['learn' + i] || 0, pick = scored[off];

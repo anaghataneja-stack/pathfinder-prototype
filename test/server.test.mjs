@@ -148,8 +148,8 @@ test('the shared Yoma tokens file is served, and the next prototype link comes f
 
 test('the shared journey mock data is served for every prototype', async () => {
   const j = await (await fetch(base + '/api/journey')).json();
-  assert.equal(j.journey[1].prototype, 'PathFinder');
-  assert.equal(j.journey[0].handsOn, "A verified opportunity and the user's goal");
-  assert.equal(j.journey[1].handsOn, 'Plan step: complete a P2E course');
-  assert.ok(j.user && j.listing && j.course && j.credential);
+  assert.equal(j.youngPerson.displayName, 'Halima Y.');
+  assert.ok(j.opportunities.some(o => o.id === j.learningPlan.target), 'the Learning Plan targets a listing in the file');
+  assert.match(j.usage['Phase 2 PathFinder'], /Saved Opportunity/);
+  assert.ok(j.credentials.length && j.learningPlan.steps.length);
 });

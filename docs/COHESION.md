@@ -52,8 +52,10 @@ PathFinder is **Phase 2** of the journey diagram.
 
 | | Item (named as on the slides) | How it travels |
 |---|---|---|
-| **In** from Phase 1 · Ziqi | *A verified opportunity and the user's goal* | link `?from=ziqi&listing=<id>&goal=job` |
-| **Out** to Phase 3 · SkillLens | *Plan step: complete a P2E course* | link `?from=pathfinder&course=<id>&course_title=…&listing=<id>&goal=…` |
+| **In** from Phase 1 · Ziqi | **Saved Opportunity** (*a verified opportunity and the user's goal*) | link `?from=ziqi&listing=<id>&goal=job` |
+| **Out** to Phase 3 · SkillLens | **Learning Plan** (*plan step: complete a P2E course*) | link `?from=pathfinder&plan=<id>&course=<id>&course_title=…&listing=<id>&goal=…` |
+
+The bold names are the team's (from `mockups/SHARED-MOCK-DATA.md`); the words in brackets are the journey diagram's. The screen shows both, so it matches the slides either way.
 
 On screen:
 - The chat opens with a **"From Ziqi"** card showing the listing, marked "Verified on Yoma". PathFinder doesn't ask the goal again.
@@ -62,21 +64,21 @@ On screen:
 
 ## 5. Shared mock data
 
-**Shared mock data** means one made-up young person, listing, course and credential that all four prototypes use, so the demo reads as one story instead of four.
+**Shared mock data** means one made-up young person, job, course and credential that all four prototypes use, so the demo reads as one story instead of four.
 
-It lives in `data/shared-journey.json`, and the server shares it at `GET /api/journey` (open to other sites, so other teams can fetch it):
+PathFinder uses the team's file, `mockups/shared-mock-data.json` (explained in `mockups/SHARED-MOCK-DATA.md`). The server also shares it at `GET /api/journey`, open to other sites, so other teams can fetch it.
 
 | | Mock value |
 |---|---|
-| User | Tunde, 21, Lagos, wants a job · YoID `YOID-DEMO-0001` |
-| Listing (Phase 1 finds it, Phase 4 applies to it) | Customer Care Trainee, BrightLine Contact Centre, Lagos |
-| Course (Phase 2 plans it, Phase 3 certifies it) | Customer Service Fundamentals (P2E, 10 hours) |
-| Credential (Phase 3 saves it) | Customer Service Fundamentals · Level 2 |
+| Young person | Halima Y., 20, Kaduna, fixes phones at a market stall, wants a paid job in solar or electronics |
+| Saved Opportunity (Phase 1 → 2) | Solar Installation Assistant (Trainee), Sunrise Solar Ltd · `opp-job-001` |
+| Learning Plan (Phase 2 → 3) | Working Safely at Height → Solar PV Installation Basics → apply · `plan-001` |
+| Course SkillLens tests | Solar PV Installation Basics · `opp-course-001` |
+| Scam listing PathFinder must remove | Solar Sales Agent (pay ₦5,000 registration fee) · `opp-job-002` |
 
-Open `/?journey=demo` to run PathFinder with this data, as if Ziqi had just handed over.
+Open `/?journey=demo` to run PathFinder with this data, as if Ziqi had just handed over. The plan matches the shared Learning Plan, the scam job appears under "removed" in Behind the scenes, and the SkillLens link carries `plan=plan-001`, `course=opp-course-001` and `listing=opp-job-001`.
 
 **Still to agree with the other teams:**
-- That they use these same mock values (or send us theirs, and we'll change the file).
 - Ziqi's real link format, if it differs from `?from=ziqi&listing=…&goal=…`.
 - SkillLens's address, set in `NEXT_PROTOTYPE_URL`.
-- Moving `tokens/` and `data/shared-journey.json` to one shared repository.
+- Moving `tokens/` and `mockups/shared-mock-data.json` to one shared repository.

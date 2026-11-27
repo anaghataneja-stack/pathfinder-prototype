@@ -184,6 +184,7 @@ ul.rules b{font-weight:700}
 .fac.urgent b{color:var(--danger)}
 .handoff{align-self:stretch;display:grid;gap:4px;border:2px solid var(--accent);border-radius:var(--radius);background:var(--surface);padding:10px 12px;font-size:13.5px}
 .handoff b{font-family:var(--f-display);font-size:15px;color:var(--accent)}
+.handoff-desc{color:var(--muted);font-size:12.5px;margin-top:-4px}
 .yoid{align-self:flex-start;display:flex;gap:8px;align-items:center;font-size:12.5px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:var(--yoma-radius-pill);padding:4px 12px}
 .yoid b{font-family:var(--f-display);letter-spacing:.02em}
 .plan-foot a.next-proto, a.next-proto{display:inline-block;background:var(--accent);color:var(--accent-ink);font-weight:700;border-radius:var(--yoma-radius-pill);padding:8px 16px;text-decoration:none;font-size:14px}
@@ -469,7 +470,7 @@ const T = {
   rLearnExtra:"This builds job-ready skills that help with every application: {skills}.",
   backpackQ:"🎒 Want to activate your Skills Backpack?\n\nIt keeps the certificates you earn, the skills you learn and your Pathfinder plan in one place, on your Youth Identity (YoID).\n\nYour information is private, secure, and only shared with your permission.", backpackMore:"Your Skills Backpack helps you:\n✅ Keep your certificates safe, so you never lose them.\n✅ Show employers what you can do, with skills from trusted programmes like FunDoo and Yoma.\n✅ Find learning and earning opportunities that match you on yoma.world.\n🔒 You decide when and if you share it.\n\nReady to activate it?", backpackYes:"🎒 Your Skills Backpack is ready! Every step you finish can be added to it.", backpackNo:"That's fine. Nothing goes in a Skills Backpack. Your plan is still saved on your phone.", backpackUnder16:"Skills Backpacks on YoID start at 16, so I'll keep your plan on your phone for now.", yoidAdded:"Added to your Skills Backpack (YoID): {what}", yoidSkills:"{n} skills from your own work (self-declared)", yoidPlan:"your {n}-step Pathfinder plan", yoidCourse:"finished \"{title}\"", yoidApplied:"applied to {n} openings",
   nextProto:"Next: continue in {name}",
-  handoffFrom:"From {name}", handoffTo:"Handing on to {name}", sigVerified:"Verified on Yoma",
+  goalIs:"Goal:", handoffFrom:"From {name}", handoffTo:"Handing on to {name}", sigVerified:"Verified on Yoma",
   goalFromJourney:"From {name}: your goal is \"{goal}\". I'll plan around the opportunity you found there.",
   sizeQ:"How big a plan do you want? More steps means more courses and more places to apply.",
   applyTitleBest:"Apply to one or more of these", applyTitleNow:"Apply now: you already have the skills", applyTitleLater:"Apply after your courses", applyTitleEarn:"Earn while you learn",
@@ -569,7 +570,7 @@ const T = {
   rLearnExtra:"This one go build job-ready skills wey go help every application: {skills}.",
   backpackQ:"🎒 You wan open your Skills Backpack?\n\nE dey keep the certificates you get, the skills you learn and your Pathfinder plan for one place, for your Youth Identity (YoID).\n\nYour information dey private, e safe, and nobody go see am unless you allow am.", backpackMore:"Your Skills Backpack go help you:\n✅ Keep your certificates safe, so you no go lose dem.\n✅ Show employers wetin you sabi, with skills from programmes wey people trust like FunDoo and Yoma.\n✅ Find learning and earning opportunities wey fit you for yoma.world.\n🔒 Na you go decide if and when you share am.\n\nYou ready to open am?", backpackYes:"🎒 Your Skills Backpack don ready! Every step wey you finish fit enter am.", backpackNo:"No wahala. Nothing go enter Skills Backpack. Your plan still dey your phone.", backpackUnder16:"Skills Backpack for YoID na from 16 years, so I go keep your plan for your phone for now.", yoidAdded:"E don enter your Skills Backpack (YoID): {what}", yoidSkills:"{n} skills from your own work (you talk am yourself)", yoidPlan:"your {n}-step Pathfinder plan", yoidCourse:"you finish \"{title}\"", yoidApplied:"you apply for {n} openings",
   nextProto:"Next: continue for {name}",
-  handoffFrom:"From {name}", handoffTo:"We dey pass am to {name}", sigVerified:"Yoma don check am",
+  goalIs:"Goal:", handoffFrom:"From {name}", handoffTo:"We dey pass am to {name}", sigVerified:"Yoma don check am",
   goalFromJourney:"From {name}: your goal na \"{goal}\". I go plan around the opportunity wey you find there.",
   sizeQ:"How big you want your plan? More steps mean more courses and more places to apply.",
   applyTitleBest:"Apply for one or more of these", applyTitleNow:"Apply now: you don get the skills", applyTitleLater:"Apply after your courses", applyTitleEarn:"Make money while you dey learn",
@@ -739,7 +740,7 @@ T.ha = {
   rLearnExtra:"Wannan yana gina ƙwarewar shirin aiki da ke taimakawa a kowace nema: {skills}.",
   backpackQ:"🎒 Kana son buɗe Jakar Ƙwarewarka (Skills Backpack)?\n\nTana ajiye takardun shaidar da ka samu, ƙwarewar da ka koya da shirinka na Pathfinder a wuri ɗaya, a kan Shaidar Matasa (YoID).\n\nBayananka na sirri ne, suna da tsaro, kuma ba a raba su sai da izininka.", backpackMore:"Jakar Ƙwarewarka tana taimaka maka:\n✅ Adana takardun shaidarka lafiya, don kada su ɓace.\n✅ Nuna wa masu ɗaukar aiki abin da za ka iya, da ƙwarewa daga shirye-shirye amintattu kamar FunDoo da Yoma.\n✅ Samun damar koyo da samun kuɗi da suka dace da kai a yoma.world.\n🔒 Kai ne ke yanke shawarar lokacin da za ka raba ta.\n\nKa shirya ka buɗe ta?", backpackYes:"🎒 Jakar Ƙwarewarka ta shirya! Duk matakin da ka gama za a iya ƙara shi a ciki.", backpackNo:"Ba komai. Ba abin da zai shiga Jakar Ƙwarewa. Shirinka yana nan a wayarka.", backpackUnder16:"Jakar Ƙwarewa a YoID tana farawa daga shekara 16, don haka zan ajiye shirinka a wayarka a yanzu.", yoidAdded:"An ƙara a Jakar Ƙwarewarka (YoID): {what}", yoidSkills:"ƙwarewa {n} daga aikinka (ka bayyana da kanka)", yoidPlan:"shirinka na Pathfinder mai matakai {n}", yoidCourse:"ka gama \"{title}\"", yoidApplied:"ka nemi damammaki {n}",
   nextProto:"Na gaba: ci gaba a {name}",
-  handoffFrom:"Daga {name}", handoffTo:"Ana mikawa ga {name}", sigVerified:"An tabbatar a Yoma",
+  goalIs:"Buri:", handoffFrom:"Daga {name}", handoffTo:"Ana mikawa ga {name}", sigVerified:"An tabbatar a Yoma",
   goalFromJourney:"Daga {name}: burinka shi ne \"{goal}\". Zan tsara a kan damar da ka samu a can.",
   sizeQ:"Yaya girman shirin da kake so? Ƙarin matakai na nufin ƙarin kwasa-kwasai da ƙarin wuraren nema.",
   applyTitleBest:"Nemi ɗaya ko fiye daga cikin waɗannan", applyTitleNow:"Nema yanzu: kana da ƙwarewar", applyTitleLater:"Nema bayan kwasa-kwasanka", applyTitleEarn:"Samun kuɗi yayin da kake koyo",
@@ -835,7 +836,7 @@ T.yo = {
   rLearnExtra:"Èyí ń kọ́ àwọn ọgbọ́n ìmúrasílẹ̀ fún iṣẹ́ tó ń ràn gbogbo ìbéèrè lọ́wọ́: {skills}.",
   backpackQ:"🎒 Ṣé o fẹ́ ṣí Àpò Ọgbọ́n rẹ (Skills Backpack)?\n\nÓ ń tọ́jú àwọn ìwé-ẹ̀rí tí o gbà, ọgbọ́n tí o kọ́ àti ètò Pathfinder rẹ sí ibì kan, lórí Ìdánimọ̀ Ọ̀dọ́ rẹ (YoID).\n\nÌwífún rẹ jẹ́ àṣírí, ó wà láìléwu, a kò sì ní pín in láìsí àṣẹ rẹ.", backpackMore:"Àpò Ọgbọ́n rẹ ń ràn ọ́ lọ́wọ́ láti:\n✅ Tọ́jú àwọn ìwé-ẹ̀rí rẹ láìléwu, kí wọ́n má baà sọnù.\n✅ Fi ohun tí o lè ṣe han àwọn agbanisíṣẹ́, pẹ̀lú ọgbọ́n láti àwọn ètò tí a gbẹ́kẹ̀lé bíi FunDoo àti Yoma.\n✅ Rí àǹfààní ẹ̀kọ́ àti owó tó bá ọ mu lórí yoma.world.\n🔒 Ìwọ ni o máa pinnu ìgbà tí o bá fẹ́ pín in.\n\nṢé o ti ṣetán láti ṣí i?", backpackYes:"🎒 Àpò Ọgbọ́n rẹ ti ṣetán! A lè fi gbogbo ìgbésẹ̀ tí o bá parí kún un.", backpackNo:"Kò burú. Kò sí ohun tí yóò wọ Àpò Ọgbọ́n. Ètò rẹ ṣì wà lórí fóònù rẹ.", backpackUnder16:"Àpò Ọgbọ́n lórí YoID bẹ̀rẹ̀ láti ọmọ ọdún 16, nítorí náà màá tọ́jú ètò rẹ sórí fóònù rẹ fún báyìí.", yoidAdded:"A ti fi kún Àpò Ọgbọ́n rẹ (YoID): {what}", yoidSkills:"ọgbọ́n {n} láti inú iṣẹ́ rẹ (o sọ fúnra rẹ)", yoidPlan:"ètò Pathfinder rẹ oní ìgbésẹ̀ {n}", yoidCourse:"o parí \"{title}\"", yoidApplied:"o béèrè fún àǹfààní {n}",
   nextProto:"Tókàn: tẹ̀síwájú ní {name}",
-  handoffFrom:"Láti {name}", handoffTo:"A ń fi lé {name} lọ́wọ́", sigVerified:"A ti fìdí rẹ̀ múlẹ̀ lórí Yoma",
+  goalIs:"Àfojúsùn:", handoffFrom:"Láti {name}", handoffTo:"A ń fi lé {name} lọ́wọ́", sigVerified:"A ti fìdí rẹ̀ múlẹ̀ lórí Yoma",
   goalFromJourney:"Láti {name}: àfojúsùn rẹ ni \"{goal}\". Màá ṣètò yíká àǹfààní tí o rí níbẹ̀.",
   sizeQ:"Báwo ni ètò tí o fẹ́ ṣe tóbi tó? Ìgbésẹ̀ púpọ̀ túmọ̀ sí ẹ̀kọ́ púpọ̀ àti ibi púpọ̀ láti béèrè.",
   applyTitleBest:"Béèrè fún ọ̀kan tàbí jù bẹ́ẹ̀ lọ nínú ìwọ̀nyí", applyTitleNow:"Béèrè báyìí: o ti ní àwọn ọgbọ́n náà", applyTitleLater:"Béèrè lẹ́yìn àwọn ẹ̀kọ́ rẹ", applyTitleEarn:"Rí owó nígbà tí o ń kọ́ ẹ̀kọ́",
@@ -890,12 +891,12 @@ const SK_T = {
     spreadsheets:'Shigar da bayanai da Excel','social-media':'Talla a kafofin sada zumunta',cv:'Rubuta CV',interview:'Ƙwarewar hira',teamwork:'Aiki tare da wasu',
     bookkeeping:'Ajiye lissafin kuɗi','business-plan':'Tsara kasuwanci',pricing:'Saita farashi da sayarwa','agri-practice':'Noman zamani',poultry:'Kiwon kaji',
     tailoring:'Ɗinki','design-basics':'Zane-zane na asali','coding-basics':'Rubuta lambar kwamfuta','phone-repair':"Gyaran waya da na'urori",
-    'market-trading':'Kasuwanci a kasuwa','food-prep':'Girki da sayar da abinci','hair-beauty':'Kitso da kwalliya','driving-delivery':'Tuƙi da isar da kaya',childcare:'Kula da yara'},
+    'market-trading':'Kasuwanci a kasuwa','food-prep':'Girki da sayar da abinci','hair-beauty':'Kitso da kwalliya','driving-delivery':'Tuƙi da isar da kaya',childcare:'Kula da yara','solar-install':'Shigar da hasken rana (solar)','work-at-height':'Aiki lafiya a wuri mai tsawo'},
   yo: {'digital-basics':'Lílo fóònù àti kọ̀ǹpútà','online-safety':'Ààbò lórí ayélujára','job-search':'Wíwá iṣẹ́',comms:'Ìbánisọ̀rọ̀ tó yé',customer:'Ṣíṣe iṣẹ́ fún oníbàárà',
     spreadsheets:'Títẹ dátà àti Excel','social-media':'Ìpolówó lórí ìkànnì àjọlò',cv:'Kíkọ CV',interview:'Ọgbọ́n ìfọ̀rọ̀wánilẹ́nuwò',teamwork:'Ṣíṣiṣẹ́ pọ̀ pẹ̀lú àwọn mìíràn',
     bookkeeping:'Kíkọ àkọsílẹ̀ owó','business-plan':'Ṣíṣètò òwò',pricing:'Fífi owó lé ọjà àti títà','agri-practice':'Iṣẹ́ oko òde òní',poultry:'Ọ̀sìn adìyẹ',
     tailoring:'Aṣọ rírán','design-basics':'Àwòrán díjítà','coding-basics':'Kíkọ kóòdù','phone-repair':'Títún fóònù àti ẹ̀rọ ṣe',
-    'market-trading':'Òwò ọjà','food-prep':'Sísè àti títà oúnjẹ','hair-beauty':'Irun àti ẹwà','driving-delivery':'Wíwakọ̀ àti ìfijíṣẹ́',childcare:'Títọ́jú ọmọdé'}
+    'market-trading':'Òwò ọjà','food-prep':'Sísè àti títà oúnjẹ','hair-beauty':'Irun àti ẹwà','driving-delivery':'Wíwakọ̀ àti ìfijíṣẹ́',childcare:'Títọ́jú ọmọdé','solar-install':'Fífi pánẹ́ẹ̀lì oòrùn (solar) sílẹ̀','work-at-height':'Ṣíṣiṣẹ́ láìléwu ní ibi gíga'}
 };
 const skillName = k => (SK_T[S && S.lang] || {})[k] || SK[k] || k;
 
@@ -1020,7 +1021,7 @@ async function askProfile(){
 }
 async function askGoal(){
   if (S.journey && S.journey.goal) {   // Phase 1 already asked: don't ask again
-    S.a.goal = S.journey.goal; S.a.sector = (S.journey.listing.sectors || []).find(x => x !== 'all') || 'notsure'; renderPanel();
+    S.a.goal = S.journey.goal; S.a.sector = S.journey.sector || (S.journey.listing.sectors || []).find(x => x !== 'all') || 'notsure'; renderPanel();
     await say(t('goalFromJourney', {name: S.journey.from, goal: S.journey.goalText || goalText(S.journey.goal)}));
     return askState();
   }
@@ -1341,15 +1342,27 @@ async function aiRankCourses(){
    PathFinder (Phase 2) hands SkillLens (Phase 3) "Plan step: complete a P2E course".
    Open with ?journey=demo to use the shared mock data, or ?from=ziqi&listing=<Yoma id>&goal=job for a real listing. */
 const JOURNEY = {in: null};
-const ITEM_IN = "A verified opportunity and the user's goal", ITEM_OUT = 'Plan step: complete a P2E course';
+// Handoff items: the short name is the one in the team's shared mock data (mockups/SHARED-MOCK-DATA.md);
+// the line under it is the journey diagram's wording. Both are shown so the screen matches either slide.
+const ITEM_IN = {name: 'Saved Opportunity', desc: "A verified opportunity and the user's goal"},
+      ITEM_OUT = {name: 'Learning Plan', desc: 'Plan step: complete a P2E course'};
 async function loadJourney(){
   const q = new URLSearchParams(location.search);
   try {
     if (q.get('journey') === 'demo') {
-      const j = await getJSON('/api/journey', 8000);
-      JOURNEY.in = {from: j.journey[0].prototype, goal: j.user.goal, goalText: j.user.goalText,
-        listing: {...j.listing, src: 'Yoma', kind: 'opp', sample: true, informal: {earnNow: false, phoneOnly: false, noCert: true}},
-        course: {...j.course, src: j.course.provider, kind: 'course', p2e: true, sample: true, data: 1, sectors: ['all']}};
+      // The team's shared mock data (mockups/shared-mock-data.json): Halima, the solar trainee job, the P2E courses
+      const d = await getJSON('/api/journey', 8000);
+      const byId = id => d.opportunities.find(o => o.id === id), org = id => (d.partners.find(p => p.id === id) || {}).name || id;
+      const yp = d.youngPerson, lp = d.learningPlan, job = byId(lp.target), step = k => lp.steps.find(s => s.kind === k);
+      const course = o => o && {id: o.id, title: o.title, src: org(o.org), kind: 'course', p2e: o.org === 'org-p2e', entry: true, sample: true,
+        skills: o.teaches || [], hours: o.hours || 1, data: 1, offline: /offline/.test(o.mode || ''), sectors: ['all'], link: o.link};
+      const opp = o => ({id: o.id, title: o.title, org: org(o.org), src: 'Yoma', kind: 'opp', type: o.type, states: [o.state || 'all'], remote: !!o.remote,
+        minAge: 18, skills: [...(o.mustHave || []), ...(o.canLearn || [])], sectors: [yp.sector], openEnded: true, sample: true, scam: !!o.scam,
+        link: o.link || 'https://yoma.world/opportunities', informal: {earnNow: false, phoneOnly: false, noCert: true}});
+      JOURNEY.in = {from: 'Ziqi', who: yp.displayName, goal: yp.goal, goalText: yp.goalText, sector: yp.sector, planId: lp.id,
+        listing: {...opp(job), verified: true}, course: course(byId(step('start').opportunityId)), learnCourse: course(byId(step('learn').opportunityId)),
+        handoffCourseId: d.skillChallenge && d.skillChallenge.afterCourse,
+        extraOpps: d.opportunities.filter(o => o.type === 'job' && o.id !== job.id).map(opp)};
     } else if (q.get('listing')) {
       await liveReady;
       const id = q.get('listing'), o = [...LIVE.opps, ...OPPS].find(x => x.id === id || x.id === 'y-' + id);
@@ -1360,12 +1373,14 @@ async function loadJourney(){
 const goalText = g => lbl(O.goal.find(o => o.v === g) || O.goal[0]);
 function handoffHTML(m){
   if (m.dir === 'in') return `<div class="handoff"><span class="tag t-apply">${esc(t('handoffFrom', {name: m.from}))} · Phase 1</span>
-    <b>${esc(ITEM_IN)}</b><div>${esc(m.title)} · ${esc(m.org)} <span class="sig"><span>${esc(t('sigVerified'))}</span></span></div><div>${esc(t('goal'))} ${esc(m.goal)}</div></div>`;
+    <b>${esc(ITEM_IN.name)}</b><div class="handoff-desc">${esc(ITEM_IN.desc)}</div><div>${esc(m.title)} · ${esc(m.org)} <span class="sig"><span>${esc(t('sigVerified'))}</span></span></div><div>${esc(t('goalIs'))} ${esc(m.goal)}</div></div>`;
   return `<div class="handoff"><span class="tag t-learn">${esc(t('handoffTo', {name: NEXT.proto ? NEXT.proto.name : 'SkillLens'}))} · Phase 3</span>
-    <b>${esc(ITEM_OUT)}</b><div>${esc(m.title)} (${esc(m.provider)})</div>${nextProtoLink()}</div>`;
+    <b>${esc(ITEM_OUT.name)}</b><div class="handoff-desc">${esc(ITEM_OUT.desc)}</div><div>${esc(m.title)} · ${esc(m.provider)}</div>${nextProtoLink()}</div>`;
 }
 function handoffCourse(){
   const steps = S.plan.steps.filter(s => s.kind !== 'apply' && !s.item.pseudo);
+  const named = S.journey && S.journey.handoffCourseId && steps.find(s => s.item.id === S.journey.handoffCourseId);   // SkillLens tests this course
+  if (named) return named.item;
   return (steps.find(s => s.item.p2e) || steps.find(s => /passport to earning/i.test(s.item.src)) || steps[0] || {}).item || null;
 }
 
@@ -1405,7 +1420,7 @@ function nextProtoLink(){
   if (!NEXT.proto) return '';
   const u = new URL(NEXT.proto.url, location.href), c = S.plan ? handoffCourse() : null;
   const pin = S.journey && S.journey.listing ? S.journey.listing.id : S.plan ? (S.plan.steps.find(s => s.items) || {items: [{}]}).items[0].id : '';
-  const add = {from: 'pathfinder', course: c && c.id, course_title: c && c.title, listing: pin, goal: S.a.goal};
+  const add = {from: 'pathfinder', plan: S.journey && S.journey.planId, course: c && c.id, course_title: c && c.title, listing: pin, goal: S.a.goal};
   for (const [k, v] of Object.entries(add)) if (v) u.searchParams.set(k, v);
   return `<a class="next-proto" href="${esc(u.toString())}" target="_blank" rel="noopener">${esc(t('nextProto', {name: NEXT.proto.name}))} →</a>`;
 }
