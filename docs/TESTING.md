@@ -4,8 +4,8 @@ Last run: 13 November 2026, Node 22, Chromium (Playwright).
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit and API tests | `npm test` | **87 / 87 pass** (about 2 s) |
-| Browser scenarios | `npm run e2e` | **20 / 20 pass** |
+| Unit and API tests | `npm test` | **98 / 98 pass** (about 2 s) |
+| Browser scenarios | `npm run e2e` | **23 / 23 pass** |
 | Live check, real Yoma API | `node sync.mjs` + the app | **Done 14 Nov 2026**: 5,171 real listings. Results and fixes [below](#live-check-real-yoma-14-november-2026) |
 | Live check, real Azure OpenAI | see [Live check](#live-check-run-this-before-the-demo) | **Not run yet.** Needs the team's Azure keys |
 
@@ -45,6 +45,9 @@ The automated tests use **mock** Yoma and Azure servers (`test/helpers/`) that c
 | 18 | Bigger plan (5 steps) | Several openings per Apply step, no opening twice, "Show more openings" works | Pass |
 | 19 | Finishing a plan | Check-ins through to the end, then "Make my next plan" builds a different plan and the panel shows plan 2 | Pass |
 | 20 | Continue with Yoma | Sign-in through a fake Yoma Keycloak (PKCE). Real Yoma skills are read. "Save my plan" saves the opportunities to the Yoma account | Pass |
+| 21 | Skills Backpack (YoID) and next prototype | Nothing is written before the Skills Backpack question. "Tell me more" then "Yes, activate it" adds the confirmed skills and the plan. "Not now" (scenarios 9 and 19) writes nothing. The "Next: continue in YoCV" button has the right link and readable colours | Pass |
+| 22 | Journey from Ziqi to SkillLens | `?journey=demo`: "From Ziqi" card, goal not asked again, verified listing in the plan, SkillLens link carries the course | Pass |
+| 23 | 15-year-old | Guardian agrees and the plan is saved, but the Skills Backpack isn't offered (YoID starts at 16, as in FunDoo) | Pass |
 | 17 | Demo voice without Azure | With `DEMO_BROWSER_VOICE=true`, voice uses Chrome speech recognition (a stand-in in the test), is labelled "Demo only", and the words become skills | Pass |
 | 16 | Pilot: urgent message | A case reaches the staff inbox with a code shown to the young person. No message text is stored. A listing report and the pilot counts are recorded | Pass |
 

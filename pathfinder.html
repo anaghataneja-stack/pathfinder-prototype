@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pathfinder Prototype</title>
 <meta name="description" content="Pathfinder turns a young person's goal into three steps using live Yoma opportunities.">
-<meta name="theme-color" content="#1D6A4E">
+<meta name="theme-color" content="#41204b">
+<link rel="stylesheet" href="/tokens/yoma-tokens.css">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <script>
@@ -13,7 +14,7 @@
 try {
   if (!(navigator.connection && navigator.connection.saveData) && localStorage.getItem('pf-lite') !== '1') {
     const l = document.createElement('link'); l.rel = 'stylesheet';
-    l.href = 'https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=JetBrains+Mono:wght@400;600&display=swap';
+    l.href = 'https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Open+Sans:wght@400;600;700&display=swap';
     document.head.appendChild(l);
   }
 } catch (e) {}
@@ -21,29 +22,16 @@ try {
 <style>
 /* Layout: a working phone on the left runs the real flow; the right column shows what Pathfinder is doing behind the scenes. */
 :root{
-  --bg:#EEF2EC; --surface:#FFFFFF; --surface-2:#F6F8F4; --ink:#15211B; --muted:#56665D; --line:#D5DDD3;
-  --accent:#1D6A4E; --accent-ink:#FFFFFF; --accent-soft:#D9ECE1;
-  --start:#A86F00; --start-soft:#FAEDCF; --learn:#245F96; --learn-soft:#DCE8F5; --apply:#863D82; --apply-soft:#F2E1F0;
-  --warn:#A64C14; --warn-soft:#FBE5D6; --ok:#237245; --ok-soft:#DCF0E2;
-  --phone:#121A16; --chat:#E6ECE4; --bot:#FFFFFF; --user:#CFE8D9; --sms:#E9E9EC; --sms-user:#2F7BF6; --sms-user-ink:#FFFFFF;
-  --f-display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
-  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
-  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+  /* PathFinder's roles, all taken from the shared Yoma tokens (tokens/yoma-tokens.css). No colours are defined here. */
+  --bg:var(--yoma-bg); --surface:var(--yoma-surface); --surface-2:var(--yoma-surface-2); --ink:var(--yoma-ink); --muted:var(--yoma-muted); --line:var(--yoma-line);
+  --accent:var(--yoma-primary); --accent-ink:var(--yoma-primary-ink); --accent-soft:var(--yoma-primary-soft);
+  --start:var(--yoma-warning-ink); --start-soft:var(--yoma-warning-soft); --learn:var(--yoma-info-ink); --learn-soft:var(--yoma-info-soft); --apply:var(--yoma-success); --apply-soft:var(--yoma-success-soft);
+  --warn:var(--yoma-warning-ink); --warn-soft:var(--yoma-warning-soft); --ok:var(--yoma-success); --ok-soft:var(--yoma-success-soft);
+  --danger:var(--yoma-danger-ink); --danger-soft:var(--yoma-danger-soft);
+  --phone:var(--yoma-frame); --chat:var(--yoma-canvas); --bot:var(--yoma-surface); --user:var(--yoma-primary-soft); --sms:var(--yoma-surface-2); --sms-user:var(--yoma-primary); --sms-user-ink:var(--yoma-primary-ink);
+  --f-display:var(--yoma-font-display); --f-body:var(--yoma-font-body); --f-mono:var(--yoma-font-mono);
+  --radius:var(--yoma-radius); --shadow:var(--yoma-shadow);
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#0F1512; --surface:#17201B; --surface-2:#1C2721; --ink:#E5EDE7; --muted:#9AAAA0; --line:#2C3A32;
-  --accent:#5FC497; --accent-ink:#0B1A12; --accent-soft:#1E3A2D;
-  --start:#E8B44A; --start-soft:#3A2E14; --learn:#7EB3E6; --learn-soft:#1B2C3E; --apply:#D597D0; --apply-soft:#38223A;
-  --warn:#F0965E; --warn-soft:#3D2616; --ok:#6FD196; --ok-soft:#173523;
-  --phone:#050807; --chat:#121915; --bot:#1F2A24; --user:#1F4434; --sms:#24262B; --sms-user:#2F7BF6; --sms-user-ink:#FFFFFF;
-  color-scheme:dark }}
-:root[data-theme="dark"]{
-  --bg:#0F1512; --surface:#17201B; --surface-2:#1C2721; --ink:#E5EDE7; --muted:#9AAAA0; --line:#2C3A32;
-  --accent:#5FC497; --accent-ink:#0B1A12; --accent-soft:#1E3A2D;
-  --start:#E8B44A; --start-soft:#3A2E14; --learn:#7EB3E6; --learn-soft:#1B2C3E; --apply:#D597D0; --apply-soft:#38223A;
-  --warn:#F0965E; --warn-soft:#3D2616; --ok:#6FD196; --ok-soft:#173523;
-  --phone:#050807; --chat:#121915; --bot:#1F2A24; --user:#1F4434; --sms:#24262B; --sms-user:#2F7BF6; --sms-user-ink:#FFFFFF;
-  color-scheme:dark }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
 .wrap{max-width:1180px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:24px}
@@ -170,12 +158,12 @@ ul.ex li span:first-child{min-width:0}
 .fac b{color:var(--warn)}
 ul.rules{margin:0;padding-left:18px;display:grid;gap:6px;font-size:14px}
 ul.rules b{font-weight:700}
-.offline{position:sticky;top:0;z-index:30;background:var(--warn);color:#fff;padding:8px 16px;text-align:center;font-weight:700;font-size:14px}
+.offline{position:sticky;top:0;z-index:30;background:var(--warn);color:var(--yoma-white);padding:8px 16px;text-align:center;font-weight:700;font-size:14px}
 .chip-st{font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2)}
 .chip-st.on{border-color:var(--ok);color:var(--ok);background:var(--ok-soft)}
-.composer button.mic.rec{background:#B3261E;color:#fff;border-color:transparent;animation:pulse 1.2s infinite}
+.composer button.mic.rec{background:var(--danger);color:var(--yoma-white);border-color:transparent;animation:pulse 1.2s infinite}
 @keyframes pulse{50%{opacity:.7}}
-.rec-status{padding:6px 12px;font-size:13px;font-weight:700;color:#B3261E;background:var(--surface-2);border-top:1px solid var(--line)}
+.rec-status{padding:6px 12px;font-size:13px;font-weight:700;color:var(--danger);background:var(--surface-2);border-top:1px solid var(--line)}
 .skills-card{align-self:flex-start;width:94%;background:var(--bot);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:8px}
 .skills-card h4{margin:0;font-family:var(--f-display);font-size:15px}
 .skills-card .sum{font-size:13.5px}
@@ -192,9 +180,13 @@ ul.rules b{font-weight:700}
 .open.report{color:var(--muted);font-weight:400;font-size:12.5px}
 .plan-foot{padding:10px 12px;border-top:1px solid var(--line);background:var(--surface-2);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--muted)}
 .plan-foot a{color:var(--accent);font-weight:700;font-size:13px;text-underline-offset:3px}
-.fac.urgent{border-color:#B3261E;background:#FCE4E2}
-.fac.urgent b{color:#B3261E}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .fac.urgent{background:#3D1A18;border-color:#F28B82} :root:not([data-theme="light"]) .fac.urgent b{color:#F28B82}}
+.fac.urgent{border-color:var(--danger);background:var(--danger-soft)}
+.fac.urgent b{color:var(--danger)}
+.handoff{align-self:stretch;display:grid;gap:4px;border:2px solid var(--accent);border-radius:var(--radius);background:var(--surface);padding:10px 12px;font-size:13.5px}
+.handoff b{font-family:var(--f-display);font-size:15px;color:var(--accent)}
+.yoid{align-self:flex-start;display:flex;gap:8px;align-items:center;font-size:12.5px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:var(--yoma-radius-pill);padding:4px 12px}
+.yoid b{font-family:var(--f-display);letter-spacing:.02em}
+.plan-foot a.next-proto, a.next-proto{display:inline-block;background:var(--accent);color:var(--accent-ink);font-weight:700;border-radius:var(--yoma-radius-pill);padding:8px 16px;text-decoration:none;font-size:14px}
 .live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:6px;vertical-align:middle}
 .live-dot.on{background:var(--ok)}
 .stats{margin:6px 0 0;font-size:14px;color:var(--muted)}
@@ -298,6 +290,7 @@ footer{color:var(--muted);font-size:13px;max-width:80ch}
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
 
+<script src="engine/plan-engine.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -307,21 +300,10 @@ const DAY = 864e5;
 const SAMPLE_TODAY = Date.UTC(2026, 9, 26);
 const REAL_TODAY = (d => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))(new Date());
 let TODAY = SAMPLE_TODAY;
-const parseD = s => { const [y,m,d] = s.split('-').map(Number); return Date.UTC(y, m-1, d); };
-const hasDeadline = o => o.deadline && o.deadline !== 'ongoing';
 const fmtD = t => new Date(t).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric', timeZone:'UTC'});
 const fmtShort = t => new Date(t).toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'short', timeZone:'UTC'});
 
 /* ---------- Sample catalogue (tagged with skills, as the nightly sync would do with Tabiya's taxonomy) ---------- */
-const SK = {
-  'digital-basics':'Using a phone & computer','online-safety':'Staying safe online','job-search':'Finding & applying for jobs',
-  comms:'Clear communication',customer:'Serving customers',spreadsheets:'Spreadsheets & data entry','social-media':'Social media marketing',
-  cv:'Writing a CV',interview:'Interview skills',teamwork:'Working in a team',bookkeeping:'Basic bookkeeping',
-  'business-plan':'Business planning',pricing:'Pricing & selling','agri-practice':'Modern farming practices',poultry:'Poultry care',
-  tailoring:'Sewing & tailoring','design-basics':'Graphic design basics','coding-basics':'Coding basics',
-  'phone-repair':'Phone & electronics repair','market-trading':'Market trading & stock','food-prep':'Cooking & food selling',
-  'hair-beauty':'Hair & beauty','driving-delivery':'Driving & delivery',childcare:'Caring for children'
-};
 const COURSES = [
   {id:'c1',title:'Digital Literacy Essentials',skills:['digital-basics','online-safety'],hours:6,entry:true,sectors:['all'],data:1,offline:true},
   {id:'c13',title:'Finding Work Online',skills:['job-search','online-safety'],hours:4,entry:true,sectors:['digital','customer'],data:1,offline:true},
@@ -358,9 +340,7 @@ OPPS.push({id:'o12',title:'Remote Typing Job (₦50,000 a week)',org:'QuickCash 
 // Listings that ask young people for money are a common scam. Anything mentioning a fee, deposit or upfront payment is removed and flagged.
 const SCAM_RE = /\b(registration|application|processing|training|starter|joining|form)\s+fees?\b|\bpay\s+(a|the|to|for)\b|\bdeposit\b|\bsend\s+money\b|\bupfront\b|\bpay\s+before\b/i;
 OPPS.forEach(o => { o.src = o.src || 'Yoma'; o.kind = 'opp'; o.sample = true; o.scam = SCAM_RE.test(o.title + ' ' + (o.desc || '')); });
-const PROFILE_STEP = {id:'p1',title:'Complete your Yoma profile',src:'Yoma',kind:'course',skills:[],hours:1,pseudo:true,sectors:['all'],data:1};
 const TYPE_LABEL = {other:'Opportunity',job:'Job',learnership:'Learnership',apprenticeship:'Apprenticeship',self:'Self-employment',volunteer:'Volunteering',task:'Yoma task',challenge:'imaGen challenge'};
-const GOAL_TYPES = {earn:['task','self','apprenticeship','job'],job:['job','learnership','apprenticeship','self'],skills:['learnership','volunteer','task','apprenticeship'],business:['challenge','self','apprenticeship'],notsure:['task','learnership','volunteer','challenge']};
 const PERSONAS = {
   amina:{name:'Amina',creds:[{title:'Digital Literacy Essentials',src:'Passport to Earning',skills:['digital-basics','online-safety']}]},
   tunde:{name:'Tunde',creds:[{title:'Digital Literacy Essentials',src:'Passport to Earning',skills:['digital-basics','online-safety']},{title:'Get Job-Ready: Work Readiness',src:'Passport to Earning',skills:['cv','interview','comms','teamwork']}]},
@@ -413,7 +393,7 @@ async function loadServer(){
     SERVER.ok = true;
   } catch (e) { LIVE.status = 'error'; LIVE.error = String(e.message || e); }
   const st = await status;
-  if (st) { SERVER.ok = true; SERVER.ai = st.ai; SERVER.demoVoice = !!st.demoVoice; YOMA.login = !!st.yomaLogin; }
+  if (st) { SERVER.ok = true; SERVER.ai = st.ai; SERVER.demoVoice = !!st.demoVoice; YOMA.login = !!st.yomaLogin; NEXT.proto = st.nextPrototype || null; }
   renderDataStatus(); renderOffline();
 }
 const liveOn = () => dataMode === 'live' && LIVE.status === 'ok';
@@ -487,6 +467,10 @@ const T = {
   facDefault:"a GenU Nigeria facilitator", whatNext:"What next?", shareNote:"No name or phone number is included.",
   caseCode:"Your case number is {code}. Quote it if you call or visit the partner centre.", caseLater:"I'll pass this on to a facilitator as soon as you're back online.",
   rLearnExtra:"This builds job-ready skills that help with every application: {skills}.",
+  backpackQ:"🎒 Want to activate your Skills Backpack?\n\nIt keeps the certificates you earn, the skills you learn and your Pathfinder plan in one place, on your Youth Identity (YoID).\n\nYour information is private, secure, and only shared with your permission.", backpackMore:"Your Skills Backpack helps you:\n✅ Keep your certificates safe, so you never lose them.\n✅ Show employers what you can do, with skills from trusted programmes like FunDoo and Yoma.\n✅ Find learning and earning opportunities that match you on yoma.world.\n🔒 You decide when and if you share it.\n\nReady to activate it?", backpackYes:"🎒 Your Skills Backpack is ready! Every step you finish can be added to it.", backpackNo:"That's fine. Nothing goes in a Skills Backpack. Your plan is still saved on your phone.", backpackUnder16:"Skills Backpacks on YoID start at 16, so I'll keep your plan on your phone for now.", yoidAdded:"Added to your Skills Backpack (YoID): {what}", yoidSkills:"{n} skills from your own work (self-declared)", yoidPlan:"your {n}-step Pathfinder plan", yoidCourse:"finished \"{title}\"", yoidApplied:"applied to {n} openings",
+  nextProto:"Next: continue in {name}",
+  handoffFrom:"From {name}", handoffTo:"Handing on to {name}", sigVerified:"Verified on Yoma",
+  goalFromJourney:"From {name}: your goal is \"{goal}\". I'll plan around the opportunity you found there.",
   sizeQ:"How big a plan do you want? More steps means more courses and more places to apply.",
   applyTitleBest:"Apply to one or more of these", applyTitleNow:"Apply now: you already have the skills", applyTitleLater:"Apply after your courses", applyTitleEarn:"Earn while you learn",
   rApplyBest:"These fit your goal {where}. Applying to several gives you a better chance.",
@@ -583,6 +567,10 @@ const T = {
   facDefault:"one GenU Nigeria facilitator", whatNext:"Wetin next?", shareNote:"E no get name or phone number inside.",
   caseCode:"Your case number na {code}. Tell dem this number if you call or go the partner centre.", caseLater:"I go send am to facilitator once network come back.",
   rLearnExtra:"This one go build job-ready skills wey go help every application: {skills}.",
+  backpackQ:"🎒 You wan open your Skills Backpack?\n\nE dey keep the certificates you get, the skills you learn and your Pathfinder plan for one place, for your Youth Identity (YoID).\n\nYour information dey private, e safe, and nobody go see am unless you allow am.", backpackMore:"Your Skills Backpack go help you:\n✅ Keep your certificates safe, so you no go lose dem.\n✅ Show employers wetin you sabi, with skills from programmes wey people trust like FunDoo and Yoma.\n✅ Find learning and earning opportunities wey fit you for yoma.world.\n🔒 Na you go decide if and when you share am.\n\nYou ready to open am?", backpackYes:"🎒 Your Skills Backpack don ready! Every step wey you finish fit enter am.", backpackNo:"No wahala. Nothing go enter Skills Backpack. Your plan still dey your phone.", backpackUnder16:"Skills Backpack for YoID na from 16 years, so I go keep your plan for your phone for now.", yoidAdded:"E don enter your Skills Backpack (YoID): {what}", yoidSkills:"{n} skills from your own work (you talk am yourself)", yoidPlan:"your {n}-step Pathfinder plan", yoidCourse:"you finish \"{title}\"", yoidApplied:"you apply for {n} openings",
+  nextProto:"Next: continue for {name}",
+  handoffFrom:"From {name}", handoffTo:"We dey pass am to {name}", sigVerified:"Yoma don check am",
+  goalFromJourney:"From {name}: your goal na \"{goal}\". I go plan around the opportunity wey you find there.",
   sizeQ:"How big you want your plan? More steps mean more courses and more places to apply.",
   applyTitleBest:"Apply for one or more of these", applyTitleNow:"Apply now: you don get the skills", applyTitleLater:"Apply after your courses", applyTitleEarn:"Make money while you dey learn",
   rApplyBest:"These ones fit your goal {where}. If you apply for plenty, your chance go better.",
@@ -668,6 +656,8 @@ const O = {
   ci:[{v:'done',en:'Yes, finished',pcm:'Yes, I don finish'},{v:'doing',en:'Still working on it',pcm:'I still dey do am'},{v:'not',en:'Not started',pcm:'I never start'},{v:'help',en:'I need help',pcm:'I need help'}],
   apply:[{v:'applied',en:'Yes, I applied',pcm:'Yes, I don apply'},{v:'not',en:'Not yet',pcm:'Not yet'},{v:'help',en:'I need help',pcm:'I need help'}],
   guardian:[{v:true,en:'Yes, they agree',pcm:'Yes, dem agree'},{v:false,en:'Not yet',pcm:'Not yet'}],
+  backpack:[{v:true,en:'Yes, activate it',pcm:'Yes, open am'},{v:'more',en:'Tell me more',pcm:'Tell me more'},{v:false,en:'Not now',pcm:'Not now'}],
+  backpack2:[{v:true,en:'Yes, activate it',pcm:'Yes, open am'},{v:false,en:'Not now',pcm:'Not now'}],
   resume:[{v:'yes',en:'Yes, continue',pcm:'Yes, continue'},{v:'no',en:'No, start a new plan',pcm:'No, start new plan'}],
   fb:[{v:'yes',en:'Yes, very',pcm:'Yes, well well'},{v:'bit',en:'A bit',pcm:'Small'},{v:'no',en:'Not really',pcm:'No really'}],
   work:[{v:'voice',en:'Record a voice note',pcm:'Record voice note'},{v:'type',en:'Type it',pcm:'Type am'},{v:'skip',en:'Skip',pcm:'Skip am'}],
@@ -747,6 +737,10 @@ T.ha = {
   facDefault:"wani mai taimako na GenU Nigeria", whatNext:"Me za a yi na gaba?", shareNote:"Babu suna ko lambar waya a ciki.",
   caseCode:"Lambar shari'arka ita ce {code}. Faɗa ta idan ka kira ko ka je cibiyar abokan hulɗa.", caseLater:"Zan tura wa mai taimako da zarar intanet ya dawo.",
   rLearnExtra:"Wannan yana gina ƙwarewar shirin aiki da ke taimakawa a kowace nema: {skills}.",
+  backpackQ:"🎒 Kana son buɗe Jakar Ƙwarewarka (Skills Backpack)?\n\nTana ajiye takardun shaidar da ka samu, ƙwarewar da ka koya da shirinka na Pathfinder a wuri ɗaya, a kan Shaidar Matasa (YoID).\n\nBayananka na sirri ne, suna da tsaro, kuma ba a raba su sai da izininka.", backpackMore:"Jakar Ƙwarewarka tana taimaka maka:\n✅ Adana takardun shaidarka lafiya, don kada su ɓace.\n✅ Nuna wa masu ɗaukar aiki abin da za ka iya, da ƙwarewa daga shirye-shirye amintattu kamar FunDoo da Yoma.\n✅ Samun damar koyo da samun kuɗi da suka dace da kai a yoma.world.\n🔒 Kai ne ke yanke shawarar lokacin da za ka raba ta.\n\nKa shirya ka buɗe ta?", backpackYes:"🎒 Jakar Ƙwarewarka ta shirya! Duk matakin da ka gama za a iya ƙara shi a ciki.", backpackNo:"Ba komai. Ba abin da zai shiga Jakar Ƙwarewa. Shirinka yana nan a wayarka.", backpackUnder16:"Jakar Ƙwarewa a YoID tana farawa daga shekara 16, don haka zan ajiye shirinka a wayarka a yanzu.", yoidAdded:"An ƙara a Jakar Ƙwarewarka (YoID): {what}", yoidSkills:"ƙwarewa {n} daga aikinka (ka bayyana da kanka)", yoidPlan:"shirinka na Pathfinder mai matakai {n}", yoidCourse:"ka gama \"{title}\"", yoidApplied:"ka nemi damammaki {n}",
+  nextProto:"Na gaba: ci gaba a {name}",
+  handoffFrom:"Daga {name}", handoffTo:"Ana mikawa ga {name}", sigVerified:"An tabbatar a Yoma",
+  goalFromJourney:"Daga {name}: burinka shi ne \"{goal}\". Zan tsara a kan damar da ka samu a can.",
   sizeQ:"Yaya girman shirin da kake so? Ƙarin matakai na nufin ƙarin kwasa-kwasai da ƙarin wuraren nema.",
   applyTitleBest:"Nemi ɗaya ko fiye daga cikin waɗannan", applyTitleNow:"Nema yanzu: kana da ƙwarewar", applyTitleLater:"Nema bayan kwasa-kwasanka", applyTitleEarn:"Samun kuɗi yayin da kake koyo",
   rApplyBest:"Waɗannan sun dace da burinka {where}. Neman da yawa yana ƙara maka dama.",
@@ -839,6 +833,10 @@ T.yo = {
   facDefault:"olùrànlọ́wọ́ GenU Nigeria kan", whatNext:"Kí ló kàn?", shareNote:"Kò sí orúkọ tàbí nọ́ńbà fóònù nínú rẹ̀.",
   caseCode:"Nọ́ńbà ìrànlọ́wọ́ rẹ ni {code}. Sọ ọ́ tí o bá pè tàbí lọ sí ibùdó alábàáṣiṣẹ́pọ̀.", caseLater:"Màá fi ránṣẹ́ sí olùrànlọ́wọ́ ní kété tí ìsopọ̀ rẹ bá padà.",
   rLearnExtra:"Èyí ń kọ́ àwọn ọgbọ́n ìmúrasílẹ̀ fún iṣẹ́ tó ń ràn gbogbo ìbéèrè lọ́wọ́: {skills}.",
+  backpackQ:"🎒 Ṣé o fẹ́ ṣí Àpò Ọgbọ́n rẹ (Skills Backpack)?\n\nÓ ń tọ́jú àwọn ìwé-ẹ̀rí tí o gbà, ọgbọ́n tí o kọ́ àti ètò Pathfinder rẹ sí ibì kan, lórí Ìdánimọ̀ Ọ̀dọ́ rẹ (YoID).\n\nÌwífún rẹ jẹ́ àṣírí, ó wà láìléwu, a kò sì ní pín in láìsí àṣẹ rẹ.", backpackMore:"Àpò Ọgbọ́n rẹ ń ràn ọ́ lọ́wọ́ láti:\n✅ Tọ́jú àwọn ìwé-ẹ̀rí rẹ láìléwu, kí wọ́n má baà sọnù.\n✅ Fi ohun tí o lè ṣe han àwọn agbanisíṣẹ́, pẹ̀lú ọgbọ́n láti àwọn ètò tí a gbẹ́kẹ̀lé bíi FunDoo àti Yoma.\n✅ Rí àǹfààní ẹ̀kọ́ àti owó tó bá ọ mu lórí yoma.world.\n🔒 Ìwọ ni o máa pinnu ìgbà tí o bá fẹ́ pín in.\n\nṢé o ti ṣetán láti ṣí i?", backpackYes:"🎒 Àpò Ọgbọ́n rẹ ti ṣetán! A lè fi gbogbo ìgbésẹ̀ tí o bá parí kún un.", backpackNo:"Kò burú. Kò sí ohun tí yóò wọ Àpò Ọgbọ́n. Ètò rẹ ṣì wà lórí fóònù rẹ.", backpackUnder16:"Àpò Ọgbọ́n lórí YoID bẹ̀rẹ̀ láti ọmọ ọdún 16, nítorí náà màá tọ́jú ètò rẹ sórí fóònù rẹ fún báyìí.", yoidAdded:"A ti fi kún Àpò Ọgbọ́n rẹ (YoID): {what}", yoidSkills:"ọgbọ́n {n} láti inú iṣẹ́ rẹ (o sọ fúnra rẹ)", yoidPlan:"ètò Pathfinder rẹ oní ìgbésẹ̀ {n}", yoidCourse:"o parí \"{title}\"", yoidApplied:"o béèrè fún àǹfààní {n}",
+  nextProto:"Tókàn: tẹ̀síwájú ní {name}",
+  handoffFrom:"Láti {name}", handoffTo:"A ń fi lé {name} lọ́wọ́", sigVerified:"A ti fìdí rẹ̀ múlẹ̀ lórí Yoma",
+  goalFromJourney:"Láti {name}: àfojúsùn rẹ ni \"{goal}\". Màá ṣètò yíká àǹfààní tí o rí níbẹ̀.",
   sizeQ:"Báwo ni ètò tí o fẹ́ ṣe tóbi tó? Ìgbésẹ̀ púpọ̀ túmọ̀ sí ẹ̀kọ́ púpọ̀ àti ibi púpọ̀ láti béèrè.",
   applyTitleBest:"Béèrè fún ọ̀kan tàbí jù bẹ́ẹ̀ lọ nínú ìwọ̀nyí", applyTitleNow:"Béèrè báyìí: o ti ní àwọn ọgbọ́n náà", applyTitleLater:"Béèrè lẹ́yìn àwọn ẹ̀kọ́ rẹ", applyTitleEarn:"Rí owó nígbà tí o ń kọ́ ẹ̀kọ́",
   rApplyBest:"Ìwọ̀nyí bá àfojúsùn rẹ mu {where}. Bíbéèrè fún púpọ̀ máa mú àǹfààní rẹ pọ̀ sí i.",
@@ -871,7 +869,7 @@ const O_T = {
     after:['Yi shirina na gaba','Nuna min ƙarin damammaki','Ina son magana da mutum','Shi ke nan yanzu'], profileYoma:['Haɗa asusuna na Yoma','Tsallake'],
     reject:['Yana ɗaukar lokaci da yawa','Ba irin aikin da nake so ba','Wurin bai dace ba','Ina son magana da mutum'],
     ci:['Ee, na gama','Ina kan yi','Ban fara ba','Ina buƙatar taimako'], apply:['Ee, na nema','Tukuna','Ina buƙatar taimako'],
-    guardian:['Ee, sun amince','Tukuna'], resume:['Ee, ci gaba',"A'a, fara sabon shiri"], fb:['Ee, sosai','Kaɗan','Ba sosai ba'],
+    guardian:['Ee, sun amince','Tukuna'], backpack:['Ee, buɗe ta','Ƙara min bayani','Ba yanzu ba'], backpack2:['Ee, buɗe ta','Ba yanzu ba'], resume:['Ee, ci gaba',"A'a, fara sabon shiri"], fb:['Ee, sosai','Kaɗan','Ba sosai ba'],
     end:['Yi sabon shiri','Shi ke nan yanzu'], work:['Naɗa saƙon murya','Rubuta','Tsallake'], workOk:['Ee, haka ne','Sake faɗa','Tsallake']},
   yo: {profile:['Bẹ́ẹ̀ ni, lo àkọọ́lẹ̀ mi','Rárá, fò ó'], goal:['Rí iṣẹ́','Rí owó báyìí','Kọ́ ọgbọ́n tuntun','Bẹ̀rẹ̀ òwò','Mi ò dá mi lójú'],
     sector:['Ìmọ̀ ẹ̀rọ àti díjítà','Iṣẹ́ oníbàárà àti títà ọjà','Iṣẹ́ oko àti òwò oko','Aṣọ àti ẹwà','Mi ò tíì pinnu'],
@@ -882,7 +880,7 @@ const O_T = {
     after:['Ṣe ètò mi tókàn','Fi àwọn àǹfààní míì hàn mí','Mo fẹ́ bá ènìyàn sọ̀rọ̀','Ó tó fún báyìí'], profileYoma:['So àkọọ́lẹ̀ Yoma mi pọ̀','Fò ó'],
     reject:['Ó ń gba àkókò púpọ̀','Kì í ṣe irú iṣẹ́ tí mo fẹ́','Ibẹ̀ kò bá mi mu','Mo fẹ́ bá ènìyàn sọ̀rọ̀'],
     ci:['Bẹ́ẹ̀ ni, mo ti parí','Mo ṣì ń ṣe é','Mi ò tíì bẹ̀rẹ̀','Mo nílò ìrànlọ́wọ́'], apply:['Bẹ́ẹ̀ ni, mo ti béèrè','Kò tíì','Mo nílò ìrànlọ́wọ́'],
-    guardian:['Bẹ́ẹ̀ ni, wọ́n gbà','Kò tíì'], resume:['Bẹ́ẹ̀ ni, tẹ̀síwájú','Rárá, bẹ̀rẹ̀ ètò tuntun'], fb:['Bẹ́ẹ̀ ni, gan-an','Díẹ̀','Kò fi bẹ́ẹ̀'],
+    guardian:['Bẹ́ẹ̀ ni, wọ́n gbà','Kò tíì'], backpack:['Bẹ́ẹ̀ ni, ṣí i','Sọ fún mi sí i','Kì í ṣe báyìí'], backpack2:['Bẹ́ẹ̀ ni, ṣí i','Kì í ṣe báyìí'], resume:['Bẹ́ẹ̀ ni, tẹ̀síwájú','Rárá, bẹ̀rẹ̀ ètò tuntun'], fb:['Bẹ́ẹ̀ ni, gan-an','Díẹ̀','Kò fi bẹ́ẹ̀'],
     end:['Ṣe ètò tuntun','Ó tó fún báyìí'], work:['Gba ohùn sílẹ̀','Kọ ọ́','Fò ó'], workOk:['Bẹ́ẹ̀ ni, ó tọ̀nà','Tún un sọ','Fò ó']}
 };
 for (const [lang, table] of Object.entries(O_T)) for (const [key, labels] of Object.entries(table)) O[key].forEach((o, i) => { if (labels[i]) o[lang] = labels[i]; });
@@ -908,7 +906,7 @@ const ABORT = Symbol('abort');
 function fresh(){
   return {lang:'en', stage:'intake', msgs:[], a:{}, age:null, consent:null, calc:null, idx:{apply:0,learn:0,start:0},
           plan:null, saved:false, week:0, stalls:0, flagged:null, awaitWeek:false, deleted:false,
-          guardian:null, reported:[], feedback:null, v:2};
+          guardian:null, backpack:null, yoidQueue:[], reported:[], feedback:null, v:2};
 }
 function t(k, v={}){ let s = (T[S.lang][k] ?? T.en[k]); return s.replace(/\{(\w+)\}/g, (_,x) => v[x] ?? ''); }
 const lbl = o => o[S.lang] ?? o.en;
@@ -942,176 +940,6 @@ function pick(i){
 }
 
 /* ---------- Matching ---------- */
-function oppBlock(o){
-  const a = S.a;
-  if (S.reported.includes(o.id)) return 'Reported by the user';
-  if ((S.doneIds || []).includes(o.id)) return 'Applied to in an earlier plan';
-  if (o.forOrgs) return 'For organisations, not individuals';
-  if (o.otherCountry) return 'For another country';
-  if (o.scam) return 'Asks for a fee or payment, flagged for review';
-  if (o.deadline === 'ongoing' || (!o.deadline && !o.openEnded)) return 'No clear deadline ("ongoing")';
-  if (o.linkBroken) return 'Application link broken';
-  if (hasDeadline(o) && parseD(o.deadline) < TODAY) return 'Deadline passed';
-  if (S.age < o.minAge) return `Needs age ${o.minAge}+`;
-  const st = o.states || [];
-  const okLoc = a.state === 'online' ? !!o.remote : (o.remote || st.includes('all') || st.includes(a.state));
-  if (!okLoc) return a.state === 'online' ? 'In person only' : 'Outside your state';
-  return null;
-}
-function courseBlock(c){
-  if (S.reported.includes(c.id)) return 'Reported by the user';
-  if ((S.doneIds || []).includes(c.id)) return 'Finished in an earlier plan';
-  if (c.expired || (c.deadline && parseD(c.deadline) < TODAY)) return 'Course closed (expired)';
-  if (S.a.data === 'low' && c.data === 3 && !c.offline) return 'Video-heavy, over data budget';
-  return null;
-}
-/* ---------- Plans: 3, 5 or 7 steps; Apply steps hold several openings ----------
-   Start (1) + Learn (1-3) + Apply (1-3). Each Apply step lists up to 3 openings from different employers,
-   so one rejection doesn't end the plan. Courses are chosen to cover the skills the whole set of openings
-   asks for, weighted by how many openings need each skill. */
-const PLAN_SHAPES = {3: {learn: 1, apply: ['best']}, 5: {learn: 2, apply: ['now', 'later']}, 7: {learn: 3, apply: ['now', 'later', 'earn']}};
-const PER_GROUP = 3;
-const STOPWORDS = new Set(['with','your','from','into','skills','skill','course','introduction','basic','basics','work','working','assistant','officer','become','learn','master','nigeria','lagos','abuja','remote','home','state','junior','senior','level','entry']);
-const words = s => new Set(String(s || '').toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length >= 4 && !STOPWORDS.has(w)));
-const hasKey = (o, ids) => ids.includes(o.id);
-
-function compute(){
-  const a = S.a, have = held(), excluded = [], CAT = catalogue();
-  const courses = CAT.courses.filter(c => { const r = courseBlock(c); if (r) excluded.push({name:c.title, src:c.src, why:r}); return !r; });
-  const teachable = new Set(courses.flatMap(c => c.skills));
-  const opps = CAT.opps.filter(o => { const r = oppBlock(o); if (r) excluded.push({name:o.title, src:o.src, why:r}); return !r; })
-    .map(o => {
-      const pref = GOAL_TYPES[a.goal], ti = pref.indexOf(o.type);
-      let s = ti >= 0 ? 4 - ti * .5 : -2;
-      if (a.goal === 'earn' && o.informal && o.informal.earnNow) s += 1.5;
-      if (a.sector !== 'notsure') s += o.sectors.includes(a.sector) ? 4 : o.sectors.includes('all') ? 1 : -3;
-      else if (o.sectors.includes('all')) s += 1;
-      const st = o.states || [];
-      if (st.includes(a.state)) s += 2; else if (st.includes('all')) s += 1.5; else if (o.remote) s += a.data === 'low' ? 0 : 1;
-      const gap = o.skills.filter(k => !have.has(k));
-      s += (o.skills.length - gap.length) - gap.length * .5;
-      s -= gap.filter(k => !teachable.has(k)).length * 1.5;
-      return {o, score: Math.round(s * 10) / 10};
-    }).sort((x, y) => y.score - x.score);
-  S.calc = {courses, opps, excluded, considered: CAT.courses.length + CAT.opps.length, live: liveOn()};
-  if (!opps.length) { S.plan = null; return; }
-  S.swap = {};
-  buildPlan();
-}
-
-// Prefer different employers: one per organisation first, then the rest.
-function diversify(list){
-  const seen = new Set(), first = [], rest = [];
-  for (const x of list) { const k = x.o.org || x.o.id; (seen.has(k) ? rest : first).push(x); seen.add(k); }
-  return [...first, ...rest];
-}
-const MIN_FIT = 2;   // openings below this fit score only fill a group when nothing better is left
-function groupCandidates(group, used, gapOf){
-  const free = S.calc.opps.filter(x => !used.has(x.o.id)), good = free.filter(x => x.score >= MIN_FIT);
-  const all = good.length >= PER_GROUP ? good : free;
-  if (group === 'now') {
-    const ready = all.filter(x => !gapOf(x.o).length);
-    return diversify(ready.length ? ready : [...all].sort((p, q) => gapOf(p.o).length - gapOf(q.o).length || q.score - p.score));
-  }
-  if (group === 'later') { const need = all.filter(x => gapOf(x.o).length); return diversify(need.length ? need : all); }
-  if (group === 'earn') {
-    const earn = all.filter(x => (x.o.informal && x.o.informal.earnNow) || x.o.type === 'task' || x.o.type === 'self');
-    return diversify(earn.length ? earn : all);
-  }
-  return diversify(all);
-}
-function buildPlan(){
-  const a = S.a, have = held(), c = S.calc, shape = PLAN_SHAPES[a.size] || PLAN_SHAPES[3], sw = S.swap || {};
-  const gapOf = o => o.skills.filter(k => !have.has(k));
-  const scoreOf = new Map(c.opps.map(x => [x.o.id, x.score]));
-  const used = new Set();
-  // 1. Apply steps
-  const applySteps = [];
-  shape.apply.forEach((group, gi) => {
-    const cands = groupCandidates(group, used, gapOf), off = (sw['apply' + gi] || 0) * PER_GROUP;
-    const items = cands.slice(off, off + PER_GROUP).map(x => x.o);
-    if (!items.length) return;
-    items.forEach(o => used.add(o.id));
-    applySteps.push({kind:'apply', group, items, more: cands.length > off + PER_GROUP, status:'todo', applied:0,
-      item: {id: 'g:' + items.map(o => o.id).join(','), title: t({best:'applyTitleBest', now:'applyTitleNow', later:'applyTitleLater', earn:'applyTitleEarn'}[group])}});
-  });
-  if (!applySteps.length) { S.plan = null; return; }
-  // 2. Skills the career openings ask for that the person doesn't have yet, weighted by how many need them
-  //    ("earn now" tasks and openings they can already apply to don't drive the courses)
-  const targets = applySteps.filter(s => s.group === 'later' || s.group === 'best').flatMap(s => s.items);
-  const tgt = targets.length ? targets : applySteps.flatMap(s => s.items);
-  const need = {};
-  tgt.forEach(o => gapOf(o).forEach(k => { need[k] = (need[k] || 0) + 1; }));
-  const tWords = new Set(tgt.flatMap(o => [...words(o.title), ...o.skills.flatMap(k => [...words(SK[k])])]));
-  const aiBonus = id => { const i = (S.aiRank && S.aiRank.ids || []).indexOf(id); return i < 0 ? 0 : Math.max(0, 3 - i * .5); };
-  const overlap = x => [...words(x.title)].filter(w => tWords.has(w)).length;
-  const relevant = x => x.skills.some(k => need[k]) || overlap(x) > 0 || (a.sector !== 'notsure' && x.sectors.includes(a.sector));
-  const onTarget = x => x.skills.some(k => need[k]) || overlap(x) > 0;   // matches the openings, not just the sector
-  const covered = new Set();
-  // 3. Start Here is meant to be a Passport to Earning course: reserve a relevant real one first
-  let start = null;
-  if (!(sw.start > 0)) {
-    const p2e = c.courses.filter(x => x.p2e && x.entry && !used.has(x.id) && onTarget(x))
-      .sort((p, q) => q.skills.filter(k => need[k]).length - p.skills.filter(k => need[k]).length || overlap(q) - overlap(p) || p.hours - q.hours)[0];
-    if (p2e) { used.add(p2e.id); p2e.skills.forEach(k => { if (need[k]) covered.add(k); }); start = {kind:'start', item: p2e, more: true, status:'todo'}; }
-  }
-  // 4. Learn steps: greedy cover of the weighted gap
-  const learnSteps = [];
-  for (let i = 0; i < shape.learn; i++) {
-    const scored = c.courses.filter(x => !used.has(x.id)).map(x => {
-      const cov = x.skills.filter(k => need[k] && !covered.has(k));
-      if (!cov.length) return null;
-      let s = cov.reduce((t, k) => t + need[k], 0) * 3;
-      s += Math.min(2, overlap(x));
-      if (x.sectors.includes(a.sector)) s += 1;
-      if (x.p2e) s += 1;
-      s += x.hours <= a.hours * 3 ? 1 : -1;
-      if (a.data === 'low' && x.data > 1) s -= 1;
-      s += aiBonus(x.id);
-      return {c: x, cov, score: s};
-    }).filter(Boolean).sort((p, q) => q.score - p.score || p.c.hours - q.c.hours);
-    const off = sw['learn' + i] || 0, pick = scored[off];
-    if (!pick) break;
-    used.add(pick.c.id); pick.cov.forEach(k => covered.add(k));
-    learnSteps.push({kind:'learn', item: pick.c, cov: pick.cov, more: scored.length > off + 1, status:'todo'});
-  }
-  // Spare Learn slots: job-ready skills (CV, interviews, finding work) help with every application
-  const JOB_READY = ['cv', 'interview', 'job-search', 'comms'];
-  while (learnSteps.length < shape.learn) {
-    const extra = c.courses.filter(x => !used.has(x.id) && x.skills.some(k => JOB_READY.includes(k) && !have.has(k)))
-      .sort((p, q) => (q.p2e ? 1 : 0) - (p.p2e ? 1 : 0) || p.hours - q.hours)[0];
-    if (!extra) break;
-    used.add(extra.id);
-    learnSteps.push({kind:'learn', item: extra, cov: [], extra: extra.skills.filter(k => JOB_READY.includes(k) && !have.has(k)), more: false, status:'todo'});
-  }
-  if (!learnSteps.length) {
-    const r = PROFILE_STEP; used.add(r.id);
-    learnSteps.push({kind:'learn', item: r, cov: [], ready: true, more: false, status:'todo'});
-  }
-  // 5. Otherwise the Start step is an entry-level course, ideally a prerequisite of a Learn step, related to the goal
-  const prereqs = learnSteps.map(s => s.item.prereq).filter(k => k && !have.has(k));
-  const startList = c.courses.filter(x => x.entry && !used.has(x.id) && !(x.skills.length && x.skills.every(k => have.has(k)))).map(x => {
-    let s = 0; const pre = x.skills.some(k => prereqs.includes(k));
-    if (pre) s += 5;
-    s += x.skills.filter(k => need[k] && !covered.has(k)).length * 2;
-    if (x.sectors.includes(a.sector)) s += 2; else if (x.sectors.includes('all')) s += 1;
-    s += x.hours <= a.hours * 3 ? 2 : -1;
-    if (x.p2e) s += 3;   // Start Here is meant to be a Passport to Earning course; prefer the real ones on Yoma
-    s += Math.min(2, overlap(x));
-    if (!pre && !relevant(x)) s -= 3;   // a short course that has nothing to do with the goal is not a good start
-    if (a.data === 'low' && x.data > 1) s -= 1;
-    return {c: x, score: s, pre};
-  }).sort((p, q) => q.score - p.score || p.c.hours - q.c.hours);
-  if (!learnSteps.some(s => s.item.pseudo)) startList.push({c: PROFILE_STEP, score: -9, profile: true});
-  if (!start) {
-    const off = Math.max(0, (sw.start || 0) - (sw.start > 0 ? 1 : 0)), st0 = startList[Math.min(off, startList.length - 1)];
-    start = {kind:'start', item: st0.c, pre: st0.pre, profile: st0.profile, more: startList.length > off + 1, status:'todo'};
-  }
-  const old = S.plan;
-  const top = applySteps[0].items[0];
-  S.plan = {steps: [start, ...learnSteps, ...applySteps], need, covered: [...covered], targets: tgt, weak: (scoreOf.get(top.id) ?? 0) < 5};
-  if (old && S.saved) S.plan.steps.forEach(st => { const o = old.steps.find(x => x.item.id === st.item.id); if (o) { st.status = o.status; st.applied = o.applied; } });
-}
 const learnWeeks = () => weeksFor(S.plan.steps.filter(s => s.kind !== 'apply').reduce((t, s) => t + (s.item.hours || 0), 0));
 const whereOf = o => { const st = o.states || []; return st.includes(S.a.state) ? t('whereState', {state: STATES[S.a.state]}) : st.includes('all') ? t('whereAll') : t('whereOnline'); };
 function reason(st){
@@ -1147,6 +975,10 @@ async function start(){
   gen++; S = fresh(); pending = null; busy = false; TODAY = liveOn() ? REAL_TODAY : SAMPLE_TODAY; renderAll();
   run((async () => {
     S.msgs.push({from: 'sys', link: '/privacy.html', text: 'How Pathfinder uses your data · Yadda muke amfani da bayananka · Bí a ṣe ń lo àlàyé rẹ'});
+    if (JOURNEY.in) {
+      S.journey = JOURNEY.in;
+      S.msgs.push({from: 'handoff', dir: 'in'});
+    }
     await say(T.en.greet + '\n\nHow far! · Sannu! · Ẹ n lẹ́!');
     await ask('Which language do you prefer?\nWhich language you want?\nWane harshe kake so?\nÈdè wo lo fẹ́?', O.lang, async v => {
       S.lang = v; S.a.lang = v; document.documentElement.lang = v; renderPanel(); renderOffline(); track('intake_started');
@@ -1186,7 +1018,14 @@ async function askProfile(){
     await askWork();
   });
 }
-async function askGoal(){ await ask(t('goal'), O.goal, async v => { S.a.goal = v; renderPanel(); await askSector(); }); }
+async function askGoal(){
+  if (S.journey && S.journey.goal) {   // Phase 1 already asked: don't ask again
+    S.a.goal = S.journey.goal; S.a.sector = (S.journey.listing.sectors || []).find(x => x !== 'all') || 'notsure'; renderPanel();
+    await say(t('goalFromJourney', {name: S.journey.from, goal: S.journey.goalText || goalText(S.journey.goal)}));
+    return askState();
+  }
+  await ask(t('goal'), O.goal, async v => { S.a.goal = v; renderPanel(); await askSector(); });
+}
 async function askSector(next){ await ask(t('sector'), O.sector, async v => { S.a.sector = v; renderPanel(); await (next ? next() : askState()); }); }
 async function askState(next){ await ask(t('state'), O.state, async v => { S.a.state = v; renderPanel(); await (next ? next() : askHours()); }); }
 async function askHours(){ await ask(t('hours'), O.hours, async v => { S.a.hours = v; renderPanel(); await askData(); }); }
@@ -1231,6 +1070,12 @@ async function planMenu(){
 }
 async function savePlan(){
   S.saved = true; S.stage = 'checkin'; renderPanel(); track('plan_saved');
+  return askBackpack(afterSave);
+}
+async function afterSave(){
+  await yoid('plan', {n: S.plan.steps.length});
+  const hc = handoffCourse();
+  if (hc) { S.msgs.push({from: 'handoff', dir: 'out', title: hc.title, provider: hc.src}); renderChat(); }
   const saved = await saveToYoma();
   await say(saved > 0 ? t('savedYoma', {n: saved}) : t('savedLocal'));
   return ask(t('fbQ'), O.fb, async f => { S.feedback = f; renderPanel(); await say(t('fbThanks')); S.awaitWeek = true; renderChat(); });
@@ -1291,6 +1136,7 @@ async function checkin(){
       if (v === 'help') return afterMiss('help', step);
       if (!v) return afterMiss('not', step);
       step.status = 'done'; step.applied = v; S.stalls = 0; renderPanel(); track('applied');
+      await yoid('applied', {n: v >= 2 ? '2+' : v});
       await say(t('appliedSome'));
       const z = step.items.reduce((s, o) => s + (o.zlto || 0), 0);
       if (z) await say(t('zlto', {z}));
@@ -1300,6 +1146,7 @@ async function checkin(){
   return ask(t('ciQ', {w: S.week, n: i + 1, title: step.item.title}), O.ci, async v => {
     if (v === 'done') {
       step.status = 'done'; S.stalls = 0; renderPanel(); track('step_done');
+      if (!step.item.pseudo) await yoid('course', {title: step.item.title});
       await say(t('ciDone'));
       if (step.item.zlto) await say(t('zlto', {z: step.item.zlto}));
       return stepDone(step);
@@ -1312,6 +1159,7 @@ async function completePlan(){
   S.stage = 'done'; renderPanel();
   await say('', {card: snapshot()});
   await say(t('complete'));
+  if (NEXT.proto) S.msgs.push({from: 'next'});
   return afterMenu();
 }
 // After the plan: a next plan that builds on new skills, more openings, or a person.
@@ -1486,6 +1334,82 @@ async function aiRankCourses(){
   S.msgs = S.msgs.filter(m => m.from !== 'typing');
 }
 
+
+
+/* ---------- The four-prototype journey ----------
+   Phase 1 (Ziqi) hands PathFinder "A verified opportunity and the user's goal".
+   PathFinder (Phase 2) hands SkillLens (Phase 3) "Plan step: complete a P2E course".
+   Open with ?journey=demo to use the shared mock data, or ?from=ziqi&listing=<Yoma id>&goal=job for a real listing. */
+const JOURNEY = {in: null};
+const ITEM_IN = "A verified opportunity and the user's goal", ITEM_OUT = 'Plan step: complete a P2E course';
+async function loadJourney(){
+  const q = new URLSearchParams(location.search);
+  try {
+    if (q.get('journey') === 'demo') {
+      const j = await getJSON('/api/journey', 8000);
+      JOURNEY.in = {from: j.journey[0].prototype, goal: j.user.goal, goalText: j.user.goalText,
+        listing: {...j.listing, src: 'Yoma', kind: 'opp', sample: true, informal: {earnNow: false, phoneOnly: false, noCert: true}},
+        course: {...j.course, src: j.course.provider, kind: 'course', p2e: true, sample: true, data: 1, sectors: ['all']}};
+    } else if (q.get('listing')) {
+      await liveReady;
+      const id = q.get('listing'), o = [...LIVE.opps, ...OPPS].find(x => x.id === id || x.id === 'y-' + id);
+      if (o) JOURNEY.in = {from: q.get('from') || 'Yoma', goal: O.goal.some(g => g.v === q.get('goal')) ? q.get('goal') : 'job', listing: {...o, verified: true}};
+    }
+  } catch {}
+}
+const goalText = g => lbl(O.goal.find(o => o.v === g) || O.goal[0]);
+function handoffHTML(m){
+  if (m.dir === 'in') return `<div class="handoff"><span class="tag t-apply">${esc(t('handoffFrom', {name: m.from}))} · Phase 1</span>
+    <b>${esc(ITEM_IN)}</b><div>${esc(m.title)} · ${esc(m.org)} <span class="sig"><span>${esc(t('sigVerified'))}</span></span></div><div>${esc(t('goal'))} ${esc(m.goal)}</div></div>`;
+  return `<div class="handoff"><span class="tag t-learn">${esc(t('handoffTo', {name: NEXT.proto ? NEXT.proto.name : 'SkillLens'}))} · Phase 3</span>
+    <b>${esc(ITEM_OUT)}</b><div>${esc(m.title)} (${esc(m.provider)})</div>${nextProtoLink()}</div>`;
+}
+function handoffCourse(){
+  const steps = S.plan.steps.filter(s => s.kind !== 'apply' && !s.item.pseudo);
+  return (steps.find(s => s.item.p2e) || steps.find(s => /passport to earning/i.test(s.item.src)) || steps[0] || {}).item || null;
+}
+
+/* ---------- YoID: each achievement is recorded on the young person's YoID ----------
+   Mocked for the prototype (the assignment allows mocked or designed writes). In the live build these
+   become credential writes through Yoma's YoID; see docs/INTEGRATION.md. */
+// Records go to the young person's Skills Backpack on YoID, as in UNICEF's FunDoo bot: only once they agree, and only from 16.
+// Before they're asked, records wait in a queue; if they say no, nothing is written.
+async function yoid(type, vars = {}){
+  const rec = {type, at: new Date().toISOString(), ...vars};
+  if (S.backpack === false) return;
+  if (S.backpack !== true) { S.yoidQueue = [...(S.yoidQueue || []), rec]; return; }
+  writeYoid(rec);
+}
+function writeYoid(rec){
+  S.yoid = [...(S.yoid || []), rec];
+  S.msgs.push({from: 'yoid', text: t('yoidAdded', {what: yoidLabel(rec)})});
+  renderAll();
+}
+// Asked once, when the plan is first saved. FunDoo's wording: Yes, activate it / Tell me more / Not now.
+async function askBackpack(then){
+  if (S.backpack === true || S.backpack === false) return then();
+  if (S.age !== null && S.age < 16) { S.backpack = false; S.yoidQueue = []; renderPanel(); await say(t('backpackUnder16')); return then(); }
+  const answer = async v => {
+    if (v === 'more') return ask(t('backpackMore'), O.backpack2, answer);
+    S.backpack = v === true; const queued = S.yoidQueue || []; S.yoidQueue = [];
+    await say(t(S.backpack ? 'backpackYes' : 'backpackNo'));
+    if (S.backpack) queued.forEach(writeYoid);
+    renderPanel(); return then();
+  };
+  return ask(t('backpackQ'), O.backpack, answer);
+}
+const yoidLabel = r => t({skills: 'yoidSkills', plan: 'yoidPlan', course: 'yoidCourse', applied: 'yoidApplied'}[r.type], r);
+// The journey continues in the next GenU prototype (link set by the server).
+const NEXT = {proto: null};
+function nextProtoLink(){
+  if (!NEXT.proto) return '';
+  const u = new URL(NEXT.proto.url, location.href), c = S.plan ? handoffCourse() : null;
+  const pin = S.journey && S.journey.listing ? S.journey.listing.id : S.plan ? (S.plan.steps.find(s => s.items) || {items: [{}]}).items[0].id : '';
+  const add = {from: 'pathfinder', course: c && c.id, course_title: c && c.title, listing: pin, goal: S.a.goal};
+  for (const [k, v] of Object.entries(add)) if (v) u.searchParams.set(k, v);
+  return `<a class="next-proto" href="${esc(u.toString())}" target="_blank" rel="noopener">${esc(t('nextProto', {name: NEXT.proto.name}))} →</a>`;
+}
+
 /* ---------- Work I already do: informal skills by voice or text ---------- */
 let pendingText = null, rec = null;
 const BrowserSR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1520,6 +1444,7 @@ async function handleWork(text, fromVoice){
     if (v === 'again') return askWork();
     if (v === 'yes') {
       S.work = draft; renderPanel(); track('work_skills_added');
+      await yoid('skills', {n: draft.skills.length});
       await say(t('workSaved'));
       await say('', {skills: {...draft, final: true}});
     }
@@ -1640,7 +1565,7 @@ function openingView(o){
   return {id: o.id, title: o.title, org: o.org, platform: o.src, link: o.link || '',
     src: `${o.org} · ${TYPE_LABEL[o.type] || o.type} on ${o.src}` + (o.sample ? ' (sample)' : ''),
     meta: (hasDeadline(o) ? t('closes', {d: fmtD(parseD(o.deadline))}) : t('openNow')) + (o.zlto ? ` · ${o.zlto} Zlto` : ''),
-    signals: inf ? [inf.earnNow && t('sigEarn'), inf.phoneOnly && t('sigPhone'), inf.noCert && t('sigNoCert')].filter(Boolean) : [],
+    signals: [o.verified && t('sigVerified'), ...(inf ? [inf.earnNow && t('sigEarn'), inf.phoneOnly && t('sigPhone'), inf.noCert && t('sigNoCert')] : [])].filter(Boolean),
     inPerson: !o.remote, informal: o.informal === true || o.type === 'self' || o.type === 'apprenticeship'};
 }
 function snapshot(){
@@ -1686,7 +1611,8 @@ function planCard(steps){
         : `<div class="row"><button class="open" data-open="${esc(s.title)}|${esc(s.platform)}" data-link="${esc(s.link)}">${esc(t('openOn', {p: s.platform}))}<span class="sr-only">: ${esc(s.title)}</span></button>
         <span>${S.saved ? `<span class="status ${s.status}">${esc(statusLbl(s.status))}</span> ` : ''}<button class="open report" data-report="${esc(s.id)}">${esc(t('report'))}<span class="sr-only"> ${esc(s.title)}</span></button></span></div>`}
     </div>`).join('')}
-    <div class="plan-foot"><a href="${esc(shareLink(steps))}" target="_blank" rel="noopener">${esc(t('share'))}</a><span>${esc(t('shareNote'))}</span></div></div>`;
+    <div class="plan-foot"><a href="${esc(shareLink(steps))}" target="_blank" rel="noopener">${esc(t('share'))}</a><span>${esc(t('shareNote'))}</span></div>
+    ${S.saved && NEXT.proto ? `<div class="plan-foot">${nextProtoLink()}</div>` : ''}</div>`;
 }
 function openingsCard(list){
   if (channel === 'sms') return `<div class="msg bot">${esc(list.map(openingSMS).join('\n'))}</div>`;
@@ -1706,6 +1632,11 @@ function renderChat(){
     if (m.from === 'typing') { h += '<div class="typing" aria-hidden="true"><i></i><i></i><i></i></div>'; continue; }
     if (m.from === 'sys') { h += m.link ? `<a class="msg sys" href="${esc(m.link)}" target="_blank" rel="noopener">${esc(m.text)}</a>` : `<div class="msg sys">${esc(m.text)}</div>`; continue; }
     if (m.card) { h += planCard(m.card); continue; }
+    if (m.from === 'handoff') { const j = S.journey || {}; h += handoffHTML(m.dir === 'in'
+      ? {dir: 'in', from: j.from, title: j.listing.title, org: j.listing.org, goal: j.goalText || goalText(j.goal)}
+      : {dir: 'out', title: m.title, provider: m.provider}); continue; }
+    if (m.from === 'yoid') { h += `<div class="yoid" role="status"><b>YoID</b> ${esc(m.text)}</div>`; continue; }
+    if (m.from === 'next') { h += nextProtoLink() ? `<div class="msg bot">${nextProtoLink()}</div>` : ''; continue; }
     if (m.openings) { h += `<div class="msg bot">${esc(m.text)}</div>` + openingsCard(m.openings); continue; }
     if (m.skills) { if (m.text) h += `<div class="msg bot">${esc(m.text)}</div>`; h += skillsCard(m.skills); continue; }
     let text = m.text;
@@ -1748,6 +1679,9 @@ function renderPanel(){
     ${S.consent ? (P.creds.length ? `<ul class="ex">${P.creds.map(c => `<li><span>${esc(c.title)}</span><span style="color:var(--ok)">${esc(c.src)}</span></li>`).join('')}</ul>
       <div class="chips" style="margin-top:10px">${[...held()].map(k => `<span class="chip have">${esc(SK[k])}</span>`).join('')}</div>` : '<p class="empty-note">No credentials on this profile yet.</p>')
       : `<p class="empty-note">${S.consent === false ? 'The user chose not to share. Pathfinder plans from their answers only.' : `Sample profile for ${esc(P.name)}: ${P.creds.length} credential${P.creds.length === 1 ? '' : 's'}. Pathfinder asks before reading it.`}</p>`}
+    <p class="empty-note" style="margin-top:10px"><b>Skills Backpack (YoID)</b>: ${S.backpack === true ? 'activated' : S.backpack === false ? (S.age !== null && S.age < 16 ? 'not offered (YoID starts at 16)' : 'declined, nothing written') : `not asked yet${S.yoidQueue && S.yoidQueue.length ? ` · ${S.yoidQueue.length} record waiting for consent` : ''}`}</p>
+    ${S.yoid && S.yoid.length ? `<p class="empty-note" style="margin-top:10px"><b>YoID records</b> (mocked writes for the prototype):</p>
+      <ul class="ex">${S.yoid.map(r => `<li><span>${esc(r.type)}${r.title ? ': ' + esc(r.title) : r.n ? ' (' + esc(r.n) + ')' : ''}</span><span style="color:var(--ok)">${esc(r.at.slice(0, 10))}</span></li>`).join('')}</ul>` : ''}
     ${S.work ? `<p class="empty-note" style="margin-top:10px">Skills from their own work (${S.work.source === 'ai' ? 'Azure AI' : 'keyword rules'}, confirmed by them):</p>
       <div class="chips">${S.work.skills.map(k => `<span class="chip have">${esc(SK[k])}</span>`).join('')}</div>` : ''}`;
   const c = S.calc, p = S.plan, have = held();
@@ -1866,7 +1800,7 @@ seg('datamode', v => { dataMode = v; clearSaved(); renderDataStatus(); start(); 
 const liveReady = loadServer().then(() => { if (S && S.stage === 'intake' && !S.calc) { TODAY = liveOn() ? REAL_TODAY : SAMPLE_TODAY; renderAll(); } });
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('/sw.js').catch(() => {});
 addEventListener('online', () => { renderOffline(); run(flushCases()); }); addEventListener('offline', renderOffline);
-resumeAfterYoma().then(back => { if (!back && !resume()) start(); });
+loadJourney().then(() => resumeAfterYoma()).then(back => { if (!back && !resume()) start(); });
 renderOffline();
 </script>
 </body>

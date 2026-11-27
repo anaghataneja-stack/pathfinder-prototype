@@ -1,7 +1,5 @@
 # Pathfinder
 
-> **For GenU:** start with the [handover note](docs/GENU-HANDOVER.md), which covers what's live, costs, the handover plan and next steps. Prompts are in [prompts/](prompts), the plan-scoring rubric in [rubrics/](rubrics), and test cases in `test/` and `e2e/`. The RoleMap mock-up is [here](https://anaghataneja-stack.github.io/pathfinder-prototype/mockups/rolemap/index.html), and the team's shared mock data is in [mockups/](mockups).
-> 
 **Pathfinder** (Concept 1, the Goal-to-Plan Navigator) is a GenU prototype for the Nigeria pilot. It turns a young person's goal into three ordered steps across Passport to Earning (P2E), Yoma and imaGen, then keeps them moving with weekly check-ins.
 
 This version adds:
@@ -18,7 +16,10 @@ This version adds:
 - **"Continue with Yoma" sign-in**, via Yoma's Keycloak.
   - Reads the person's **real Yoma skills** and **saves the plan's opportunities to their Yoma account**.
   - Off until Yoma registers a Pathfinder client; see [docs/INTEGRATION.md](docs/INTEGRATION.md).
-- **A plan for WhatsApp:** [docs/RAPIDPRO.md](docs/RAPIDPRO.md) maps Pathfinder onto Yoma's RapidPro sandbox.
+- **Yoma's look:** colours, fonts and spacing come from the shared tokens file `tokens/yoma-tokens.css` (Yoma's own brand values). No colours are hard-coded.
+- **YoID as the thread:** skills, the plan, finished courses and applications are recorded on the young person's YoID (mocked writes). There's also a link to the next prototype in the joined-up demo. See [docs/COHESION.md](docs/COHESION.md).
+- **WhatsApp through RapidPro:** a ready-to-import RapidPro file and two webhooks, using the same plan engine as the web app. It follows UNICEF's FunDoo bot: the same Skills Backpack question, YoID only from 16, and 1️⃣ 2️⃣ 3️⃣ menus. Setup: [docs/RAPIDPRO.md](docs/RAPIDPRO.md).
+- **One journey across four prototypes:** Yoma's design tokens, YoID records, shared mock data and handoffs in and out. Open `/?journey=demo`. See [docs/COHESION.md](docs/COHESION.md).
 
 - **Real Yoma data, refreshed daily.** The server syncs every published Nigeria and Worldwide opportunity from the public Yoma API once a day. If Yoma is down it keeps the last good copy.
 - **Azure OpenAI**, with a checked fallback for every call:
@@ -85,6 +86,7 @@ Other settings:
 - `AI_ENRICH_LISTINGS`: AI tagging of listings during the sync.
 - `PILOT_ACCESS_CODE`: locks a hosted pilot behind a code. Open `/?code=…` once on each phone. Wrong codes are limited to 10 tries per 10 minutes.
 - `YOMA_AUTH_ISSUER`, `YOMA_AUTH_CLIENT_ID`, `YOMA_AUTH_CLIENT_SECRET`, `PUBLIC_URL`: turn on **"Continue with Yoma"**. These need a Keycloak client registered by Yoma for Pathfinder, with redirect URI `<PUBLIC_URL>/auth/yoma/callback`.
+- `NEXT_PROTOTYPE_NAME`, `NEXT_PROTOTYPE_URL`: the next prototype in the joined-up GenU demo, shown as a button once the plan is saved.
 - `DEMO_BROWSER_VOICE`: **demo only.** `true` lets voice notes use Chrome's built-in speech recognition when Azure voice isn't set up. The audio goes to Google, so it must stay `false` for the pilot. The app labels it "Demo only" whenever it's used.
 - `STAFF_CODE`: turns on the facilitator case inbox at `/staff`. Open `/staff?code=…` once. Use a long random code.
 - `PORT`: the port the server listens on.
@@ -159,10 +161,10 @@ The **Behind the scenes** panel shows:
 ## Tests
 
 ```bash
-npm test                    # 87 unit and API tests, no installs, about 2 seconds
+npm test                    # 98 unit and API tests, no installs, about 2 seconds
 ```
 
-Browser scenarios (20 of them) run the real server against a mock Yoma API and a mock Azure, in Chromium:
+Browser scenarios (23 of them) run the real server against a mock Yoma API and a mock Azure, in Chromium:
 
 ```bash
 npm i --no-save playwright && npx playwright install chromium
@@ -214,12 +216,15 @@ Igbo is planned for the next sprint.
 serve.mjs            server entry point
 sync.mjs             run one Yoma sync now
 pathfinder.html      the app
+engine/              plan-engine.js: matching and plan building, shared by the web app and the WhatsApp webhooks
+flows/               RapidPro import file and its builder
 sw.js, manifest.webmanifest, icon.svg   offline + add to home screen
-lib/                 env, rules, privacy, yoma, sync, ai, ai-tasks, server
-data/                sample-listings.json (+ yoma-cache.json at runtime, git-ignored)
+lib/                 env, rules, privacy, yoma, sync, ai, ai-tasks, server, plan-server, store, yoma-auth
+data/                sample-listings.json, shared-journey.json (shared mock data) (+ yoma-cache.json at runtime, git-ignored)
 test/                unit/API tests (node:test) and mock Yoma/Azure servers
 e2e/scenarios.mjs    browser scenarios
-docs/                DEMO.md, PILOT.md, INTEGRATION.md, RAPIDPRO.md, TESTING.md, HANDOFF.md, design and plan
+docs/                DEMO.md, PILOT.md, INTEGRATION.md, RAPIDPRO.md, COHESION.md, TESTING.md, HANDOFF.md, design and plan
+tokens/              yoma-tokens.css: shared Yoma design tokens for all four prototypes
 privacy.html         privacy notice (draft for GenU review)
 pilot-report.mjs     pilot numbers from data/
 .github/workflows/   tests on every push

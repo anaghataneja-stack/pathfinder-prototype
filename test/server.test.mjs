@@ -135,3 +135,21 @@ test('the browser-voice demo fallback is off unless switched on', async () => {
   assert.equal((await (await fetch(b + '/api/status')).json()).demoVoice, true);
   demo.close();
 });
+
+test('the shared Yoma tokens file is served, and the next prototype link comes from settings', async () => {
+  const r = await fetch(base + '/tokens/yoma-tokens.css');
+  assert.equal(r.status, 200); assert.match(r.headers.get('content-type'), /text\/css/);
+  assert.equal((await (await fetch(base + '/api/status')).json()).nextPrototype, null);
+  const linked = createApp({ sync: fakeSync, ai: createAI({}), nextPrototype: { name: 'YoCV', url: 'https://yocv.example.org/?from=pathfinder' } });
+  const b = await listen(linked);
+  assert.deepEqual((await (await fetch(b + '/api/status')).json()).nextPrototype, { name: 'YoCV', url: 'https://yocv.example.org/?from=pathfinder' });
+  linked.close();
+});
+
+test('the shared journey mock data is served for every prototype', async () => {
+  const j = await (await fetch(base + '/api/journey')).json();
+  assert.equal(j.journey[1].prototype, 'PathFinder');
+  assert.equal(j.journey[0].handsOn, "A verified opportunity and the user's goal");
+  assert.equal(j.journey[1].handsOn, 'Plan step: complete a P2E course');
+  assert.ok(j.user && j.listing && j.course && j.credential);
+});

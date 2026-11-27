@@ -1,0 +1,64 @@
+/* Yoma design tokens for the four GenU prototypes (Ziqi, PathFinder, YoCV, SkillLens).
+   Brand values come from Yoma's own web app: src/web/src/styles/colors.css and globals.css
+   (daisyUI theme: primary #41204b, secondary #387f6a; fonts Nunito + Open Sans).
+   Import this file and use the --yoma-* names; don't hard-code colours, fonts or spacing.
+     <link rel="stylesheet" href="/tokens/yoma-tokens.css">
+   Fonts: https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Open+Sans:wght@400;600;700&display=swap */
+
+:root{
+  /* Brand palette (Yoma) */
+  --yoma-purple:#41204b; --yoma-purple-shade:#54365d; --yoma-purple-soft:#c3a2cd; --yoma-purple-tint:#e7d4ed;
+  --yoma-green:#387f6a; --yoma-green-dark:#4ca78c; --yoma-green-light:#e6f5f3;
+  --yoma-blue:#4cade9; --yoma-blue-dark:#2487c5; --yoma-blue-light:#edf6fd;
+  --yoma-orange:#f9ab3e; --yoma-orange-light:#fdeed8; --yoma-yellow:#d48414;
+  --yoma-pink:#fe4d57; --yoma-beige:#f7f5eb; --yoma-beige-light:#fffef8;
+  --yoma-white:#ffffff; --yoma-white-shade:#f7f7f7; --yoma-gray-light:#f3f6fa; --yoma-gray:#dce0e5; --yoma-gray-dark:#545859; --yoma-black:#020304;
+
+  /* Text shades derived from the brand colours, for small text on light backgrounds (WCAG AA 4.5:1).
+     Yoma's orange, blue and pink are too light for that on white. */
+  --yoma-orange-ink:#8f5a0c; --yoma-blue-ink:#1a6a9c; --yoma-pink-ink:#c2202b; --yoma-pink-light:#ffe3e5;
+
+  /* Type */
+  --yoma-font-display:"Nunito", ui-sans-serif, system-ui, sans-serif;
+  --yoma-font-body:"Open Sans", ui-sans-serif, system-ui, sans-serif;
+  --yoma-font-mono:ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --yoma-text-xs:12px; --yoma-text-sm:14px; --yoma-text-base:16px; --yoma-text-lg:20px; --yoma-text-xl:24px; --yoma-text-2xl:30px; --yoma-text-3xl:36px;
+
+  /* Shape, space, depth */
+  --yoma-radius-sm:8px; --yoma-radius:12px; --yoma-radius-lg:20px; --yoma-radius-pill:999px;
+  --yoma-space-1:4px; --yoma-space-2:8px; --yoma-space-3:12px; --yoma-space-4:16px; --yoma-space-6:24px; --yoma-space-8:32px;
+  --yoma-shadow:0 10px 30px -12px rgba(65,32,75,.35);
+
+  /* Semantic roles: use these in components */
+  --yoma-bg:var(--yoma-gray-light); --yoma-canvas:var(--yoma-beige);
+  --yoma-surface:var(--yoma-white); --yoma-surface-2:var(--yoma-white-shade);
+  --yoma-ink:var(--yoma-black); --yoma-muted:var(--yoma-gray-dark); --yoma-line:var(--yoma-gray);
+  --yoma-primary:var(--yoma-purple); --yoma-primary-ink:var(--yoma-white); --yoma-primary-soft:var(--yoma-purple-tint);
+  --yoma-success:var(--yoma-green); --yoma-success-soft:var(--yoma-green-light);
+  --yoma-warning-ink:var(--yoma-orange-ink); --yoma-warning-soft:var(--yoma-orange-light);
+  --yoma-info-ink:var(--yoma-blue-ink); --yoma-info-soft:var(--yoma-blue-light);
+  --yoma-danger-ink:var(--yoma-pink-ink); --yoma-danger-soft:var(--yoma-pink-light);
+  --yoma-frame:var(--yoma-purple);
+}
+
+/* Dark mode: same palette, darkened surfaces and lighter text colours. */
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --yoma-bg:#130a17; --yoma-canvas:#1b1020; --yoma-surface:#21142a; --yoma-surface-2:#2a1b33;
+  --yoma-ink:#f4eff6; --yoma-muted:#bfb3c6; --yoma-line:#3d2c47;
+  --yoma-primary:var(--yoma-purple-soft); --yoma-primary-ink:#1a0d20; --yoma-primary-soft:#3a2343;
+  --yoma-success:var(--yoma-green-dark); --yoma-success-soft:#15302a;
+  --yoma-warning-ink:var(--yoma-orange); --yoma-warning-soft:#3a2a12;
+  --yoma-info-ink:var(--yoma-blue); --yoma-info-soft:#13293a;
+  --yoma-danger-ink:#ff8a91; --yoma-danger-soft:#3d1518;
+  --yoma-frame:#0b050e;
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --yoma-bg:#130a17; --yoma-canvas:#1b1020; --yoma-surface:#21142a; --yoma-surface-2:#2a1b33;
+  --yoma-ink:#f4eff6; --yoma-muted:#bfb3c6; --yoma-line:#3d2c47;
+  --yoma-primary:var(--yoma-purple-soft); --yoma-primary-ink:#1a0d20; --yoma-primary-soft:#3a2343;
+  --yoma-success:var(--yoma-green-dark); --yoma-success-soft:#15302a;
+  --yoma-warning-ink:var(--yoma-orange); --yoma-warning-soft:#3a2a12;
+  --yoma-info-ink:var(--yoma-blue); --yoma-info-soft:#13293a;
+  --yoma-danger-ink:#ff8a91; --yoma-danger-soft:#3d1518;
+  --yoma-frame:#0b050e;
+  color-scheme:dark }

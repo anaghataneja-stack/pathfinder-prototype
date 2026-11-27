@@ -18,6 +18,12 @@ This script works without Azure keys.
 3. Do one practice voice note so Chrome has already asked for microphone permission.
 4. Have the slide and the GitHub repo open in other tabs, in case anything fails.
 
+**For the joint four-prototype demo** (PathFinder as Phase 2): start the server with the SkillLens address too, then open **http://localhost:4173/?journey=demo** instead of Tab 1.
+```bash
+DEMO_BROWSER_VOICE=true STAFF_CODE=demo NEXT_PROTOTYPE_URL=<SkillLens address> node serve.mjs
+```
+Show the **"From Ziqi"** card (*A verified opportunity and the user's goal*), make the plan, save it, tap **Yes, activate it** for the Skills Backpack (the same question FunDoo asks), then show the **"Handing on to SkillLens"** card (*Plan step: complete a P2E course*) and click **Next: continue in SkillLens →**.
+
 ## Script
 
 **0:00–0:20 · What it is**

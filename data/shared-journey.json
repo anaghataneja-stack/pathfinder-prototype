@@ -1,0 +1,50 @@
+{
+  "note": "Shared mock data for the four GenU prototypes. The same young person, listing, course and credential appear in every phase. Mock only, not real people or listings.",
+  "journey": [
+    { "phase": 1, "prototype": "Ziqi", "name": "Sign-up and discovery", "platform": "Yoma", "handsOn": "A verified opportunity and the user's goal" },
+    { "phase": 2, "prototype": "PathFinder", "name": "Handoff across platforms", "platform": "Yoma + WhatsApp/SMS", "handsOn": "Plan step: complete a P2E course" },
+    { "phase": 3, "prototype": "SkillLens", "name": "Certification", "platform": "Passport to Earning", "handsOn": "Level 2 credential saved to profile" },
+    { "phase": 4, "prototype": "YoCV", "name": "Workforce", "platform": "Yoma", "handsOn": "User applies to the Phase 1 listing" }
+  ],
+  "user": {
+    "id": "journey-user-tunde",
+    "firstName": "Tunde",
+    "age": 21,
+    "state": "lagos",
+    "language": "en",
+    "goal": "job",
+    "goalText": "Get a job in customer service",
+    "yoid": "YOID-DEMO-0001",
+    "phone": "+234 800 000 0000 (fake)"
+  },
+  "listing": {
+    "id": "journey-listing-1",
+    "title": "Customer Care Trainee",
+    "org": "BrightLine Contact Centre",
+    "type": "job",
+    "states": ["lagos"],
+    "remote": false,
+    "minAge": 18,
+    "skills": ["customer", "comms", "digital-basics"],
+    "sectors": ["customer"],
+    "deadline": "2027-01-31",
+    "verified": true,
+    "verifiedBy": "Phase 1 (Ziqi) listing check: link working, deadline and organisation confirmed",
+    "link": "https://yoma.world/opportunities"
+  },
+  "course": {
+    "id": "journey-course-1",
+    "title": "Customer Service Fundamentals",
+    "provider": "Passport to Earning",
+    "skills": ["customer", "comms"],
+    "hours": 10,
+    "entry": true
+  },
+  "credential": {
+    "id": "journey-credential-1",
+    "title": "Customer Service Fundamentals · Level 2",
+    "issuer": "Passport to Earning",
+    "level": 2,
+    "recordedOn": "YoID"
+  }
+}

@@ -72,6 +72,8 @@ const busy = await listen(createApp({ sync, ai: createAI(azure.env, fetch, { tim
 const restartDir = mkdtempSync(join(tmpdir(), 'pf-e2e-restart-'));
 writeFileSync(join(restartDir, 'yoma-cache.json'), JSON.stringify(sync.get()));
 const demoVoice = await listen(createApp({ sync, ai: createAI({}), demoVoice: true, rateLimit: { max: 1000 } }));
+const linked = await listen(createApp({ sync, ai: createAI({}), rateLimit: { max: 1000 }, nextPrototype: { name: 'YoCV', url: 'https://yocv.example.org/?from=pathfinder' } }));
+const journeyApp = await listen(createApp({ sync, ai: createAI({}), rateLimit: { max: 1000 }, nextPrototype: { name: 'SkillLens', url: 'https://skilllens.example.org/' } }));
 // "Continue with Yoma": a fake Keycloak, and the fake Yoma API for skills and saving.
 const kcState = {}; const kc = await startMockKeycloak(kcState);
 const port = await new Promise(r => { const t = net.createServer().listen(0, '127.0.0.1', () => { const p = t.address().port; t.close(() => r(p)); }); });
@@ -346,7 +348,8 @@ await scenario('Finishing a plan offers a next plan that builds on the new skill
   await tap(page, 'Get a job'); await tap(page, 'Digital & tech'); await tap(page, 'Online only'); await tap(page, '6–10 hours'); await tap(page, 'Plenty'); await tap(page, 'Quick');
   await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
   const first = await page.locator('.plan').last().innerText();
-  await tap(page, 'Save my plan'); await tap(page, 'Yes, very');
+  await tap(page, 'Save my plan'); await tap(page, 'Not now'); await tap(page, 'Yes, very');
+  assert(!/Skills Backpack \(YoID\):/.test(await chatText(page)), 'declined Skills Backpack but something was written');
   for (const answer of ['Yes, finished', 'Yes, finished', 'One']) {
     await page.waitForSelector('#weekbtn', { timeout: 15000 }); await page.click('#weekbtn');
     await tap(page, answer);
@@ -372,9 +375,72 @@ await scenario('Continue with Yoma: sign in, real Yoma skills are used, and the 
   await tap(page, 'Skip');
   await tap(page, 'Get a job'); await tap(page, 'Customer service'); await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some'); await tap(page, 'Quick');
   await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
-  await tap(page, 'Save my plan');
+  await tap(page, 'Save my plan'); await tap(page, 'Yes, activate it');
   await waitChat(page, /Saved to your Yoma account \(\d+ opportunit/);
   assert(yState.saved.length >= 1, 'nothing was saved to Yoma');
+  await ctx.close();
+});
+
+await scenario('YoID records and the link to the next prototype (joined-up journey)', async () => {
+  const { ctx, page } = await open(linked);
+  await page.click('#persona button[data-v="tunde"]');
+  await tap(page, 'English'); await tap(page, '21'); await tap(page, 'Yes, use my profile'); await tap(page, 'Type it');
+  await waitChat(page, /Type a few words/);
+  await typeMsg(page, 'I fix phones and sell recharge cards');
+  await page.waitForSelector('.skills-card'); await tap(page, "Yes, that's right");
+  assert(!/Skills Backpack \(YoID\):/.test(await chatText(page)), 'nothing should be written to YoID before the Skills Backpack is agreed');
+  await tap(page, 'Get a job'); await tap(page, 'Digital & tech'); await tap(page, 'Online only'); await tap(page, '6–10 hours'); await tap(page, 'Plenty'); await tap(page, 'Quick');
+  await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
+  await tap(page, 'Save my plan');
+  await waitChat(page, /activate your Skills Backpack/);
+  await tap(page, 'Tell me more'); await waitChat(page, /You decide when and if you share it/);
+  await tap(page, 'Yes, activate it');
+  await waitChat(page, /Added to your Skills Backpack \(YoID\): \d+ skills from your own work/);
+  await waitChat(page, /Added to your Skills Backpack \(YoID\): your 3-step Pathfinder plan/);
+  const link = page.locator('.plan').last().locator('a.next-proto');
+  assert(await link.count(), 'next prototype link missing after saving');
+  const nextUrl = new URL(await link.getAttribute('href'));
+  assert(nextUrl.origin === 'https://yocv.example.org' && nextUrl.searchParams.get('from') === 'pathfinder' && nextUrl.searchParams.get('course'), 'wrong next link: ' + nextUrl);
+  const look = await link.evaluate(el => { const c = getComputedStyle(el); return [c.color, c.backgroundColor]; });
+  assert(look[0] !== look[1], 'next prototype button text is the same colour as its background: ' + look);
+  assert(/YoID records/.test(await page.locator('#p-profile').innerText()), 'panel should list YoID records');
+  await ctx.close();
+});
+
+await scenario('15-year-old: guardian agrees, plan saved, but no Skills Backpack (YoID starts at 16, as in FunDoo)', async () => {
+  const { ctx, page } = await open(noAI);
+  await tap(page, 'English'); await page.locator('.opts button').getByText('15', { exact: true }).click(); await tap(page, 'Yes, they agree'); await tap(page, 'Yes, use my profile'); await tap(page, 'Skip');
+  await tap(page, 'Learn new skills'); await tap(page, 'Digital & tech'); await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some'); await tap(page, 'Quick');
+  await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
+  await tap(page, 'Save my plan');
+  await waitChat(page, /Skills Backpacks on YoID start at 16/);
+  const chat = await chatText(page);
+  assert(!/activate your Skills Backpack/.test(chat) && !/Skills Backpack \(YoID\):/.test(chat), 'a 15-year-old should not be offered or given YoID records');
+  assert(/not offered \(YoID starts at 16\)/.test(await page.locator('#p-profile').innerText()), 'panel should say why');
+  assert(!page.errors.length, 'page errors: ' + page.errors.join('; '));
+  await ctx.close();
+});
+
+await scenario('Journey: Phase 1 hands over a verified opportunity and goal; PathFinder hands a P2E course to SkillLens', async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await ctx.newPage(); page.errors = []; page.on('pageerror', e => page.errors.push(e.message));
+  await page.goto(journeyApp + '/?journey=demo');
+  await waitChat(page, /From Ziqi/);
+  assert(/A verified opportunity and the user's goal/.test(await chatText(page)), 'incoming handoff item not named as in the journey');
+  assert(/Customer Care Trainee/.test(await chatText(page)), 'verified listing not shown');
+  await tap(page, 'English'); await tap(page, '21'); await tap(page, 'Yes, use my profile'); await tap(page, 'Skip');
+  await waitChat(page, /Which state do you live in/);   // the goal came from Phase 1, so it isn't asked again
+  await tap(page, 'Lagos'); await tap(page, '3–5 hours'); await tap(page, 'Some'); await tap(page, 'Quick');
+  await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
+  const plan = await page.locator('.plan').last().innerText();
+  assert(/Customer Care Trainee/.test(plan) && /Verified on Yoma/.test(plan), 'the verified opportunity should be in the plan');
+  await tap(page, 'Save my plan'); await tap(page, 'Yes, activate it');
+  await waitChat(page, /Plan step: complete a P2E course/);
+  const next = page.locator('a.next-proto').last();
+  const href = new URL(await next.getAttribute('href'));
+  assert(href.origin === 'https://skilllens.example.org' && href.searchParams.get('from') === 'pathfinder' && href.searchParams.get('course'), 'SkillLens link should carry the course: ' + href);
+  assert(/continue in SkillLens/.test(await next.innerText()), 'next button should name SkillLens');
+  assert(!page.errors.length, page.errors.join('; '));
   await ctx.close();
 });
 
@@ -398,7 +464,8 @@ await scenario('Earlier safety features still work: report a step, save, resume 
   await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 15000 });
   const after = await page.locator('.plan').last().locator('.pstep').nth(2).locator('.opening .ttl').first().innerText();
   assert(before !== after, 'reported step was not replaced');
-  await tap(page, 'Save my plan'); await tap(page, 'Yes, very');
+  await tap(page, 'Save my plan'); await tap(page, 'Not now'); await tap(page, 'Yes, very');
+  assert(!/Skills Backpack \(YoID\):/.test(await chatText(page)), 'declined Skills Backpack but something was written');
   await page.waitForSelector('#weekbtn', { timeout: 15000 });
   await page.reload();
   await page.waitForSelector('.opts button:has-text("Yes, continue")', { timeout: 15000 });

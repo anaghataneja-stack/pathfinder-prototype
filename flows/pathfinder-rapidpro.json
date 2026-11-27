@@ -1,0 +1,2489 @@
+{
+  "version": "13",
+  "site": "https://app.rapidpro.io",
+  "flows": [
+    {
+      "uuid": "b24174cf-0f7d-4c46-afca-5073f4c0e00c",
+      "name": "Pathfinder: goal to plan",
+      "spec_version": "13.1.0",
+      "language": "eng",
+      "type": "messaging",
+      "revision": 1,
+      "expire_after_minutes": 10080,
+      "localization": {},
+      "nodes": [
+        {
+          "uuid": "6f086f08-7de0-4127-a6f7-ab8b879501bb",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "8f6b6edf-3a8f-4dca-a4b9-da469cf2b20a",
+              "text": "Hi, I'm Pathfinder from GenU. I turn your goal into a plan: courses to take and openings to apply to. Which language do you prefer?\n\n1️⃣ English\n2️⃣ Naija Pidgin\n3️⃣ Hausa\n4️⃣ Yorùbá",
+              "quick_replies": [
+                "English",
+                "Naija Pidgin",
+                "Hausa",
+                "Yorùbá"
+              ]
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "00e8b1be-fc14-4a2f-a0c4-5d97f10be32c",
+              "destination_uuid": "430c38ff-6fb1-4c52-afd8-c94830ebcdd7"
+            }
+          ]
+        },
+        {
+          "uuid": "430c38ff-6fb1-4c52-afd8-c94830ebcdd7",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@input.text",
+            "result_name": "lang",
+            "wait": {
+              "type": "msg"
+            },
+            "default_category_uuid": "83082662-4c5d-4f51-adcf-eff7863361d3",
+            "categories": [
+              {
+                "uuid": "36cb9dae-71bf-435c-adf0-484ede65c1d9",
+                "name": "en",
+                "exit_uuid": "322e8d12-e08c-4fe6-afb5-f8ce1c11d778"
+              },
+              {
+                "uuid": "73d5cd16-8c48-4d3b-a065-29396134c140",
+                "name": "pcm",
+                "exit_uuid": "27bbd006-ed8f-4f51-adc9-7fa1d01b52ca"
+              },
+              {
+                "uuid": "75b34ae9-5d9e-4d74-adbf-abd90ee4ba6e",
+                "name": "ha",
+                "exit_uuid": "4d3d98a5-c65a-4d1b-a92c-751607f3b9b1"
+              },
+              {
+                "uuid": "fd640c33-9202-476e-a11c-bf4cefa2a52c",
+                "name": "yo",
+                "exit_uuid": "05d56704-78cb-4e27-a886-1ad2af1c67c8"
+              },
+              {
+                "uuid": "83082662-4c5d-4f51-adcf-eff7863361d3",
+                "name": "Other",
+                "exit_uuid": "3f8c7599-c7f7-41c2-ab93-4fdede4e16ff"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "4a3cace3-5387-4e1a-a520-a4ae37d6b13b",
+                "type": "has_any_word",
+                "arguments": [
+                  "1 english"
+                ],
+                "category_uuid": "36cb9dae-71bf-435c-adf0-484ede65c1d9"
+              },
+              {
+                "uuid": "1b21107c-b953-4cae-abf5-5c1da362610d",
+                "type": "has_any_word",
+                "arguments": [
+                  "2 pidgin naija"
+                ],
+                "category_uuid": "73d5cd16-8c48-4d3b-a065-29396134c140"
+              },
+              {
+                "uuid": "8bbcce71-1582-42b1-a4ba-111e3320eb57",
+                "type": "has_any_word",
+                "arguments": [
+                  "3 hausa"
+                ],
+                "category_uuid": "75b34ae9-5d9e-4d74-adbf-abd90ee4ba6e"
+              },
+              {
+                "uuid": "3e0e5c93-c541-42c9-a134-730323b5bfeb",
+                "type": "has_any_word",
+                "arguments": [
+                  "4 yoruba yorùbá"
+                ],
+                "category_uuid": "fd640c33-9202-476e-a11c-bf4cefa2a52c"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "322e8d12-e08c-4fe6-afb5-f8ce1c11d778",
+              "destination_uuid": "c4cd7896-7219-4f10-ac95-711d961b35d4"
+            },
+            {
+              "uuid": "27bbd006-ed8f-4f51-adc9-7fa1d01b52ca",
+              "destination_uuid": "c4cd7896-7219-4f10-ac95-711d961b35d4"
+            },
+            {
+              "uuid": "4d3d98a5-c65a-4d1b-a92c-751607f3b9b1",
+              "destination_uuid": "c4cd7896-7219-4f10-ac95-711d961b35d4"
+            },
+            {
+              "uuid": "05d56704-78cb-4e27-a886-1ad2af1c67c8",
+              "destination_uuid": "c4cd7896-7219-4f10-ac95-711d961b35d4"
+            },
+            {
+              "uuid": "3f8c7599-c7f7-41c2-ab93-4fdede4e16ff",
+              "destination_uuid": "6f086f08-7de0-4127-a6f7-ab8b879501bb"
+            }
+          ]
+        },
+        {
+          "uuid": "c4cd7896-7219-4f10-ac95-711d961b35d4",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "67faf98c-9717-4c4a-aaff-2b40017ff087",
+              "text": "Before we start: I only save your answers and your plan. Reply DELETE at any time to erase them.\n\nHow old are you? (Reply with a number)",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "8ba419b5-d590-4970-a695-676003eb4d0d",
+              "destination_uuid": "6cd5e4f5-f601-4d48-af7c-0a0623de9959"
+            }
+          ]
+        },
+        {
+          "uuid": "6cd5e4f5-f601-4d48-af7c-0a0623de9959",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@input.text",
+            "result_name": "age",
+            "wait": {
+              "type": "msg"
+            },
+            "default_category_uuid": "7e41a247-05c2-491c-a1fe-b205accc9b67",
+            "categories": [
+              {
+                "uuid": "7e41a247-05c2-491c-a1fe-b205accc9b67",
+                "name": "All Responses",
+                "exit_uuid": "06950191-772a-4b04-a694-c9cd397f3f97"
+              }
+            ],
+            "cases": []
+          },
+          "exits": [
+            {
+              "uuid": "06950191-772a-4b04-a694-c9cd397f3f97",
+              "destination_uuid": "c2d661bb-64bc-413f-aff9-a1adab5116cc"
+            }
+          ]
+        },
+        {
+          "uuid": "01bd4c8c-315c-426a-a62e-db90d0ffc2d6",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "c3de7d03-6e72-440b-a94c-21c807ac31a7",
+              "text": "Tell me about work you already do, even if it's informal (selling, fixing phones, farming, cooking, hair…). Don't include your name or phone number. Or reply SKIP.",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "1792ec5d-668c-48ed-a32f-8d423cc574fa",
+              "destination_uuid": "f954af51-a2d8-4f87-aa0d-eb8fa3b458f6"
+            }
+          ]
+        },
+        {
+          "uuid": "f954af51-a2d8-4f87-aa0d-eb8fa3b458f6",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@input.text",
+            "result_name": "work",
+            "wait": {
+              "type": "msg"
+            },
+            "default_category_uuid": "71e1d274-fa7a-43af-a66d-48a527246509",
+            "categories": [
+              {
+                "uuid": "71e1d274-fa7a-43af-a66d-48a527246509",
+                "name": "All Responses",
+                "exit_uuid": "494fcb74-38e2-4e85-a22d-484fa7947cef"
+              }
+            ],
+            "cases": []
+          },
+          "exits": [
+            {
+              "uuid": "494fcb74-38e2-4e85-a22d-484fa7947cef",
+              "destination_uuid": "eca51726-ebd6-4f9d-ac88-345e66e7a78a"
+            }
+          ]
+        },
+        {
+          "uuid": "c2d661bb-64bc-413f-aff9-a1adab5116cc",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@results.age.value",
+            "default_category_uuid": "ae6894fe-25be-4cf5-a4d7-b80e12fa155f",
+            "categories": [
+              {
+                "uuid": "954be9e0-d4c3-4e03-a328-b25ba8eea3f3",
+                "name": "Minor",
+                "exit_uuid": "84bb7445-5505-4249-af10-7ac8da0a9199"
+              },
+              {
+                "uuid": "96c88f1f-ee5f-4df3-a9cd-b5809efc0cdc",
+                "name": "Adult",
+                "exit_uuid": "0c54749a-e474-4c4a-adf0-b06e1516bb4c"
+              },
+              {
+                "uuid": "ae6894fe-25be-4cf5-a4d7-b80e12fa155f",
+                "name": "Other",
+                "exit_uuid": "52877cd5-edb2-4d49-a920-526bd5a40a53"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "8c6527f2-d4d8-46c4-ad8d-953e07ad63f2",
+                "type": "has_number_between",
+                "arguments": [
+                  "15",
+                  "17"
+                ],
+                "category_uuid": "954be9e0-d4c3-4e03-a328-b25ba8eea3f3"
+              },
+              {
+                "uuid": "35b3db40-193f-42be-ad90-12a9a19818b1",
+                "type": "has_number_between",
+                "arguments": [
+                  "18",
+                  "24"
+                ],
+                "category_uuid": "96c88f1f-ee5f-4df3-a9cd-b5809efc0cdc"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "84bb7445-5505-4249-af10-7ac8da0a9199",
+              "destination_uuid": "7f893a56-7cc6-41ee-acd8-fc19ea60ad21"
+            },
+            {
+              "uuid": "0c54749a-e474-4c4a-adf0-b06e1516bb4c",
+              "destination_uuid": "01bd4c8c-315c-426a-a62e-db90d0ffc2d6"
+            },
+            {
+              "uuid": "52877cd5-edb2-4d49-a920-526bd5a40a53",
+              "destination_uuid": "a13542fa-521f-413e-a624-9889afb821ed"
+            }
+          ]
+        },
+        {
+          "uuid": "7f893a56-7cc6-41ee-acd8-fc19ea60ad21",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "67c02216-5153-4293-ac32-488725fff000",
+              "text": "Because you're under 18, a parent or guardian needs to agree before I save anything. Does your parent or guardian agree?\n\n1️⃣ Yes, they agree\n2️⃣ Not yet",
+              "quick_replies": [
+                "Yes, they agree",
+                "Not yet"
+              ]
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "ecce3de1-cf24-4917-a973-6d6c988db5e1",
+              "destination_uuid": "a40679d0-21ed-4c57-a83d-3734bf2e039b"
+            }
+          ]
+        },
+        {
+          "uuid": "a40679d0-21ed-4c57-a83d-3734bf2e039b",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@input.text",
+            "result_name": "guardian",
+            "wait": {
+              "type": "msg"
+            },
+            "default_category_uuid": "d1ec3cb2-b271-4428-adb1-dbf78ac40291",
+            "categories": [
+              {
+                "uuid": "ef6bf043-bda0-402a-a0b0-e1c4817c0f17",
+                "name": "yes",
+                "exit_uuid": "39e22da9-4e0d-4d40-abf3-d5d436029ee0"
+              },
+              {
+                "uuid": "865562af-8921-4c91-abed-67be5be2dd1d",
+                "name": "no",
+                "exit_uuid": "ee6dea0e-6060-4e4c-a70e-6ae81459340d"
+              },
+              {
+                "uuid": "d1ec3cb2-b271-4428-adb1-dbf78ac40291",
+                "name": "Other",
+                "exit_uuid": "918beca6-9293-45ef-a682-2f7d501c8336"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "6007092a-e18b-4c34-acbc-1a997a347047",
+                "type": "has_any_word",
+                "arguments": [
+                  "1 yes"
+                ],
+                "category_uuid": "ef6bf043-bda0-402a-a0b0-e1c4817c0f17"
+              },
+              {
+                "uuid": "45aacddf-9d09-4369-a39a-06c6754f7cd3",
+                "type": "has_any_word",
+                "arguments": [
+                  "2 no not"
+                ],
+                "category_uuid": "865562af-8921-4c91-abed-67be5be2dd1d"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "39e22da9-4e0d-4d40-abf3-d5d436029ee0",
+              "destination_uuid": "01bd4c8c-315c-426a-a62e-db90d0ffc2d6"
+            },
+            {
+              "uuid": "ee6dea0e-6060-4e4c-a70e-6ae81459340d",
+              "destination_uuid": "7c7a805a-29dd-4fb9-a1f1-e582aeb59a0d"
+            },
+            {
+              "uuid": "918beca6-9293-45ef-a682-2f7d501c8336",
+              "destination_uuid": "7f893a56-7cc6-41ee-acd8-fc19ea60ad21"
+            }
+          ]
+        },
+        {
+          "uuid": "a13542fa-521f-413e-a624-9889afb821ed",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "ccf9374d-41d5-4bf3-a243-3aa65cfddb8c",
+              "text": "Pathfinder is for young people aged 15 to 24. Reply PLAN to start again, or browse every opportunity on Yoma.",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "e930c77e-fa1f-4618-a649-6a0c98a0692f",
+              "destination_uuid": null
+            }
+          ]
+        },
+        {
+          "uuid": "7c7a805a-29dd-4fb9-a1f1-e582aeb59a0d",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "d901a087-8058-413c-a7aa-565656a7d5db",
+              "text": "That's fine. Nothing has been saved. When they agree, reply PLAN to start again.",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "d1fb0221-0e0e-4f64-a02d-73f6ba4581e1",
+              "destination_uuid": null
+            }
+          ]
+        },
+        {
+          "uuid": "eca51726-ebd6-4f9d-ac88-345e66e7a78a",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "e64d8fb8-f750-4f09-a584-ee93cff7be59",
+              "text": "What's your main goal right now?\n\n1️⃣ Get a job\n2️⃣ Earn money now\n3️⃣ Learn new skills\n4️⃣ Start a business\n5️⃣ I'm not sure",
+              "quick_replies": [
+                "Get a job",
+                "Earn money now",
+                "Learn new skills",
+                "Start a business",
+                "I'm not sure"
+              ]
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "39651029-dea8-4ac0-a6da-bc3609807afb",
+              "destination_uuid": "33a7f984-9ec2-415b-afaf-319205eb86bb"
+            }
+          ]
+        },
+        {
+          "uuid": "33a7f984-9ec2-415b-afaf-319205eb86bb",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@input.text",
+            "result_name": "goal",
+            "wait": {
+              "type": "msg"
+            },
+            "default_category_uuid": "25777f0c-156f-4553-acc1-b400356cf552",
+            "categories": [
+              {
+                "uuid": "a7ec04aa-5358-4e62-a303-703db6307248",
+                "name": "job",
+                "exit_uuid": "3cd61835-ae8e-4feb-a021-35828d0409a4"
+              },
+              {
+                "uuid": "8cea6376-5e7b-4802-a54e-86b51099d60b",
+                "name": "earn",
+                "exit_uuid": "cce67795-bebc-42a0-af57-460f9c55e77c"
+              },
+              {
+                "uuid": "3c660bd9-33a9-4c7b-ac92-e4eedbec19b2",
+                "name": "skills",
+                "exit_uuid": "037697fd-492e-4133-a68a-33e91873a3e0"
+              },
+              {
+                "uuid": "82ef0656-9543-412a-a07a-135fca594231",
+                "name": "business",
+                "exit_uuid": "ad14cdea-5488-4da1-a6fe-cd74c6c613c1"
+              },
+              {
+                "uuid": "ccd965a9-bf3c-45ed-a501-7aa7f92be9e9",
+                "name": "notsure",
+                "exit_uuid": "141d8444-2471-4d2a-ab4c-3ba2c4944425"
+              },
+              {
+                "uuid": "25777f0c-156f-4553-acc1-b400356cf552",
+                "name": "Other",
+                "exit_uuid": "fe418d27-44a6-452e-a421-bf8332d42608"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "dedf44ff-f30a-4d2e-a181-c42d476dd919",
+                "type": "has_any_word",
+                "arguments": [
+                  "1 job"
+                ],
+                "category_uuid": "a7ec04aa-5358-4e62-a303-703db6307248"
+              },
+              {
+                "uuid": "9db0f818-7038-44a3-adb1-1b5b6bdabd8a",
+                "type": "has_any_word",
+                "arguments": [
+                  "2 earn"
+                ],
+                "category_uuid": "8cea6376-5e7b-4802-a54e-86b51099d60b"
+              },
+              {
+                "uuid": "282a795c-fde6-4476-a1cf-5c122947fe9b",
+                "type": "has_any_word",
+                "arguments": [
+                  "3 skills"
+                ],
+                "category_uuid": "3c660bd9-33a9-4c7b-ac92-e4eedbec19b2"
+              },
+              {
+                "uuid": "b7641251-4da1-4f49-a55b-b245ebf10c51",
+                "type": "has_any_word",
+                "arguments": [
+                  "4 business"
+                ],
+                "category_uuid": "82ef0656-9543-412a-a07a-135fca594231"
+              },
+              {
+                "uuid": "58911ae4-8bcb-432a-a11b-611606df11c8",
+                "type": "has_any_word",
+                "arguments": [
+                  "5 unsure"
+                ],
+                "category_uuid": "ccd965a9-bf3c-45ed-a501-7aa7f92be9e9"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "3cd61835-ae8e-4feb-a021-35828d0409a4",
+              "destination_uuid": "648b2ce8-3d55-4916-a411-a1ca22932f15"
+            },
+            {
+              "uuid": "cce67795-bebc-42a0-af57-460f9c55e77c",
+              "destination_uuid": "648b2ce8-3d55-4916-a411-a1ca22932f15"
+            },
+            {
+              "uuid": "037697fd-492e-4133-a68a-33e91873a3e0",
+              "destination_uuid": "648b2ce8-3d55-4916-a411-a1ca22932f15"
+            },
+            {
+              "uuid": "ad14cdea-5488-4da1-a6fe-cd74c6c613c1",
+              "destination_uuid": "648b2ce8-3d55-4916-a411-a1ca22932f15"
+            },
+            {
+              "uuid": "141d8444-2471-4d2a-ab4c-3ba2c4944425",
+              "destination_uuid": "648b2ce8-3d55-4916-a411-a1ca22932f15"
+            },
+            {
+              "uuid": "fe418d27-44a6-452e-a421-bf8332d42608",
+              "destination_uuid": "eca51726-ebd6-4f9d-ac88-345e66e7a78a"
+            }
+          ]
+        },
+        {
+          "uuid": "648b2ce8-3d55-4916-a411-a1ca22932f15",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "37758f38-f436-4ea5-a69b-da33b3e34853",
+              "text": "What kind of work interests you?\n\n1️⃣ Digital & tech\n2️⃣ Customer service & sales\n3️⃣ Farming & agribusiness\n4️⃣ Fashion & beauty\n5️⃣ Not sure yet",
+              "quick_replies": [
+                "Digital & tech",
+                "Customer service & sales",
+                "Farming & agribusiness",
+                "Fashion & beauty",
+                "Not sure yet"
+              ]
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "76f0bb72-3f83-4b3c-a7f9-ab7d3eb0ccb2",
+              "destination_uuid": "0380d984-fc50-452d-a3ef-5d1594dea002"
+            }
+          ]
+        },
+        {
+          "uuid": "0380d984-fc50-452d-a3ef-5d1594dea002",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@input.text",
+            "result_name": "sector",
+            "wait": {
+              "type": "msg"
+            },
+            "default_category_uuid": "1719e332-d19a-4aac-a8e7-ede9cbe79e5b",
+            "categories": [
+              {
+                "uuid": "e66ce554-81fa-4abf-a420-3965e320bf03",
+                "name": "digital",
+                "exit_uuid": "e1a1728b-df88-480a-aefe-5d2354128cd7"
+              },
+              {
+                "uuid": "0f34cb09-6774-4a45-ac12-33bd1c3ed03b",
+                "name": "customer",
+                "exit_uuid": "bc7a5e91-b7bb-43a4-a21e-98f17e2bb32a"
+              },
+              {
+                "uuid": "e68e604b-5a20-4fb7-aef3-a0fdadcb7f0e",
+                "name": "agri",
+                "exit_uuid": "17f29491-55fd-4ec5-a6a1-72b80ccfb1fe"
+              },
+              {
+                "uuid": "e82d1d66-90ea-4650-ab37-f0c8a29bc57b",
+                "name": "fashion",
+                "exit_uuid": "d08deb84-d114-424a-add7-2882c3d2a272"
+              },
+              {
+                "uuid": "822e817f-2dad-451c-ad73-79e780d87840",
+                "name": "notsure",
+                "exit_uuid": "e52d2826-b7b8-4925-a1bf-9ede2ebfbce6"
+              },
+              {
+                "uuid": "1719e332-d19a-4aac-a8e7-ede9cbe79e5b",
+                "name": "Other",
+                "exit_uuid": "51d78768-ddfa-4b95-a60a-7dfced26b6f9"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "2cf74fb4-10ae-4ae9-aea6-0523ecfdd1dc",
+                "type": "has_any_word",
+                "arguments": [
+                  "1 digital"
+                ],
+                "category_uuid": "e66ce554-81fa-4abf-a420-3965e320bf03"
+              },
+              {
+                "uuid": "fd3582df-4347-479b-a813-3d43bbc7b6d9",
+                "type": "has_any_word",
+                "arguments": [
+                  "2 customer"
+                ],
+                "category_uuid": "0f34cb09-6774-4a45-ac12-33bd1c3ed03b"
+              },
+              {
+                "uuid": "eb01281c-0c0e-498e-a73c-458526a990fe",
+                "type": "has_any_word",
+                "arguments": [
+                  "3 agri"
+                ],
+                "category_uuid": "e68e604b-5a20-4fb7-aef3-a0fdadcb7f0e"
+              },
+              {
+                "uuid": "02336c1b-a424-423c-ac34-065b01c7464f",
+                "type": "has_any_word",
+                "arguments": [
+                  "4 fashion"
+                ],
+                "category_uuid": "e82d1d66-90ea-4650-ab37-f0c8a29bc57b"
+              },
+              {
+                "uuid": "86104ad9-c15e-4887-a909-136b9acc62b9",
+                "type": "has_any_word",
+                "arguments": [
+                  "5 notsure"
+                ],
+                "category_uuid": "822e817f-2dad-451c-ad73-79e780d87840"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "e1a1728b-df88-480a-aefe-5d2354128cd7",
+              "destination_uuid": "fe417dfc-76f3-4d24-a05a-26c3e3d54d73"
+            },
+            {
+              "uuid": "bc7a5e91-b7bb-43a4-a21e-98f17e2bb32a",
+              "destination_uuid": "fe417dfc-76f3-4d24-a05a-26c3e3d54d73"
+            },
+            {
+              "uuid": "17f29491-55fd-4ec5-a6a1-72b80ccfb1fe",
+              "destination_uuid": "fe417dfc-76f3-4d24-a05a-26c3e3d54d73"
+            },
+            {
+              "uuid": "d08deb84-d114-424a-add7-2882c3d2a272",
+              "destination_uuid": "fe417dfc-76f3-4d24-a05a-26c3e3d54d73"
+            },
+            {
+              "uuid": "e52d2826-b7b8-4925-a1bf-9ede2ebfbce6",
+              "destination_uuid": "fe417dfc-76f3-4d24-a05a-26c3e3d54d73"
+            },
+            {
+              "uuid": "51d78768-ddfa-4b95-a60a-7dfced26b6f9",
+              "destination_uuid": "648b2ce8-3d55-4916-a411-a1ca22932f15"
+            }
+          ]
+        },
+        {
+          "uuid": "fe417dfc-76f3-4d24-a05a-26c3e3d54d73",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "824d97e1-8d9c-403e-a05d-f1764c91ed5d",
+              "text": "Which state do you live in?\n\n1️⃣ Lagos\n2️⃣ Kano\n3️⃣ FCT Abuja\n4️⃣ Oyo\n5️⃣ Rivers\n6️⃣ Another state\n7️⃣ Online only",
+              "quick_replies": [
+                "Lagos",
+                "Kano",
+                "FCT Abuja",
+                "Oyo",
+                "Rivers",
+                "Another state",
+                "Online only"
+              ]
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "472cea43-2b48-4f08-ae63-5f8edec1ee45",
+              "destination_uuid": "5770d54c-9444-4963-a845-e97290086b80"
+            }
+          ]
+        },
+        {
+          "uuid": "5770d54c-9444-4963-a845-e97290086b80",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@input.text",
+            "result_name": "state",
+            "wait": {
+              "type": "msg"
+            },
+            "default_category_uuid": "e21f8a26-db3b-4762-a0d9-4ce38373577a",
+            "categories": [
+              {
+                "uuid": "82359f35-c97a-497f-abe8-aeafccdaa7b3",
+                "name": "lagos",
+                "exit_uuid": "dc054c3b-8e0c-451f-a1ee-56460a593566"
+              },
+              {
+                "uuid": "29e80d50-01d4-46d6-aa01-8a5508fd3a0b",
+                "name": "kano",
+                "exit_uuid": "f84cd7dd-202e-4f25-a6fa-4b9445bac1fd"
+              },
+              {
+                "uuid": "c7805574-3bb2-473e-a120-d3910f93ad37",
+                "name": "fct",
+                "exit_uuid": "0077c021-dd63-4298-ab4e-81ae8da2ef03"
+              },
+              {
+                "uuid": "d2ec2c84-a1c7-42a1-a5d3-f9e843056aa1",
+                "name": "oyo",
+                "exit_uuid": "db499892-f7c7-4fa1-adc2-84ae90d1ecc9"
+              },
+              {
+                "uuid": "ab8a9f9c-9afd-404d-afcb-ffe79415fbee",
+                "name": "rivers",
+                "exit_uuid": "1b4d19fc-f331-421c-a9f2-04b76a4f0175"
+              },
+              {
+                "uuid": "21b2e8f2-7abe-4699-a34e-38e4a2b72005",
+                "name": "other",
+                "exit_uuid": "b771ad7a-2b51-42de-a6d2-80112dcc905b"
+              },
+              {
+                "uuid": "a810d49f-3b34-4b44-ac1d-94c2cd369ab3",
+                "name": "online",
+                "exit_uuid": "faefe862-578d-4955-a49f-4de51b088c0e"
+              },
+              {
+                "uuid": "e21f8a26-db3b-4762-a0d9-4ce38373577a",
+                "name": "Other",
+                "exit_uuid": "1e717b7f-6595-49da-a5b7-4b9caa33511d"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "817f7b84-7ac9-4d87-a49c-5734b2aee820",
+                "type": "has_any_word",
+                "arguments": [
+                  "1 lagos"
+                ],
+                "category_uuid": "82359f35-c97a-497f-abe8-aeafccdaa7b3"
+              },
+              {
+                "uuid": "72002a8e-c3a9-4200-ae86-060c5f40322c",
+                "type": "has_any_word",
+                "arguments": [
+                  "2 kano"
+                ],
+                "category_uuid": "29e80d50-01d4-46d6-aa01-8a5508fd3a0b"
+              },
+              {
+                "uuid": "23b397e4-ae7e-4b3b-a306-0d08d9fdf0fc",
+                "type": "has_any_word",
+                "arguments": [
+                  "3 abuja fct"
+                ],
+                "category_uuid": "c7805574-3bb2-473e-a120-d3910f93ad37"
+              },
+              {
+                "uuid": "981128c2-cda2-459e-a4f8-f33037686194",
+                "type": "has_any_word",
+                "arguments": [
+                  "4 oyo"
+                ],
+                "category_uuid": "d2ec2c84-a1c7-42a1-a5d3-f9e843056aa1"
+              },
+              {
+                "uuid": "ad93a6b0-e428-4f84-a4f4-c83df2942466",
+                "type": "has_any_word",
+                "arguments": [
+                  "5 rivers"
+                ],
+                "category_uuid": "ab8a9f9c-9afd-404d-afcb-ffe79415fbee"
+              },
+              {
+                "uuid": "6b05061c-acc1-49ae-a0f0-0cff3e4ee286",
+                "type": "has_any_word",
+                "arguments": [
+                  "6 other"
+                ],
+                "category_uuid": "21b2e8f2-7abe-4699-a34e-38e4a2b72005"
+              },
+              {
+                "uuid": "712714e4-a6b2-41d6-ad0e-ca41534ef0c8",
+                "type": "has_any_word",
+                "arguments": [
+                  "7 online"
+                ],
+                "category_uuid": "a810d49f-3b34-4b44-ac1d-94c2cd369ab3"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "dc054c3b-8e0c-451f-a1ee-56460a593566",
+              "destination_uuid": "60a9e5ba-9ed7-4073-a5f3-fefc8ae964d6"
+            },
+            {
+              "uuid": "f84cd7dd-202e-4f25-a6fa-4b9445bac1fd",
+              "destination_uuid": "60a9e5ba-9ed7-4073-a5f3-fefc8ae964d6"
+            },
+            {
+              "uuid": "0077c021-dd63-4298-ab4e-81ae8da2ef03",
+              "destination_uuid": "60a9e5ba-9ed7-4073-a5f3-fefc8ae964d6"
+            },
+            {
+              "uuid": "db499892-f7c7-4fa1-adc2-84ae90d1ecc9",
+              "destination_uuid": "60a9e5ba-9ed7-4073-a5f3-fefc8ae964d6"
+            },
+            {
+              "uuid": "1b4d19fc-f331-421c-a9f2-04b76a4f0175",
+              "destination_uuid": "60a9e5ba-9ed7-4073-a5f3-fefc8ae964d6"
+            },
+            {
+              "uuid": "b771ad7a-2b51-42de-a6d2-80112dcc905b",
+              "destination_uuid": "60a9e5ba-9ed7-4073-a5f3-fefc8ae964d6"
+            },
+            {
+              "uuid": "faefe862-578d-4955-a49f-4de51b088c0e",
+              "destination_uuid": "60a9e5ba-9ed7-4073-a5f3-fefc8ae964d6"
+            },
+            {
+              "uuid": "1e717b7f-6595-49da-a5b7-4b9caa33511d",
+              "destination_uuid": "fe417dfc-76f3-4d24-a05a-26c3e3d54d73"
+            }
+          ]
+        },
+        {
+          "uuid": "60a9e5ba-9ed7-4073-a5f3-fefc8ae964d6",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "dfd45c64-5c5a-449f-a664-f279c43ea8fb",
+              "text": "How many hours a week can you spend on this?\n\n1️⃣ 1–2 hours\n2️⃣ 3–5 hours\n3️⃣ 6–10 hours\n4️⃣ More than 10",
+              "quick_replies": [
+                "1–2 hours",
+                "3–5 hours",
+                "6–10 hours",
+                "More than 10"
+              ]
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "a53ea69a-af11-4c7f-a4d3-37c35cb4805a",
+              "destination_uuid": "023b2dea-ea33-4f57-a8fc-09b479eefac1"
+            }
+          ]
+        },
+        {
+          "uuid": "023b2dea-ea33-4f57-a8fc-09b479eefac1",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@input.text",
+            "result_name": "hours",
+            "wait": {
+              "type": "msg"
+            },
+            "default_category_uuid": "ffadc812-b73b-42ca-aa6f-eaf897dd4cb3",
+            "categories": [
+              {
+                "uuid": "643041ba-efac-497f-a285-314116adbc15",
+                "name": "2",
+                "exit_uuid": "87db9f15-9e85-4ccd-a26f-e2c975614072"
+              },
+              {
+                "uuid": "efa3e799-262e-437d-ace2-b34ec8150e5e",
+                "name": "4",
+                "exit_uuid": "f9619362-e898-48fd-aa20-4f0d39d3c0bf"
+              },
+              {
+                "uuid": "c287a017-7ba8-4c6b-a9d3-acf69ed640ea",
+                "name": "8",
+                "exit_uuid": "3eb9c32f-41c0-4a83-a7c6-63dffa9c93b8"
+              },
+              {
+                "uuid": "c7d9479d-d383-485e-a284-3a93df83c890",
+                "name": "12",
+                "exit_uuid": "c9588d2b-48d3-4624-a17c-2e51ce9165d3"
+              },
+              {
+                "uuid": "ffadc812-b73b-42ca-aa6f-eaf897dd4cb3",
+                "name": "Other",
+                "exit_uuid": "0966619c-4298-4402-a02b-2ce33905c53e"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "86f5bf76-7dc3-465a-a214-f5010b34e290",
+                "type": "has_any_word",
+                "arguments": [
+                  "1 2"
+                ],
+                "category_uuid": "643041ba-efac-497f-a285-314116adbc15"
+              },
+              {
+                "uuid": "6194a796-a4a0-4a14-a387-3f413ab5ddff",
+                "type": "has_any_word",
+                "arguments": [
+                  "2 4"
+                ],
+                "category_uuid": "efa3e799-262e-437d-ace2-b34ec8150e5e"
+              },
+              {
+                "uuid": "b8967a55-abcb-4429-a8c5-01747874e9a9",
+                "type": "has_any_word",
+                "arguments": [
+                  "3 8"
+                ],
+                "category_uuid": "c287a017-7ba8-4c6b-a9d3-acf69ed640ea"
+              },
+              {
+                "uuid": "1e488b19-aa76-4444-a7c6-9d0648fe62ba",
+                "type": "has_any_word",
+                "arguments": [
+                  "4 12"
+                ],
+                "category_uuid": "c7d9479d-d383-485e-a284-3a93df83c890"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "87db9f15-9e85-4ccd-a26f-e2c975614072",
+              "destination_uuid": "431999d7-a1ef-4e62-a8a6-82f57065ea49"
+            },
+            {
+              "uuid": "f9619362-e898-48fd-aa20-4f0d39d3c0bf",
+              "destination_uuid": "431999d7-a1ef-4e62-a8a6-82f57065ea49"
+            },
+            {
+              "uuid": "3eb9c32f-41c0-4a83-a7c6-63dffa9c93b8",
+              "destination_uuid": "431999d7-a1ef-4e62-a8a6-82f57065ea49"
+            },
+            {
+              "uuid": "c9588d2b-48d3-4624-a17c-2e51ce9165d3",
+              "destination_uuid": "431999d7-a1ef-4e62-a8a6-82f57065ea49"
+            },
+            {
+              "uuid": "0966619c-4298-4402-a02b-2ce33905c53e",
+              "destination_uuid": "60a9e5ba-9ed7-4073-a5f3-fefc8ae964d6"
+            }
+          ]
+        },
+        {
+          "uuid": "431999d7-a1ef-4e62-a8a6-82f57065ea49",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "7ced5722-72ea-4c09-a15b-05e09dd23686",
+              "text": "How much mobile data can you use for learning?\n\n1️⃣ Very little\n2️⃣ Some\n3️⃣ Plenty",
+              "quick_replies": [
+                "Very little",
+                "Some",
+                "Plenty"
+              ]
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "a9414dbc-4e4c-47bb-aa57-4281df0bee1b",
+              "destination_uuid": "c3121bee-089c-4ed0-a0ce-e51173072fdb"
+            }
+          ]
+        },
+        {
+          "uuid": "c3121bee-089c-4ed0-a0ce-e51173072fdb",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@input.text",
+            "result_name": "data",
+            "wait": {
+              "type": "msg"
+            },
+            "default_category_uuid": "91b51eb0-8488-4e1f-a85b-c5df580c852c",
+            "categories": [
+              {
+                "uuid": "534e2028-e925-43c6-a432-aa2c93361265",
+                "name": "low",
+                "exit_uuid": "eed1e341-7a3a-4696-ad90-d9605b13ac47"
+              },
+              {
+                "uuid": "016c81b6-b51d-40d6-abf5-e31869fe2c59",
+                "name": "some",
+                "exit_uuid": "184d3a46-9601-4123-a77b-f2a4a1025f43"
+              },
+              {
+                "uuid": "96cad6a5-4918-42e2-a32a-51974fd59cc2",
+                "name": "plenty",
+                "exit_uuid": "881c8ef6-f6d4-44e5-a128-0dfba46222b2"
+              },
+              {
+                "uuid": "91b51eb0-8488-4e1f-a85b-c5df580c852c",
+                "name": "Other",
+                "exit_uuid": "52e73c1a-f1b9-4acd-a384-1f0ce44e1517"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "81d1225d-a38b-48fb-a613-8be666a3c082",
+                "type": "has_any_word",
+                "arguments": [
+                  "1 low"
+                ],
+                "category_uuid": "534e2028-e925-43c6-a432-aa2c93361265"
+              },
+              {
+                "uuid": "d8bd6bf3-df99-4312-a76f-af4b8d278ed0",
+                "type": "has_any_word",
+                "arguments": [
+                  "2 some"
+                ],
+                "category_uuid": "016c81b6-b51d-40d6-abf5-e31869fe2c59"
+              },
+              {
+                "uuid": "11f61c1f-fa8d-4e43-a381-bca9e878f57b",
+                "type": "has_any_word",
+                "arguments": [
+                  "3 plenty"
+                ],
+                "category_uuid": "96cad6a5-4918-42e2-a32a-51974fd59cc2"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "eed1e341-7a3a-4696-ad90-d9605b13ac47",
+              "destination_uuid": "e6a9daa8-00da-4a94-a016-42b35d34b736"
+            },
+            {
+              "uuid": "184d3a46-9601-4123-a77b-f2a4a1025f43",
+              "destination_uuid": "e6a9daa8-00da-4a94-a016-42b35d34b736"
+            },
+            {
+              "uuid": "881c8ef6-f6d4-44e5-a128-0dfba46222b2",
+              "destination_uuid": "e6a9daa8-00da-4a94-a016-42b35d34b736"
+            },
+            {
+              "uuid": "52e73c1a-f1b9-4acd-a384-1f0ce44e1517",
+              "destination_uuid": "431999d7-a1ef-4e62-a8a6-82f57065ea49"
+            }
+          ]
+        },
+        {
+          "uuid": "e6a9daa8-00da-4a94-a016-42b35d34b736",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "d2145ebc-a606-4720-aa08-53470f90a0a7",
+              "text": "How big a plan do you want?\n\n1️⃣ Quick: 3 steps\n2️⃣ Bigger: 5 steps\n3️⃣ Full: 7 steps",
+              "quick_replies": [
+                "Quick: 3 steps",
+                "Bigger: 5 steps",
+                "Full: 7 steps"
+              ]
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "09c96863-f13c-4685-aefd-7ceba35d485c",
+              "destination_uuid": "3341d82e-fd03-43cb-acac-488b595992d8"
+            }
+          ]
+        },
+        {
+          "uuid": "3341d82e-fd03-43cb-acac-488b595992d8",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@input.text",
+            "result_name": "size",
+            "wait": {
+              "type": "msg"
+            },
+            "default_category_uuid": "49ddca85-9774-4832-a8b9-90214f1c8c86",
+            "categories": [
+              {
+                "uuid": "5c8b0605-04b8-49c6-afee-d2f4ce36b015",
+                "name": "3",
+                "exit_uuid": "07f79a33-ac7e-40f8-a125-cea3b276caa6"
+              },
+              {
+                "uuid": "6b0950db-edfa-4d5c-a682-65fb628553cc",
+                "name": "5",
+                "exit_uuid": "02408cf6-19ed-4d63-a740-b4d426644496"
+              },
+              {
+                "uuid": "eaa8806c-3136-4b67-a277-8a2c5d385364",
+                "name": "7",
+                "exit_uuid": "affd9717-a20c-4dd9-ae9a-367276d2ffee"
+              },
+              {
+                "uuid": "49ddca85-9774-4832-a8b9-90214f1c8c86",
+                "name": "Other",
+                "exit_uuid": "dff3095b-9582-457b-a83e-73ae71caa007"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "b28fadfa-9463-4377-afdd-2e27a7b2f55b",
+                "type": "has_any_word",
+                "arguments": [
+                  "1 quick"
+                ],
+                "category_uuid": "5c8b0605-04b8-49c6-afee-d2f4ce36b015"
+              },
+              {
+                "uuid": "71f63326-5c77-45a3-ab82-fc3c6e119784",
+                "type": "has_any_word",
+                "arguments": [
+                  "2 bigger"
+                ],
+                "category_uuid": "6b0950db-edfa-4d5c-a682-65fb628553cc"
+              },
+              {
+                "uuid": "008b14f8-3cee-46fe-ae98-3e556c69f4bf",
+                "type": "has_any_word",
+                "arguments": [
+                  "3 full"
+                ],
+                "category_uuid": "eaa8806c-3136-4b67-a277-8a2c5d385364"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "07f79a33-ac7e-40f8-a125-cea3b276caa6",
+              "destination_uuid": "289253f0-8730-49c8-acb6-5153756c896d"
+            },
+            {
+              "uuid": "02408cf6-19ed-4d63-a740-b4d426644496",
+              "destination_uuid": "289253f0-8730-49c8-acb6-5153756c896d"
+            },
+            {
+              "uuid": "affd9717-a20c-4dd9-ae9a-367276d2ffee",
+              "destination_uuid": "289253f0-8730-49c8-acb6-5153756c896d"
+            },
+            {
+              "uuid": "dff3095b-9582-457b-a83e-73ae71caa007",
+              "destination_uuid": "e6a9daa8-00da-4a94-a016-42b35d34b736"
+            }
+          ]
+        },
+        {
+          "uuid": "289253f0-8730-49c8-acb6-5153756c896d",
+          "actions": [
+            {
+              "type": "call_webhook",
+              "uuid": "9255d2b5-089c-4635-a773-4e5251f00941",
+              "method": "POST",
+              "url": "@globals.pathfinder_url/api/rapidpro/plan",
+              "headers": {
+                "Content-Type": "application/json",
+                "Authorization": "Token @globals.pathfinder_token"
+              },
+              "body": "@(json(object(\"lang\", results.lang.category, \"age\", results.age.value, \"work\", results.work.value, \"goal\", results.goal.category, \"sector\", results.sector.category, \"state\", results.state.category, \"hours\", results.hours.category, \"data\", results.data.category, \"size\", results.size.category)))",
+              "result_name": "plan"
+            }
+          ],
+          "router": {
+            "type": "switch",
+            "operand": "@results.plan.category",
+            "default_category_uuid": "ad7a2d97-22af-486a-ab5d-dc3dab20d6a0",
+            "categories": [
+              {
+                "uuid": "0cf63a84-38d4-48cf-a860-f4eea9bd4d9c",
+                "name": "Success",
+                "exit_uuid": "78a10352-69ce-4a59-a474-ecf5e4612325"
+              },
+              {
+                "uuid": "ad7a2d97-22af-486a-ab5d-dc3dab20d6a0",
+                "name": "Failure",
+                "exit_uuid": "82056b51-9841-435f-a26e-be9c0ca9ff36"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "adb1b372-18b6-4885-a299-0b60a3d6a47b",
+                "type": "has_only_text",
+                "arguments": [
+                  "Success"
+                ],
+                "category_uuid": "0cf63a84-38d4-48cf-a860-f4eea9bd4d9c"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "78a10352-69ce-4a59-a474-ecf5e4612325",
+              "destination_uuid": "0e9bb5d6-3f66-419a-a309-3d6d081822dd"
+            },
+            {
+              "uuid": "82056b51-9841-435f-a26e-be9c0ca9ff36",
+              "destination_uuid": "a2a5b003-2faa-4ccf-a33d-f4f14f06cbf7"
+            }
+          ]
+        },
+        {
+          "uuid": "0e9bb5d6-3f66-419a-a309-3d6d081822dd",
+          "actions": [
+            {
+              "type": "set_contact_field",
+              "uuid": "9aea9696-a697-400f-a86a-52f947c9b15e",
+              "field": {
+                "key": "pf_plan_id",
+                "name": "PathFinder plan id"
+              },
+              "value": "@webhook.plan_id"
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "83e425fb-0c3c-4e6c-aad2-a26b2efaa279",
+              "destination_uuid": "5ae6c0d4-de12-4f32-a290-b4f4e5696712"
+            }
+          ]
+        },
+        {
+          "uuid": "5ae6c0d4-de12-4f32-a290-b4f4e5696712",
+          "actions": [
+            {
+              "type": "set_contact_field",
+              "uuid": "4f4dcf3e-b432-4ec7-a601-5b75dcb49262",
+              "field": {
+                "key": "pf_plan_saved_on",
+                "name": "PathFinder plan saved on"
+              },
+              "value": "@(now())"
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "0c1e313b-5c5b-4f90-afb2-fa6444f8cb9a",
+              "destination_uuid": "d6d1c226-9b28-4475-a625-b431bab4aab8"
+            }
+          ]
+        },
+        {
+          "uuid": "d6d1c226-9b28-4475-a625-b431bab4aab8",
+          "actions": [
+            {
+              "type": "set_contact_field",
+              "uuid": "4b347b4a-f465-4acb-af0e-bfd53d96974b",
+              "field": {
+                "key": "pf_handoff",
+                "name": "PathFinder handoff item"
+              },
+              "value": "@webhook.handoff"
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "d3c5f8ff-be2d-4e8e-a141-fa9ccdbf2d89",
+              "destination_uuid": "562b75f3-b7f9-4af8-a34d-d76c07e472ca"
+            }
+          ]
+        },
+        {
+          "uuid": "562b75f3-b7f9-4af8-a34d-d76c07e472ca",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "cc36ef90-5618-461c-a12c-fd9c0808136b",
+              "text": "@webhook.message\n\nI'll check in every week. Reply CHECKIN any time to update me.",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "4fd53f76-835c-4ed6-aa9c-e2bb36dc9054",
+              "destination_uuid": "01bc5d9a-0e23-4661-ad6c-54cbc391797f"
+            }
+          ]
+        },
+        {
+          "uuid": "01bc5d9a-0e23-4661-ad6c-54cbc391797f",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@results.age.value",
+            "default_category_uuid": "2d817d74-7b26-45bc-a85c-41b8b5030994",
+            "categories": [
+              {
+                "uuid": "ec9622b7-29b6-4592-a4a4-4054b95e8ad2",
+                "name": "YoID",
+                "exit_uuid": "52a14f38-2fd5-4890-a37c-e3abd7354994"
+              },
+              {
+                "uuid": "2d817d74-7b26-45bc-a85c-41b8b5030994",
+                "name": "Other",
+                "exit_uuid": "14aa85d0-9758-4b54-aa16-ee0a1398c137"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "6aa02acc-ff97-4727-ae20-8a9128ae9c48",
+                "type": "has_number_between",
+                "arguments": [
+                  "16",
+                  "24"
+                ],
+                "category_uuid": "ec9622b7-29b6-4592-a4a4-4054b95e8ad2"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "52a14f38-2fd5-4890-a37c-e3abd7354994",
+              "destination_uuid": "55b7ee8a-3b9f-4b2b-af05-b4c36560956c"
+            },
+            {
+              "uuid": "14aa85d0-9758-4b54-aa16-ee0a1398c137",
+              "destination_uuid": "1d9b6b37-d09e-4bd7-addf-f668daed99f3"
+            }
+          ]
+        },
+        {
+          "uuid": "55b7ee8a-3b9f-4b2b-af05-b4c36560956c",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "6a88963d-431b-4f26-a2a1-88d33fbdc395",
+              "text": "🎒 Want to activate your Skills Backpack?\n\nIt keeps the certificates you earn, the skills you learn and your Pathfinder plan in one place, on your Youth Identity (YoID).\n\nYour information is:\n🔒 Private\n🔒 Secure\n🔒 Only shared with your permission\n\n1️⃣ Yes, activate it\n2️⃣ Tell me more\n3️⃣ Not now",
+              "quick_replies": [
+                "Yes, activate it",
+                "Tell me more",
+                "Not now"
+              ]
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "c289a95a-5c9c-4fef-a5b6-602129bb430d",
+              "destination_uuid": "6ca6a259-70e1-4996-abd2-a3502b9f58e4"
+            }
+          ]
+        },
+        {
+          "uuid": "6ca6a259-70e1-4996-abd2-a3502b9f58e4",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@input.text",
+            "result_name": "backpack",
+            "wait": {
+              "type": "msg"
+            },
+            "default_category_uuid": "899cc0e4-852e-48f2-a593-0cd9d3033064",
+            "categories": [
+              {
+                "uuid": "f51e4804-c0ed-444c-a202-3a4740c8888b",
+                "name": "yes",
+                "exit_uuid": "a4562fbd-ea94-4a00-a435-a9bbbd77427a"
+              },
+              {
+                "uuid": "5740bb76-007f-4326-a558-0556c9fba42b",
+                "name": "more",
+                "exit_uuid": "9907a858-5fd7-4126-a307-ad2034129a3e"
+              },
+              {
+                "uuid": "9a40b214-a72b-47e8-acf2-861853341cb6",
+                "name": "no",
+                "exit_uuid": "0c4edbbd-8c19-4f6b-ad8a-ced949dc781b"
+              },
+              {
+                "uuid": "899cc0e4-852e-48f2-a593-0cd9d3033064",
+                "name": "Other",
+                "exit_uuid": "6dd7eb79-9b53-4ea1-ae9e-86b16f61c18d"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "35fd7383-a5b0-4fa8-ab29-27c3e9f054db",
+                "type": "has_any_word",
+                "arguments": [
+                  "1 yes activate"
+                ],
+                "category_uuid": "f51e4804-c0ed-444c-a202-3a4740c8888b"
+              },
+              {
+                "uuid": "376a72f0-a19a-4747-aafe-93386b79e098",
+                "type": "has_any_word",
+                "arguments": [
+                  "2 more tell"
+                ],
+                "category_uuid": "5740bb76-007f-4326-a558-0556c9fba42b"
+              },
+              {
+                "uuid": "672d6010-ca21-4b5f-ad60-ebddacb193cb",
+                "type": "has_any_word",
+                "arguments": [
+                  "3 not no"
+                ],
+                "category_uuid": "9a40b214-a72b-47e8-acf2-861853341cb6"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "a4562fbd-ea94-4a00-a435-a9bbbd77427a",
+              "destination_uuid": "ce7546f1-a997-46b3-a4d6-733d4260c768"
+            },
+            {
+              "uuid": "9907a858-5fd7-4126-a307-ad2034129a3e",
+              "destination_uuid": "b1158f5a-d880-4f6e-a1d8-dbb2179d5aa4"
+            },
+            {
+              "uuid": "0c4edbbd-8c19-4f6b-ad8a-ced949dc781b",
+              "destination_uuid": "969357a8-4b17-495e-acd1-bd524dc80e99"
+            },
+            {
+              "uuid": "6dd7eb79-9b53-4ea1-ae9e-86b16f61c18d",
+              "destination_uuid": "55b7ee8a-3b9f-4b2b-af05-b4c36560956c"
+            }
+          ]
+        },
+        {
+          "uuid": "b1158f5a-d880-4f6e-a1d8-dbb2179d5aa4",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "26aec3f3-9213-4845-ac7f-538b3a6ff0c0",
+              "text": "Your Skills Backpack helps you:\n✅ Keep your certificates safe, so you never lose them.\n✅ Show employers what you can do, with skills from trusted programmes like FunDoo and Yoma.\n✅ Find learning and earning opportunities on yoma.world.\n🔒 You decide when and if you share it.\n\nReady to activate it?\n\n1️⃣ Yes, activate it\n2️⃣ Not now",
+              "quick_replies": [
+                "Yes, activate it",
+                "Not now"
+              ]
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "280e0f8c-338b-4043-a877-d599ba222d16",
+              "destination_uuid": "681ce347-d2e5-455f-adc0-887291560db9"
+            }
+          ]
+        },
+        {
+          "uuid": "681ce347-d2e5-455f-adc0-887291560db9",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@input.text",
+            "result_name": "backpack",
+            "wait": {
+              "type": "msg"
+            },
+            "default_category_uuid": "c11b2590-2bda-480f-a74d-2175c24fbed5",
+            "categories": [
+              {
+                "uuid": "6a6d6cd9-6a7d-42a6-ac08-64b0139a198d",
+                "name": "yes",
+                "exit_uuid": "a5bc8bfa-f9b3-4fdb-a478-284db03c04eb"
+              },
+              {
+                "uuid": "bdec9004-6bb5-4ab1-a713-ee7765101c07",
+                "name": "no",
+                "exit_uuid": "7eb65d84-34a6-4ff3-a30a-56d46978e142"
+              },
+              {
+                "uuid": "c11b2590-2bda-480f-a74d-2175c24fbed5",
+                "name": "Other",
+                "exit_uuid": "6d87d582-50dc-4cb0-aedd-eae537e474c1"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "c9719e50-bc9a-47fb-a2dc-ed660fdc706e",
+                "type": "has_any_word",
+                "arguments": [
+                  "1 yes activate"
+                ],
+                "category_uuid": "6a6d6cd9-6a7d-42a6-ac08-64b0139a198d"
+              },
+              {
+                "uuid": "7175a295-7b1d-4111-a5b9-2c6d8c2c635f",
+                "type": "has_any_word",
+                "arguments": [
+                  "2 not no"
+                ],
+                "category_uuid": "bdec9004-6bb5-4ab1-a713-ee7765101c07"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "a5bc8bfa-f9b3-4fdb-a478-284db03c04eb",
+              "destination_uuid": "ce7546f1-a997-46b3-a4d6-733d4260c768"
+            },
+            {
+              "uuid": "7eb65d84-34a6-4ff3-a30a-56d46978e142",
+              "destination_uuid": "969357a8-4b17-495e-acd1-bd524dc80e99"
+            },
+            {
+              "uuid": "6d87d582-50dc-4cb0-aedd-eae537e474c1",
+              "destination_uuid": "b1158f5a-d880-4f6e-a1d8-dbb2179d5aa4"
+            }
+          ]
+        },
+        {
+          "uuid": "1d9b6b37-d09e-4bd7-addf-f668daed99f3",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "99e8676e-eea6-4ce5-a08d-8e387f79bc05",
+              "text": "Next in your journey: @fields.pf_handoff.",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "d43a0084-0981-4d04-a108-d606fb3d4eb8",
+              "destination_uuid": null
+            }
+          ]
+        },
+        {
+          "uuid": "167f6d56-55cd-4df4-ab8f-cb1d9620e5c9",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "bbe0f57b-3247-440e-ac5e-faf2196966c5",
+              "text": "Skills Backpacks on YoID start at 16, so your plan stays here in this chat for now.",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "4ce674da-4b6e-4aa1-abeb-a87199799910",
+              "destination_uuid": "1d9b6b37-d09e-4bd7-addf-f668daed99f3"
+            }
+          ]
+        },
+        {
+          "uuid": "ce7546f1-a997-46b3-a4d6-733d4260c768",
+          "actions": [
+            {
+              "type": "call_webhook",
+              "uuid": "e3a93057-ff86-424b-a9ff-30f57b2d159c",
+              "method": "POST",
+              "url": "@globals.pathfinder_url/api/rapidpro/backpack",
+              "headers": {
+                "Content-Type": "application/json",
+                "Authorization": "Token @globals.pathfinder_token"
+              },
+              "body": "@(json(object(\"plan_id\", fields.pf_plan_id, \"answer\", \"yes\")))",
+              "result_name": "backpack_saved"
+            }
+          ],
+          "router": {
+            "type": "switch",
+            "operand": "@results.backpack_saved.category",
+            "default_category_uuid": "73eb67a7-eabb-4021-ae73-060a0ceda17f",
+            "categories": [
+              {
+                "uuid": "8d5e0376-9e08-4b80-afd9-0e6fdbdc8bf1",
+                "name": "Success",
+                "exit_uuid": "72729dad-b91e-48ad-a483-9d36509e9067"
+              },
+              {
+                "uuid": "73eb67a7-eabb-4021-ae73-060a0ceda17f",
+                "name": "Failure",
+                "exit_uuid": "6cc4a927-c333-43d1-a4cd-4e44473fbb53"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "a9c00d6f-c3af-4f8e-ac44-41d62dd062c5",
+                "type": "has_only_text",
+                "arguments": [
+                  "Success"
+                ],
+                "category_uuid": "8d5e0376-9e08-4b80-afd9-0e6fdbdc8bf1"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "72729dad-b91e-48ad-a483-9d36509e9067",
+              "destination_uuid": "32be45fc-d3f6-42d6-ad12-5ed9fd7a727a"
+            },
+            {
+              "uuid": "6cc4a927-c333-43d1-a4cd-4e44473fbb53",
+              "destination_uuid": "1d9b6b37-d09e-4bd7-addf-f668daed99f3"
+            }
+          ]
+        },
+        {
+          "uuid": "9adaea2a-8626-4ee9-a0d2-9a0d753d3716",
+          "actions": [
+            {
+              "type": "set_contact_field",
+              "uuid": "d61bb738-16dc-4d27-a7b5-07ed971738af",
+              "field": {
+                "key": "pf_backpack",
+                "name": "Skills Backpack on"
+              },
+              "value": "no"
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "155bc881-3038-4b2f-aa33-f31f81d8a296",
+              "destination_uuid": "969357a8-4b17-495e-acd1-bd524dc80e99"
+            }
+          ]
+        },
+        {
+          "uuid": "969357a8-4b17-495e-acd1-bd524dc80e99",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "1f62b899-d796-4389-a906-9b1d302cac8c",
+              "text": "That's fine. Nothing goes in a Skills Backpack. Your plan is still here in this chat.",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "1939a49b-c9e2-4ad7-adca-03bdae54a4b9",
+              "destination_uuid": "1d9b6b37-d09e-4bd7-addf-f668daed99f3"
+            }
+          ]
+        },
+        {
+          "uuid": "32be45fc-d3f6-42d6-ad12-5ed9fd7a727a",
+          "actions": [
+            {
+              "type": "set_contact_field",
+              "uuid": "0cf604a2-1a37-4f9f-ae98-46bfc90b0391",
+              "field": {
+                "key": "pf_backpack",
+                "name": "Skills Backpack on"
+              },
+              "value": "yes"
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "cd4790f5-6dad-4a93-af63-5da0d14b1fb6",
+              "destination_uuid": "a60334b1-fd58-4e06-a497-52d939fd395c"
+            }
+          ]
+        },
+        {
+          "uuid": "a60334b1-fd58-4e06-a497-52d939fd395c",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "4a3e66fc-4b7c-4e52-a7c1-30929c1530bd",
+              "text": "@webhook.message",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "e1cda01c-30fd-45f4-ab1b-2bb20de51482",
+              "destination_uuid": "99c8b179-6b4c-4dff-a9e9-fb60e64d8acb"
+            }
+          ]
+        },
+        {
+          "uuid": "99c8b179-6b4c-4dff-a9e9-fb60e64d8acb",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "43f9a266-3bb1-4574-a5f9-1b4224c5d730",
+              "text": "Next in your journey: @fields.pf_handoff.",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "0a6742a3-8e0d-4d36-a892-c68ffaedd2b1",
+              "destination_uuid": null
+            }
+          ]
+        },
+        {
+          "uuid": "3dace331-0f26-404b-aca2-0867d0805567",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "f888d589-00cd-4fbf-a742-2941203bec5e",
+              "text": "Sorry, I couldn't open your Skills Backpack right now. Reply PLAN later to try again.",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "c9a77064-c296-40bb-af7f-84be876007fc",
+              "destination_uuid": "1d9b6b37-d09e-4bd7-addf-f668daed99f3"
+            }
+          ]
+        },
+        {
+          "uuid": "a2a5b003-2faa-4ccf-a33d-f4f14f06cbf7",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "b7becbe5-16b2-435e-ae78-8f949cb121a2",
+              "text": "Sorry, Pathfinder can't build your plan right now. Please reply PLAN to try again later.",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "c5810922-1be2-4b2b-aaf4-0aec02335e30",
+              "destination_uuid": null
+            }
+          ]
+        }
+      ],
+      "_ui": {
+        "nodes": {
+          "6f086f08-7de0-4127-a6f7-ab8b879501bb": {
+            "position": {
+              "left": 0,
+              "top": 180
+            },
+            "type": "execute_actions"
+          },
+          "430c38ff-6fb1-4c52-afd8-c94830ebcdd7": {
+            "position": {
+              "left": 0,
+              "top": 360
+            },
+            "type": "wait_for_response"
+          },
+          "c4cd7896-7219-4f10-ac95-711d961b35d4": {
+            "position": {
+              "left": 0,
+              "top": 540
+            },
+            "type": "execute_actions"
+          },
+          "6cd5e4f5-f601-4d48-af7c-0a0623de9959": {
+            "position": {
+              "left": 0,
+              "top": 720
+            },
+            "type": "wait_for_response"
+          },
+          "01bd4c8c-315c-426a-a62e-db90d0ffc2d6": {
+            "position": {
+              "left": 0,
+              "top": 900
+            },
+            "type": "execute_actions"
+          },
+          "f954af51-a2d8-4f87-aa0d-eb8fa3b458f6": {
+            "position": {
+              "left": 0,
+              "top": 1080
+            },
+            "type": "wait_for_response"
+          },
+          "c2d661bb-64bc-413f-aff9-a1adab5116cc": {
+            "position": {
+              "left": 0,
+              "top": 1260
+            },
+            "type": "split_by_expression"
+          },
+          "7f893a56-7cc6-41ee-acd8-fc19ea60ad21": {
+            "position": {
+              "left": 0,
+              "top": 1440
+            },
+            "type": "execute_actions"
+          },
+          "a40679d0-21ed-4c57-a83d-3734bf2e039b": {
+            "position": {
+              "left": 0,
+              "top": 1620
+            },
+            "type": "wait_for_response"
+          },
+          "a13542fa-521f-413e-a624-9889afb821ed": {
+            "position": {
+              "left": 0,
+              "top": 1800
+            },
+            "type": "execute_actions"
+          },
+          "7c7a805a-29dd-4fb9-a1f1-e582aeb59a0d": {
+            "position": {
+              "left": 0,
+              "top": 1980
+            },
+            "type": "execute_actions"
+          },
+          "eca51726-ebd6-4f9d-ac88-345e66e7a78a": {
+            "position": {
+              "left": 0,
+              "top": 2160
+            },
+            "type": "execute_actions"
+          },
+          "33a7f984-9ec2-415b-afaf-319205eb86bb": {
+            "position": {
+              "left": 0,
+              "top": 2340
+            },
+            "type": "wait_for_response"
+          },
+          "648b2ce8-3d55-4916-a411-a1ca22932f15": {
+            "position": {
+              "left": 0,
+              "top": 2520
+            },
+            "type": "execute_actions"
+          },
+          "0380d984-fc50-452d-a3ef-5d1594dea002": {
+            "position": {
+              "left": 0,
+              "top": 2700
+            },
+            "type": "wait_for_response"
+          },
+          "fe417dfc-76f3-4d24-a05a-26c3e3d54d73": {
+            "position": {
+              "left": 0,
+              "top": 2880
+            },
+            "type": "execute_actions"
+          },
+          "5770d54c-9444-4963-a845-e97290086b80": {
+            "position": {
+              "left": 0,
+              "top": 3060
+            },
+            "type": "wait_for_response"
+          },
+          "60a9e5ba-9ed7-4073-a5f3-fefc8ae964d6": {
+            "position": {
+              "left": 0,
+              "top": 3240
+            },
+            "type": "execute_actions"
+          },
+          "023b2dea-ea33-4f57-a8fc-09b479eefac1": {
+            "position": {
+              "left": 0,
+              "top": 3420
+            },
+            "type": "wait_for_response"
+          },
+          "431999d7-a1ef-4e62-a8a6-82f57065ea49": {
+            "position": {
+              "left": 0,
+              "top": 3600
+            },
+            "type": "execute_actions"
+          },
+          "c3121bee-089c-4ed0-a0ce-e51173072fdb": {
+            "position": {
+              "left": 0,
+              "top": 3780
+            },
+            "type": "wait_for_response"
+          },
+          "e6a9daa8-00da-4a94-a016-42b35d34b736": {
+            "position": {
+              "left": 0,
+              "top": 3960
+            },
+            "type": "execute_actions"
+          },
+          "3341d82e-fd03-43cb-acac-488b595992d8": {
+            "position": {
+              "left": 0,
+              "top": 4140
+            },
+            "type": "wait_for_response"
+          },
+          "289253f0-8730-49c8-acb6-5153756c896d": {
+            "position": {
+              "left": 0,
+              "top": 4320
+            },
+            "type": "split_by_webhook"
+          },
+          "0e9bb5d6-3f66-419a-a309-3d6d081822dd": {
+            "position": {
+              "left": 0,
+              "top": 4500
+            },
+            "type": "execute_actions"
+          },
+          "5ae6c0d4-de12-4f32-a290-b4f4e5696712": {
+            "position": {
+              "left": 0,
+              "top": 4680
+            },
+            "type": "execute_actions"
+          },
+          "d6d1c226-9b28-4475-a625-b431bab4aab8": {
+            "position": {
+              "left": 0,
+              "top": 4860
+            },
+            "type": "execute_actions"
+          },
+          "562b75f3-b7f9-4af8-a34d-d76c07e472ca": {
+            "position": {
+              "left": 0,
+              "top": 5040
+            },
+            "type": "execute_actions"
+          },
+          "01bc5d9a-0e23-4661-ad6c-54cbc391797f": {
+            "position": {
+              "left": 0,
+              "top": 5220
+            },
+            "type": "split_by_expression"
+          },
+          "55b7ee8a-3b9f-4b2b-af05-b4c36560956c": {
+            "position": {
+              "left": 0,
+              "top": 5400
+            },
+            "type": "execute_actions"
+          },
+          "6ca6a259-70e1-4996-abd2-a3502b9f58e4": {
+            "position": {
+              "left": 0,
+              "top": 5580
+            },
+            "type": "wait_for_response"
+          },
+          "b1158f5a-d880-4f6e-a1d8-dbb2179d5aa4": {
+            "position": {
+              "left": 0,
+              "top": 5760
+            },
+            "type": "execute_actions"
+          },
+          "681ce347-d2e5-455f-adc0-887291560db9": {
+            "position": {
+              "left": 0,
+              "top": 5940
+            },
+            "type": "wait_for_response"
+          },
+          "1d9b6b37-d09e-4bd7-addf-f668daed99f3": {
+            "position": {
+              "left": 0,
+              "top": 6120
+            },
+            "type": "execute_actions"
+          },
+          "167f6d56-55cd-4df4-ab8f-cb1d9620e5c9": {
+            "position": {
+              "left": 0,
+              "top": 6300
+            },
+            "type": "execute_actions"
+          },
+          "ce7546f1-a997-46b3-a4d6-733d4260c768": {
+            "position": {
+              "left": 0,
+              "top": 6480
+            },
+            "type": "split_by_webhook"
+          },
+          "9adaea2a-8626-4ee9-a0d2-9a0d753d3716": {
+            "position": {
+              "left": 0,
+              "top": 6660
+            },
+            "type": "execute_actions"
+          },
+          "969357a8-4b17-495e-acd1-bd524dc80e99": {
+            "position": {
+              "left": 0,
+              "top": 6840
+            },
+            "type": "execute_actions"
+          },
+          "32be45fc-d3f6-42d6-ad12-5ed9fd7a727a": {
+            "position": {
+              "left": 0,
+              "top": 7020
+            },
+            "type": "execute_actions"
+          },
+          "a60334b1-fd58-4e06-a497-52d939fd395c": {
+            "position": {
+              "left": 0,
+              "top": 7200
+            },
+            "type": "execute_actions"
+          },
+          "99c8b179-6b4c-4dff-a9e9-fb60e64d8acb": {
+            "position": {
+              "left": 0,
+              "top": 7380
+            },
+            "type": "execute_actions"
+          },
+          "3dace331-0f26-404b-aca2-0867d0805567": {
+            "position": {
+              "left": 0,
+              "top": 7560
+            },
+            "type": "execute_actions"
+          },
+          "a2a5b003-2faa-4ccf-a33d-f4f14f06cbf7": {
+            "position": {
+              "left": 0,
+              "top": 7740
+            },
+            "type": "execute_actions"
+          }
+        },
+        "stickies": {}
+      }
+    },
+    {
+      "uuid": "dee4e8d8-4ee3-4315-aecc-58fedcf8a849",
+      "name": "Pathfinder: weekly check-in",
+      "spec_version": "13.1.0",
+      "language": "eng",
+      "type": "messaging",
+      "revision": 1,
+      "expire_after_minutes": 10080,
+      "localization": {},
+      "nodes": [
+        {
+          "uuid": "a0ce64b4-6a0a-4936-a2ee-7d7817be3a85",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "caa8e6ec-edcd-4862-a920-69c4e20adb0a",
+              "text": "Pathfinder check-in: how is your current step going?\n\n1️⃣ Finished\n2️⃣ Still working\n3️⃣ Not started\n4️⃣ I need help",
+              "quick_replies": [
+                "Finished",
+                "Still working",
+                "Not started",
+                "I need help"
+              ]
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "e408af10-9a9e-4548-a1d1-c9b8b166142d",
+              "destination_uuid": "401cd63c-a90c-4ddc-a717-10ba82b46c43"
+            }
+          ]
+        },
+        {
+          "uuid": "401cd63c-a90c-4ddc-a717-10ba82b46c43",
+          "actions": [],
+          "router": {
+            "type": "switch",
+            "operand": "@input.text",
+            "result_name": "checkin",
+            "wait": {
+              "type": "msg"
+            },
+            "default_category_uuid": "06bce768-6c96-436c-acea-bfd3b9d39570",
+            "categories": [
+              {
+                "uuid": "bc8c2122-3ae4-4b37-a453-d35ed1c3ce40",
+                "name": "1",
+                "exit_uuid": "c2f2957e-6774-4fcf-a81e-2014caed91b3"
+              },
+              {
+                "uuid": "2b5fdbe4-4adb-4a10-a454-e243233810bb",
+                "name": "2",
+                "exit_uuid": "e2fe300a-fab3-4faf-ad45-7131bee92313"
+              },
+              {
+                "uuid": "c4262c04-3324-4b44-a12b-92937f908d36",
+                "name": "3",
+                "exit_uuid": "21528295-11b4-4c5f-ada4-eb4a78ee6d48"
+              },
+              {
+                "uuid": "2d446676-1efd-4665-aa81-47019824095c",
+                "name": "4",
+                "exit_uuid": "1daa1add-6b4f-42a5-aae8-311914c492db"
+              },
+              {
+                "uuid": "06bce768-6c96-436c-acea-bfd3b9d39570",
+                "name": "Other",
+                "exit_uuid": "9f384c36-b8a7-45f9-a320-9d2d69e56048"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "f321e607-18c6-4d7f-ab59-a230178e4ac5",
+                "type": "has_any_word",
+                "arguments": [
+                  "1 finished done yes"
+                ],
+                "category_uuid": "bc8c2122-3ae4-4b37-a453-d35ed1c3ce40"
+              },
+              {
+                "uuid": "a6104cdb-1707-4ae2-a779-f24bf19b902a",
+                "type": "has_any_word",
+                "arguments": [
+                  "2 working doing"
+                ],
+                "category_uuid": "2b5fdbe4-4adb-4a10-a454-e243233810bb"
+              },
+              {
+                "uuid": "62678987-c419-476d-a4f8-e3e4806095fc",
+                "type": "has_any_word",
+                "arguments": [
+                  "3 not"
+                ],
+                "category_uuid": "c4262c04-3324-4b44-a12b-92937f908d36"
+              },
+              {
+                "uuid": "ff7f7c26-f949-4c64-ae2f-b534a0494e83",
+                "type": "has_any_word",
+                "arguments": [
+                  "4 help"
+                ],
+                "category_uuid": "2d446676-1efd-4665-aa81-47019824095c"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "c2f2957e-6774-4fcf-a81e-2014caed91b3",
+              "destination_uuid": "8d348f32-829a-45f0-a2f3-f5a808aa7ccd"
+            },
+            {
+              "uuid": "e2fe300a-fab3-4faf-ad45-7131bee92313",
+              "destination_uuid": "8d348f32-829a-45f0-a2f3-f5a808aa7ccd"
+            },
+            {
+              "uuid": "21528295-11b4-4c5f-ada4-eb4a78ee6d48",
+              "destination_uuid": "8d348f32-829a-45f0-a2f3-f5a808aa7ccd"
+            },
+            {
+              "uuid": "1daa1add-6b4f-42a5-aae8-311914c492db",
+              "destination_uuid": "8d348f32-829a-45f0-a2f3-f5a808aa7ccd"
+            },
+            {
+              "uuid": "9f384c36-b8a7-45f9-a320-9d2d69e56048",
+              "destination_uuid": "a0ce64b4-6a0a-4936-a2ee-7d7817be3a85"
+            }
+          ]
+        },
+        {
+          "uuid": "8d348f32-829a-45f0-a2f3-f5a808aa7ccd",
+          "actions": [
+            {
+              "type": "call_webhook",
+              "uuid": "da8df5f1-1ff6-48ca-adc6-055fd8f355d1",
+              "method": "POST",
+              "url": "@globals.pathfinder_url/api/rapidpro/checkin",
+              "headers": {
+                "Content-Type": "application/json",
+                "Authorization": "Token @globals.pathfinder_token"
+              },
+              "body": "@(json(object(\"plan_id\", fields.pf_plan_id, \"answer\", results.checkin.category)))",
+              "result_name": "checkin_result"
+            }
+          ],
+          "router": {
+            "type": "switch",
+            "operand": "@results.checkin_result.category",
+            "default_category_uuid": "9dc17d4a-5ab5-4093-a166-39927f1d62cb",
+            "categories": [
+              {
+                "uuid": "b044dc9d-bf1b-4c19-accb-1c019ab7a3ee",
+                "name": "Success",
+                "exit_uuid": "5642c187-3104-4740-ab10-04c74375b5c8"
+              },
+              {
+                "uuid": "9dc17d4a-5ab5-4093-a166-39927f1d62cb",
+                "name": "Failure",
+                "exit_uuid": "827892c2-6156-4de3-ac7e-c9b6c1db6915"
+              }
+            ],
+            "cases": [
+              {
+                "uuid": "62cb3913-7081-47ba-a35f-86e63e949d2c",
+                "type": "has_only_text",
+                "arguments": [
+                  "Success"
+                ],
+                "category_uuid": "b044dc9d-bf1b-4c19-accb-1c019ab7a3ee"
+              }
+            ]
+          },
+          "exits": [
+            {
+              "uuid": "5642c187-3104-4740-ab10-04c74375b5c8",
+              "destination_uuid": "3b7062ce-11d0-41f0-a380-0a15850b4ef0"
+            },
+            {
+              "uuid": "827892c2-6156-4de3-ac7e-c9b6c1db6915",
+              "destination_uuid": "20e79367-c49b-4973-a92b-731990e3f633"
+            }
+          ]
+        },
+        {
+          "uuid": "3b7062ce-11d0-41f0-a380-0a15850b4ef0",
+          "actions": [
+            {
+              "type": "set_contact_field",
+              "uuid": "8109f9c6-9774-4479-a46c-bc50b6d05cd8",
+              "field": {
+                "key": "pf_step",
+                "name": "PathFinder current step"
+              },
+              "value": "@webhook.step"
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "d79221ec-b771-433c-aba2-fc3003cf4d71",
+              "destination_uuid": "d122c6bd-262c-4243-abab-bd4683d0ef10"
+            }
+          ]
+        },
+        {
+          "uuid": "d122c6bd-262c-4243-abab-bd4683d0ef10",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "5acd22c4-7aab-42f8-a11f-e8c05c4a7c30",
+              "text": "@webhook.message",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "e1cea9a6-64ac-4bad-ae99-64d05b2c6b25",
+              "destination_uuid": null
+            }
+          ]
+        },
+        {
+          "uuid": "20e79367-c49b-4973-a92b-731990e3f633",
+          "actions": [
+            {
+              "type": "send_msg",
+              "uuid": "c178a3e0-7b95-4fd3-a689-d897a92e7405",
+              "text": "Sorry, I couldn't update your plan right now. Please try again later.",
+              "quick_replies": []
+            }
+          ],
+          "exits": [
+            {
+              "uuid": "9f269d9e-2061-436f-a411-9f957bc89169",
+              "destination_uuid": null
+            }
+          ]
+        }
+      ],
+      "_ui": {
+        "nodes": {
+          "a0ce64b4-6a0a-4936-a2ee-7d7817be3a85": {
+            "position": {
+              "left": 0,
+              "top": 180
+            },
+            "type": "execute_actions"
+          },
+          "401cd63c-a90c-4ddc-a717-10ba82b46c43": {
+            "position": {
+              "left": 0,
+              "top": 360
+            },
+            "type": "wait_for_response"
+          },
+          "8d348f32-829a-45f0-a2f3-f5a808aa7ccd": {
+            "position": {
+              "left": 0,
+              "top": 540
+            },
+            "type": "split_by_webhook"
+          },
+          "3b7062ce-11d0-41f0-a380-0a15850b4ef0": {
+            "position": {
+              "left": 0,
+              "top": 720
+            },
+            "type": "execute_actions"
+          },
+          "d122c6bd-262c-4243-abab-bd4683d0ef10": {
+            "position": {
+              "left": 0,
+              "top": 900
+            },
+            "type": "execute_actions"
+          },
+          "20e79367-c49b-4973-a92b-731990e3f633": {
+            "position": {
+              "left": 0,
+              "top": 1080
+            },
+            "type": "execute_actions"
+          }
+        },
+        "stickies": {}
+      }
+    }
+  ],
+  "campaigns": [
+    {
+      "uuid": "86d23244-df33-4158-a544-44f2d01d1927",
+      "name": "Pathfinder weekly check-ins",
+      "group": {
+        "uuid": "1fed1c4d-4e19-4291-aefa-d0c90c881fed",
+        "name": "Pathfinder users"
+      },
+      "events": [
+        {
+          "uuid": "417daeba-c3e6-45c4-a002-2bc5b75f0e24",
+          "offset": 7,
+          "unit": "D",
+          "event_type": "F",
+          "delivery_hour": 10,
+          "relative_to": {
+            "key": "pf_plan_saved_on",
+            "label": "PathFinder plan saved on"
+          },
+          "flow": {
+            "uuid": "dee4e8d8-4ee3-4315-aecc-58fedcf8a849",
+            "name": "Pathfinder: weekly check-in"
+          },
+          "start_mode": "I"
+        },
+        {
+          "uuid": "106ed4e8-a5d8-4531-a34e-2a43ee7e93be",
+          "offset": 14,
+          "unit": "D",
+          "event_type": "F",
+          "delivery_hour": 10,
+          "relative_to": {
+            "key": "pf_plan_saved_on",
+            "label": "PathFinder plan saved on"
+          },
+          "flow": {
+            "uuid": "dee4e8d8-4ee3-4315-aecc-58fedcf8a849",
+            "name": "Pathfinder: weekly check-in"
+          },
+          "start_mode": "I"
+        },
+        {
+          "uuid": "3ea1fdab-cc36-4494-a8f2-fbc96457e695",
+          "offset": 21,
+          "unit": "D",
+          "event_type": "F",
+          "delivery_hour": 10,
+          "relative_to": {
+            "key": "pf_plan_saved_on",
+            "label": "PathFinder plan saved on"
+          },
+          "flow": {
+            "uuid": "dee4e8d8-4ee3-4315-aecc-58fedcf8a849",
+            "name": "Pathfinder: weekly check-in"
+          },
+          "start_mode": "I"
+        },
+        {
+          "uuid": "12ceda88-c874-494a-aa90-83bed957b47c",
+          "offset": 28,
+          "unit": "D",
+          "event_type": "F",
+          "delivery_hour": 10,
+          "relative_to": {
+            "key": "pf_plan_saved_on",
+            "label": "PathFinder plan saved on"
+          },
+          "flow": {
+            "uuid": "dee4e8d8-4ee3-4315-aecc-58fedcf8a849",
+            "name": "Pathfinder: weekly check-in"
+          },
+          "start_mode": "I"
+        },
+        {
+          "uuid": "37a6c704-6fcc-43b9-a9ec-ff618196c646",
+          "offset": 35,
+          "unit": "D",
+          "event_type": "F",
+          "delivery_hour": 10,
+          "relative_to": {
+            "key": "pf_plan_saved_on",
+            "label": "PathFinder plan saved on"
+          },
+          "flow": {
+            "uuid": "dee4e8d8-4ee3-4315-aecc-58fedcf8a849",
+            "name": "Pathfinder: weekly check-in"
+          },
+          "start_mode": "I"
+        },
+        {
+          "uuid": "a7425490-2f27-4150-a779-987c62c1fdfa",
+          "offset": 42,
+          "unit": "D",
+          "event_type": "F",
+          "delivery_hour": 10,
+          "relative_to": {
+            "key": "pf_plan_saved_on",
+            "label": "PathFinder plan saved on"
+          },
+          "flow": {
+            "uuid": "dee4e8d8-4ee3-4315-aecc-58fedcf8a849",
+            "name": "Pathfinder: weekly check-in"
+          },
+          "start_mode": "I"
+        }
+      ]
+    }
+  ],
+  "triggers": [
+    {
+      "trigger_type": "K",
+      "keyword": "plan",
+      "flow": {
+        "uuid": "b24174cf-0f7d-4c46-afca-5073f4c0e00c",
+        "name": "Pathfinder: goal to plan"
+      },
+      "groups": [],
+      "exclude_groups": [],
+      "channel": null,
+      "match_type": "F"
+    },
+    {
+      "trigger_type": "K",
+      "keyword": "checkin",
+      "flow": {
+        "uuid": "dee4e8d8-4ee3-4315-aecc-58fedcf8a849",
+        "name": "Pathfinder: weekly check-in"
+      },
+      "groups": [],
+      "exclude_groups": [],
+      "channel": null,
+      "match_type": "F"
+    }
+  ],
+  "fields": [
+    {
+      "key": "pf_plan_id",
+      "name": "PathFinder plan id",
+      "type": "text"
+    },
+    {
+      "key": "pf_backpack",
+      "name": "Skills Backpack on",
+      "type": "text"
+    },
+    {
+      "key": "pf_handoff",
+      "name": "PathFinder handoff item",
+      "type": "text"
+    },
+    {
+      "key": "pf_plan_saved_on",
+      "name": "PathFinder plan saved on",
+      "type": "datetime"
+    },
+    {
+      "key": "pf_step",
+      "name": "PathFinder current step",
+      "type": "number"
+    }
+  ],
+  "groups": [
+    {
+      "uuid": "1fed1c4d-4e19-4291-aefa-d0c90c881fed",
+      "name": "Pathfinder users",
+      "query": null
+    }
+  ]
+}

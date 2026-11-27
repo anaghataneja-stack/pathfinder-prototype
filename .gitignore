@@ -6,3 +6,4 @@ data/*.tmp
 .superpowers/
 data/cases.ndjson
 data/events.ndjson
+data/plans.ndjson
