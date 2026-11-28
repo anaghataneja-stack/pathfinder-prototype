@@ -161,7 +161,7 @@ The **Behind the scenes** panel shows:
 ## Tests
 
 ```bash
-npm test                    # 106 unit and API tests, no installs, about 5 seconds
+npm test                    # 107 unit and API tests, no installs, about 5 seconds
 ```
 
 Browser scenarios (24 of them) run the real server against a mock Yoma API and a mock Azure, in Chromium:

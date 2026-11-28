@@ -147,3 +147,4 @@ Branch `connected-journey`, made by a teammate on the Ziqi side and sent as `git
 - **Across platforms:** each plan step shows its platform (P2E, Yoma, imaGen), and the plan ends with the weekly WhatsApp / SMS check-in.
 - **Settings:** `.env.example` now sets `NEXT_PROTOTYPE_URL=http://localhost:3001/demo/p2e` for the local journey demo; `SKILLLENS_URL` works too. Leave both empty for the pilot.
 - **Tests:** 106 unit (new `test/journey.test.mjs`), 24 browser scenarios.
+- **Fix after the four-app end-to-end test:** in the journey, "Test as" is **Halima** (Halima Yusuf, 20, Kaduna, phone repair) from the shared mock data, not Amina, and the Yoma profile panel shows her and the 3 credentials she holds before the plan. The Halima button is hidden outside the journey. Tests: 107 unit, 24 browser scenarios (the journey scenario checks the persona and the panel).

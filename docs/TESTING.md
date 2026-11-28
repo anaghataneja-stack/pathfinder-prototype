@@ -4,7 +4,7 @@ Last run: 28 November 2026, Node 22, Chromium (Playwright).
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit and API tests | `npm test` | **106 / 106 pass** (about 5 s) |
+| Unit and API tests | `npm test` | **107 / 107 pass** (about 5 s) |
 | Browser scenarios | `npm run e2e` | **24 / 24 pass** |
 | Live check, real Yoma API | `node sync.mjs` + the app | **Done 14 Nov 2026**: 5,171 real listings. Results and fixes [below](#live-check-real-yoma-14-november-2026) |
 | Live check, real Azure OpenAI | see [Live check](#live-check-run-this-before-the-demo) | **Not run yet.** Needs the team's Azure keys |
