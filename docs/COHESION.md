@@ -76,9 +76,21 @@ PathFinder uses the team's file, `mockups/shared-mock-data.json` (explained in `
 | Course SkillLens tests | Solar PV Installation Basics · `opp-course-001` |
 | Scam listing PathFinder must remove | Solar Sales Agent (pay ₦5,000 registration fee) · `opp-job-002` |
 
-Open `/?journey=demo` to run PathFinder with this data, as if Ziqi had just handed over. The plan matches the shared Learning Plan, the scam job appears under "removed" in Behind the scenes, and the SkillLens link carries `plan=plan-001`, `course=opp-course-001` and `listing=opp-job-001`.
+Open `/?journey=demo` to run PathFinder with this data, as if Ziqi had just handed over (see section 6 for the full link Ziqi sends). The plan matches the shared Learning Plan, the scam job appears under "removed" in Behind the scenes, and the SkillLens link carries `plan=plan-001`, `course=opp-course-001` and `listing=opp-job-001`.
+
+## 6. The connected journey (journey contract v1)
+
+The four teams agreed one contract for the links, the handoff card and the YoID thread. PathFinder implements it whenever the page is opened with `journey=demo`; without it, nothing changes.
+
+- **In (link 1, from Ziqi):** `PATHFINDER_URL/?journey=demo&from=ziqi&yoid=…&listing=opp-job-001&goal=job&return=…`
+- **Out (link 2, to SkillLens):** `NEXT_PROTOTYPE_URL?journey=demo&from=pathfinder&yoid=…&listing=opp-job-001&goal=job&plan=plan-001&course=opp-course-001&return=…`, in the same tab. Every parameter received is passed on, plus PathFinder's own; `from` becomes `pathfinder`. The pilot access code (`code`) is never passed on.
+- **`return`** is the Ziqi listing. Only `http:` and `https:` addresses are followed; anything else is dropped and **Back to the listing** is hidden.
+- **Cards**, worded exactly as in the contract: *From Ziqi · Phase 1* / **Saved Opportunity** / the job / *✓ Recorded on your YoID (mock-up)*, and after saving *Handing on to SkillLens · Phase 3* / **Learning Plan** / *Plan step: complete a P2E course (Solar PV Installation Basics)* / **Continue to SkillLens**. The tick line shows only when the Skills Backpack is on, because nothing is written to YoID before a yes.
+- **YoID thread** at the top of the page: *YoID · yoid-ng-7f3a0123 · mock-up*, with Saved Opportunity recorded, Learning Plan in progress (recorded once the plan is saved with the Backpack on), Skill Credential and Job Application next.
+- **Across platforms:** each plan step names its platform (P2E, Yoma, imaGen) and the plan ends with the weekly **WhatsApp / SMS check-in**. This is what PathFinder adds next to Ziqi's map within Yoma.
+
+The rules (link building, `return` check, thread states) are in `engine/journey.js`, tested in `test/journey.test.mjs`. The journey wording is English only, as in the contract, so it is not in the translation tables.
 
 **Still to agree with the other teams:**
-- Ziqi's real link format, if it differs from `?from=ziqi&listing=…&goal=…`.
-- SkillLens's address, set in `NEXT_PROTOTYPE_URL`.
+- ~~Ziqi's real link format~~ and ~~SkillLens's address~~: agreed in journey contract v1 (section 6).
 - Moving `tokens/` and `mockups/shared-mock-data.json` to one shared repository.

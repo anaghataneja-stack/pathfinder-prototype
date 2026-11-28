@@ -73,7 +73,7 @@ const restartDir = mkdtempSync(join(tmpdir(), 'pf-e2e-restart-'));
 writeFileSync(join(restartDir, 'yoma-cache.json'), JSON.stringify(sync.get()));
 const demoVoice = await listen(createApp({ sync, ai: createAI({}), demoVoice: true, rateLimit: { max: 1000 } }));
 const linked = await listen(createApp({ sync, ai: createAI({}), rateLimit: { max: 1000 }, nextPrototype: { name: 'YoCV', url: 'https://yocv.example.org/?from=pathfinder' } }));
-const journeyApp = await listen(createApp({ sync, ai: createAI({}), rateLimit: { max: 1000 }, nextPrototype: { name: 'SkillLens', url: 'https://skilllens.example.org/' } }));
+const journeyApp = await listen(createApp({ sync, ai: createAI({}), rateLimit: { max: 1000 }, nextPrototype: { name: 'SkillLens', url: 'https://skilllens.example.org/demo/p2e' } }));
 // "Continue with Yoma": a fake Keycloak, and the fake Yoma API for skills and saving.
 const kcState = {}; const kc = await startMockKeycloak(kcState);
 const port = await new Promise(r => { const t = net.createServer().listen(0, '127.0.0.1', () => { const p = t.address().port; t.close(() => r(p)); }); });
@@ -421,16 +421,30 @@ await scenario('15-year-old: guardian agrees, plan saved, but no Skills Backpack
   await ctx.close();
 });
 
+// Journey contract v1: what Ziqi sends (link 1), and what PathFinder must send SkillLens (link 2)
+const LISTING = 'http://localhost:3000/opportunities/c0a7e000-0000-4000-8000-000000000301';
+const FROM_ZIQI = `/?journey=demo&from=ziqi&yoid=yoid-ng-7f3a0123&listing=opp-job-001&goal=job&return=${encodeURIComponent(LISTING)}`;
 await scenario('Journey (team shared mock data): Ziqi hands over the Saved Opportunity; PathFinder hands the Learning Plan to SkillLens', async () => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage(); page.errors = []; page.on('pageerror', e => page.errors.push(e.message));
-  await page.goto(journeyApp + '/?journey=demo');
-  await waitChat(page, /From Ziqi/);
-  const intro = await chatText(page);
-  assert(/Saved Opportunity/.test(intro) && /A verified opportunity and the user's goal/.test(intro), 'incoming handoff item not named as in the shared data and the journey');
-  assert(/Solar Installation Assistant \(Trainee\)/.test(intro) && /Sunrise Solar Ltd/.test(intro), 'the shared job not shown');
+  await page.goto(journeyApp + FROM_ZIQI);
+  await waitChat(page, /From Ziqi · Phase 1/);
+  const intro = await page.locator('.handoff').first().innerText();
+  assert(/^From Ziqi · Phase 1\s+Saved Opportunity\s+Solar Installation Assistant \(Trainee\)\s+✓ Recorded on your YoID \(mock-up\)$/.test(intro.trim()), 'arriving card not worded as in the contract: ' + intro);
+  const bar = page.locator('#journey-bar');
+  assert(/YoID · yoid-ng-7f3a0123 · mock-up/.test(await bar.innerText()), 'YoID thread label missing');
+  const states = async () => (await bar.locator('li').allInnerTexts()).map(x => x.replace('✓', '').replace(/\s+/g, ' ').trim());
+  assert((await states()).join('|') === 'Saved Opportunity recorded|Learning Plan in progress|Skill Credential next|Job Application next', 'thread before the plan: ' + await states());
+  assert(await bar.locator('a.jback').getAttribute('href') === LISTING && await bar.locator('a.jback').innerText() === 'Back to the listing', 'Back to the listing link should use return');
+  // "Test as" is the journey's persona, Halima from the shared mock data, not Amina
+  const pressed = page.locator('#persona button[aria-pressed="true"]');
+  assert(await pressed.count() === 1 && /^Halima\s*20 · Kaduna · phone repair$/.test((await pressed.innerText()).trim()), 'Test as should be Halima: ' + await pressed.allInnerTexts());
+  assert(/Sample profile for Halima Yusuf: 3 credentials/.test(await page.locator('#p-profile').innerText()), 'profile should be Halima\'s: ' + await page.locator('#p-profile').innerText());
+  assert(!/Amina/.test(await page.locator('#p-profile').innerText()), 'no Amina in the journey');
   await tap(page, 'English'); await tap(page, '20'); await tap(page, 'Yes, use my profile'); await tap(page, 'Skip');
   await waitChat(page, /Which state do you live in/);   // the goal came from Phase 1, so it isn't asked again
+  const prof = await page.locator('#p-profile').innerText();
+  assert(/Digital Literacy Essentials/.test(prof) && /Customer Service Basics/.test(prof) && !/Solar PV/.test(prof), 'Halima\'s credentials read with consent: ' + prof);
   await tap(page, 'Another state'); await tap(page, '6–10 hours'); await tap(page, 'Very little'); await tap(page, 'Quick');
   await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
   const plan = await page.locator('.plan').last().innerText();
@@ -439,14 +453,32 @@ await scenario('Journey (team shared mock data): Ziqi hands over the Saved Oppor
   assert(/Working Safely at Height/.test(plan) && /Solar PV Installation Basics/.test(plan), 'the shared courses should be in the plan: ' + plan);
   assert(!/Solar Sales Agent/.test(plan), 'the pay-to-apply job must be filtered out');
   assert(/Asks for a fee/.test(await page.locator('#p-match').innerText()), 'the scam job should be listed as removed');
+  // Cross-platform: every step names its platform, and the plan includes the WhatsApp/SMS check-in
+  const plats = await page.locator('.plan').last().locator('.pstep .plat').allInnerTexts();
+  assert(plats.join('|') === 'P2E|P2E|Yoma|WhatsApp / SMS', 'step platforms: ' + plats.join('|'));
+  assert(/Weekly check-in on WhatsApp or SMS/.test(plan), 'the WhatsApp/SMS check-in should be in the plan');
   await tap(page, 'Save my plan'); await tap(page, 'Yes, activate it');
-  await waitChat(page, /Learning Plan/);
-  assert(/Plan step: complete a P2E course/.test(await chatText(page)), 'outgoing handoff should also use the journey wording');
-  const next = page.locator('a.next-proto').last();
-  const href = new URL(await next.getAttribute('href'));
-  assert(href.origin === 'https://skilllens.example.org' && href.searchParams.get('from') === 'pathfinder', 'wrong SkillLens link: ' + href);
-  assert(href.searchParams.get('course') === 'opp-course-001' && href.searchParams.get('plan') === 'plan-001' && href.searchParams.get('listing') === 'opp-job-001', 'SkillLens link should carry the shared ids: ' + href);
-  assert(/continue in SkillLens/.test(await next.innerText()), 'next button should name SkillLens');
+  await waitChat(page, /Handing on to SkillLens · Phase 3/);
+  const out = (await page.locator('.handoff').last().innerText()).trim();
+  assert(/^Handing on to SkillLens · Phase 3\s+Learning Plan\s+Plan step: complete a P2E course \(Solar PV Installation Basics\)\s+Continue to SkillLens\s+✓ Recorded on your YoID \(mock-up\)$/.test(out), 'leaving card not worded as in the contract: ' + out);
+  const next = page.locator('.handoff a.next-proto').last();
+  assert(await next.getAttribute('href') === 'https://skilllens.example.org/demo/p2e?journey=demo&from=pathfinder&yoid=yoid-ng-7f3a0123&listing=opp-job-001&goal=job&plan=plan-001&course=opp-course-001&return=' + encodeURIComponent(LISTING),
+    'SkillLens link should be the contract\'s link 2: ' + await next.getAttribute('href'));
+  assert(await next.getAttribute('target') === null, 'the journey continues in the same tab');
+  assert((await states()).join('|') === 'Saved Opportunity recorded|Learning Plan recorded|Skill Credential next|Job Application next', 'thread after the plan: ' + await states());
+  assert(!page.errors.length, page.errors.join('; '));
+  await ctx.close();
+});
+
+await scenario('Journey: a return URL that is not http(s) is ignored; without journey=demo nothing changes', async () => {
+  const ctx = await browser.newContext(); const page = await ctx.newPage(); page.errors = []; page.on('pageerror', e => page.errors.push(e.message));
+  await page.goto(journeyApp + '/?journey=demo&from=ziqi&yoid=yoid-ng-7f3a0123&listing=opp-job-001&goal=job&return=' + encodeURIComponent('javascript:alert(1)'));
+  await waitChat(page, /From Ziqi · Phase 1/);
+  assert(await page.locator('#journey-bar').isVisible() && !(await page.locator('#journey-bar a.jback').count()), 'Back to the listing should be hidden for a non-http return');
+  await page.goto(journeyApp + '/');
+  await page.waitForSelector('.opts button', { timeout: 10000 });
+  assert(await page.locator('#journey-bar').isHidden(), 'the YoID thread is only for the journey');
+  assert(await page.locator('#persona button[data-v="halima"]').isHidden() && /^Amina/.test(await page.locator('#persona button[aria-pressed="true"]').innerText()), 'outside the journey, Halima is hidden and Amina is the default');
   assert(!page.errors.length, page.errors.join('; '));
   await ctx.close();
 });

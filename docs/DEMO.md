@@ -18,11 +18,13 @@ This script works without Azure keys.
 3. Do one practice voice note so Chrome has already asked for microphone permission.
 4. Have the slide and the GitHub repo open in other tabs, in case anything fails.
 
-**For the joint four-prototype demo** (PathFinder as Phase 2): start the server with the SkillLens address too, then open **http://localhost:4173/?journey=demo** instead of Tab 1.
+**For the joint four-prototype demo** (PathFinder as Phase 2): start the server with the SkillLens address too. In the connected journey Ziqi opens PathFinder for you; to start at PathFinder, open the link Ziqi would send (journey contract v1, link 1) instead of Tab 1:
 ```bash
-DEMO_BROWSER_VOICE=true STAFF_CODE=demo NEXT_PROTOTYPE_URL=<SkillLens address> node serve.mjs
+DEMO_BROWSER_VOICE=true STAFF_CODE=demo NEXT_PROTOTYPE_URL=http://localhost:3001/demo/p2e node serve.mjs
 ```
-Show the **"From Ziqi"** card (*A verified opportunity and the user's goal*), make the plan, save it, tap **Yes, activate it** for the Skills Backpack (the same question FunDoo asks), then show the **"Handing on to SkillLens"** card (*Plan step: complete a P2E course*) and click **Next: continue in SkillLens →**.
+http://localhost:4173/?journey=demo&from=ziqi&yoid=yoid-ng-7f3a0123&listing=opp-job-001&goal=job&return=http%3A%2F%2Flocalhost%3A3000%2Fopportunities%2Fc0a7e000-0000-4000-8000-000000000301
+
+Show the YoID thread at the top (*Saved Opportunity* recorded, *Learning Plan* in progress) and the **"From Ziqi · Phase 1"** card, make the plan (each step names its platform: P2E, Yoma, and the WhatsApp / SMS check-in), save it, tap **Yes, activate it** for the Skills Backpack (the same question FunDoo asks), then show the **"Handing on to SkillLens · Phase 3"** card and click **Continue to SkillLens**. It opens SkillLens in the same tab. **Back to the listing** returns to Ziqi.
 
 ## Script
 

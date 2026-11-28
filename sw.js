@@ -1,8 +1,8 @@
 // Offline and slow-data support.
 // The app page and /api/listings: try the network, but if it takes longer than 4 s (or fails), answer from the
 // copy saved on this phone and update that copy in the background. Only a real app page (x-pf-app: 1) is saved.
-const SHELL = 'pf-shell-v6', DATA = 'pf-data-v2', WAIT_MS = 4000;
-const SHELL_FILES = ['/', '/icon.svg', '/manifest.webmanifest', '/tokens/yoma-tokens.css', '/engine/plan-engine.js'];
+const SHELL = 'pf-shell-v7', DATA = 'pf-data-v2', WAIT_MS = 4000;
+const SHELL_FILES = ['/', '/icon.svg', '/manifest.webmanifest', '/tokens/yoma-tokens.css', '/engine/plan-engine.js', '/engine/journey.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(SHELL).then(c => c.addAll(SHELL_FILES)).then(() => self.skipWaiting()));
