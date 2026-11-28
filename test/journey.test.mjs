@@ -71,3 +71,22 @@ test('the app uses the contract\'s exact wording, and the journey link opens in 
   assert.ok(!/target=/.test(link), 'the journey link must open in the same tab');
   assert.match(html, /<script src="engine\/journey\.js"><\/script>/);
 });
+
+test('in the journey, "Test as" is Halima from the shared mock data, with the credentials she holds before the plan', () => {
+  const data = JSON.parse(readFileSync(new URL('../mockups/shared-mock-data.json', import.meta.url), 'utf8'));
+  const fn = html.match(/function journeyPersona\(d\)\{[\s\S]*?\n\}/)[0];
+  const buttons = ['halima', 'amina', 'tunde', 'new'].map(v => ({dataset: {v}, hidden: v === 'halima', pressed: null, setAttribute(k, x) { this.pressed = String(x); }}));
+  const sub = {textContent: ''};
+  const c = vm.createContext({PERSONAS: {amina: {name: 'Amina', creds: []}}, persona: 'amina',
+    document: {getElementById: id => id === 'halima-sub' ? sub : null, querySelectorAll: () => buttons}});
+  vm.runInContext(fn + '\njourneyPersona(' + JSON.stringify(data) + ');', c);
+  assert.equal(c.persona, 'halima');
+  const P = c.PERSONAS.halima;
+  assert.equal(P.name, 'Halima'); assert.equal(P.full, 'Halima Yusuf');
+  assert.deepEqual([...P.creds].map(x => x.title), ['Digital Literacy Essentials', 'Community Tree Planting Day', 'Customer Service Basics']);
+  assert.ok(!P.creds.some(x => /Solar PV|Safely at Height/.test(x.title)), 'credentials earned later in the journey are not on her profile yet');
+  assert.equal(sub.textContent, '20 · Kaduna · phone repair');
+  assert.deepEqual(buttons.map(b => `${b.dataset.v}:${b.pressed}:${b.hidden}`), ['halima:true:false', 'amina:false:false', 'tunde:false:false', 'new:false:false']);
+  assert.match(html, /<button data-v="halima" aria-pressed="false" hidden>/, 'the Halima button is hidden outside the journey');
+  assert.match(html, /Sample profile for \$\{esc\(P\.full \|\| P\.name\)\}/);
+});

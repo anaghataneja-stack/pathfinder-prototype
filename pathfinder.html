@@ -240,6 +240,7 @@ a.next-proto.jc-btn{background:var(--yoma-blue);color:var(--yoma-purple);justify
   <div class="controls">
     <div class="ctl"><span>Test as</span>
       <div class="seg" id="persona">
+        <button data-v="halima" aria-pressed="false" hidden>Halima<small id="halima-sub">Journey persona</small></button>
         <button data-v="amina" aria-pressed="true">Amina<small>17 · Kano · 1 P2E course</small></button>
         <button data-v="tunde" aria-pressed="false">Tunde<small>21 · Lagos · 2 P2E courses</small></button>
         <button data-v="new" aria-pressed="false">New user<small>No Yoma record</small></button>
@@ -368,7 +369,8 @@ const TYPE_LABEL = {other:'Opportunity',job:'Job',learnership:'Learnership',appr
 const PERSONAS = {
   amina:{name:'Amina',creds:[{title:'Digital Literacy Essentials',src:'Passport to Earning',skills:['digital-basics','online-safety']}]},
   tunde:{name:'Tunde',creds:[{title:'Digital Literacy Essentials',src:'Passport to Earning',skills:['digital-basics','online-safety']},{title:'Get Job-Ready: Work Readiness',src:'Passport to Earning',skills:['cv','interview','comms','teamwork']}]},
-  new:{name:'Young person #4821',creds:[]}
+  new:{name:'Young person #4821',creds:[]},
+  halima:{name:'Halima',full:'Halima Yusuf',creds:[]}   // the connected journey's persona; filled from the shared mock data by loadJourney()
 };
 const STATES = {lagos:'Lagos',kano:'Kano',fct:'FCT Abuja',oyo:'Oyo',rivers:'Rivers',other:'another state',online:'online only'};
 const FAC = {kano:'Hauwa at the Kano partner centre',lagos:'Tolu at the Yaba partner centre',fct:'Chinedu at the Abuja partner centre',oyo:'Bisi at the Ibadan partner centre',rivers:'Ibim at the Port Harcourt partner centre'};
@@ -1391,6 +1393,7 @@ async function loadJourney(){
         minAge: 18, skills: [...(o.mustHave || []), ...(o.canLearn || [])], sectors: [yp.sector], openEnded: true, sample: true, scam: !!o.scam,
         link: o.link || 'https://yoma.world/opportunities', informal: {earnNow: false, phoneOnly: false, noCert: true}});
       JOURNEY.yoid = q.get('yoid') || yp.yoidId;
+      journeyPersona(d);
       JOURNEY.in = {from: 'Ziqi', who: yp.displayName, goal: yp.goal, goalText: yp.goalText, sector: yp.sector, planId: lp.id,
         listing: {...opp(job), verified: true}, course: course(byId(step('start').opportunityId)), learnCourse: course(byId(step('learn').opportunityId)),
         handoffCourseId: d.skillChallenge && d.skillChallenge.afterCourse,
@@ -1403,6 +1406,20 @@ async function loadJourney(){
   } catch {}
 }
 const goalText = g => lbl(O.goal.find(o => o.v === g) || O.goal[0]);
+// In the journey, "Test as" is Halima from the shared mock data, not Amina: her name, and the credentials she already
+// holds when the plan is made (issued before the Learning Plan, not self-declared; the course and SkillLens ones come later).
+function journeyPersona(d){
+  const yp = d.youngPerson, org = id => (d.partners.find(p => p.id === id) || {}).name || id;
+  const before = (d.learningPlan && d.learningPlan.createdOn) || '9999-12-31';
+  PERSONAS.halima = {name: yp.firstName, full: `${yp.firstName} ${yp.lastName}`,
+    creds: (d.credentials || []).filter(c => c.issuer !== 'self' && c.issuedOn && c.issuedOn < before)
+      .map(c => ({title: c.title, src: org(c.issuer), skills: c.skills || []}))};
+  persona = 'halima';
+  const state = yp.state ? yp.state[0].toUpperCase() + yp.state.slice(1) : '';
+  const work = (yp.informalSkills || [])[0] === 'phone-repair' ? 'phone repair' : '';
+  const sub = document.getElementById('halima-sub'); if (sub) sub.textContent = [yp.age, state, work].filter(Boolean).join(' · ');
+  document.querySelectorAll('#persona button').forEach(b => { if (b.dataset.v === 'halima') b.hidden = false; b.setAttribute('aria-pressed', b.dataset.v === 'halima'); });
+}
 function handoffHTML(m){
   if (JOURNEY.demo) return journeyCardHTML(m);
   if (m.dir === 'in') return `<div class="handoff"><span class="tag t-apply">${esc(t('handoffFrom', {name: m.from}))} · Phase 1</span>
@@ -1758,7 +1775,7 @@ function renderPanel(){
       <div class="chips" style="margin-top:8px">${S.yoma.names.map(n => `<span class="chip have">${esc(n)}</span>`).join('')}</div>` : `<h3>Yoma profile <em>${S.consent === null ? 'not asked yet' : S.consent ? 'read with consent (sample)' : 'not shared'}</em></h3>
     ${S.consent ? (P.creds.length ? `<ul class="ex">${P.creds.map(c => `<li><span>${esc(c.title)}</span><span style="color:var(--ok)">${esc(c.src)}</span></li>`).join('')}</ul>
       <div class="chips" style="margin-top:10px">${[...held()].map(k => `<span class="chip have">${esc(SK[k])}</span>`).join('')}</div>` : '<p class="empty-note">No credentials on this profile yet.</p>')
-      : `<p class="empty-note">${S.consent === false ? 'The user chose not to share. Pathfinder plans from their answers only.' : `Sample profile for ${esc(P.name)}: ${P.creds.length} credential${P.creds.length === 1 ? '' : 's'}. Pathfinder asks before reading it.`}</p>`}
+      : `<p class="empty-note">${S.consent === false ? 'The user chose not to share. Pathfinder plans from their answers only.' : `Sample profile for ${esc(P.full || P.name)}: ${P.creds.length} credential${P.creds.length === 1 ? '' : 's'}. Pathfinder asks before reading it.`}</p>`}
     <p class="empty-note" style="margin-top:10px"><b>Skills Backpack (YoID)</b>: ${S.backpack === true ? 'activated' : S.backpack === false ? (S.age !== null && S.age < 16 ? 'not offered (YoID starts at 16)' : 'declined, nothing written') : `not asked yet${S.yoidQueue && S.yoidQueue.length ? ` · ${S.yoidQueue.length} record waiting for consent` : ''}`}</p>
     ${S.yoid && S.yoid.length ? `<p class="empty-note" style="margin-top:10px"><b>YoID records</b> (mocked writes for the prototype):</p>
       <ul class="ex">${S.yoid.map(r => `<li><span>${esc(r.type)}${r.title ? ': ' + esc(r.title) : r.n ? ' (' + esc(r.n) + ')' : ''}</span><span style="color:var(--ok)">${esc(r.at.slice(0, 10))}</span></li>`).join('')}</ul>` : ''}

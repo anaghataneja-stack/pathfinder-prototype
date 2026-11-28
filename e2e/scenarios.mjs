@@ -436,8 +436,15 @@ await scenario('Journey (team shared mock data): Ziqi hands over the Saved Oppor
   const states = async () => (await bar.locator('li').allInnerTexts()).map(x => x.replace('✓', '').replace(/\s+/g, ' ').trim());
   assert((await states()).join('|') === 'Saved Opportunity recorded|Learning Plan in progress|Skill Credential next|Job Application next', 'thread before the plan: ' + await states());
   assert(await bar.locator('a.jback').getAttribute('href') === LISTING && await bar.locator('a.jback').innerText() === 'Back to the listing', 'Back to the listing link should use return');
+  // "Test as" is the journey's persona, Halima from the shared mock data, not Amina
+  const pressed = page.locator('#persona button[aria-pressed="true"]');
+  assert(await pressed.count() === 1 && /^Halima\s*20 · Kaduna · phone repair$/.test((await pressed.innerText()).trim()), 'Test as should be Halima: ' + await pressed.allInnerTexts());
+  assert(/Sample profile for Halima Yusuf: 3 credentials/.test(await page.locator('#p-profile').innerText()), 'profile should be Halima\'s: ' + await page.locator('#p-profile').innerText());
+  assert(!/Amina/.test(await page.locator('#p-profile').innerText()), 'no Amina in the journey');
   await tap(page, 'English'); await tap(page, '20'); await tap(page, 'Yes, use my profile'); await tap(page, 'Skip');
   await waitChat(page, /Which state do you live in/);   // the goal came from Phase 1, so it isn't asked again
+  const prof = await page.locator('#p-profile').innerText();
+  assert(/Digital Literacy Essentials/.test(prof) && /Customer Service Basics/.test(prof) && !/Solar PV/.test(prof), 'Halima\'s credentials read with consent: ' + prof);
   await tap(page, 'Another state'); await tap(page, '6–10 hours'); await tap(page, 'Very little'); await tap(page, 'Quick');
   await page.waitForSelector('.opts button:has-text("Save my plan")', { timeout: 20000 });
   const plan = await page.locator('.plan').last().innerText();
@@ -471,6 +478,7 @@ await scenario('Journey: a return URL that is not http(s) is ignored; without jo
   await page.goto(journeyApp + '/');
   await page.waitForSelector('.opts button', { timeout: 10000 });
   assert(await page.locator('#journey-bar').isHidden(), 'the YoID thread is only for the journey');
+  assert(await page.locator('#persona button[data-v="halima"]').isHidden() && /^Amina/.test(await page.locator('#persona button[aria-pressed="true"]').innerText()), 'outside the journey, Halima is hidden and Amina is the default');
   assert(!page.errors.length, page.errors.join('; '));
   await ctx.close();
 });
