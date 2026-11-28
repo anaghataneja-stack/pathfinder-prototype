@@ -138,3 +138,12 @@ Added:
 Waiting on others:
 - Camila: the FunDoo/RapidPro sandbox (the flow file has not been imported anywhere yet).
 - The other three teams: link formats, and SkillLens's address.
+
+## Update, 28 November 2026 (connected journey, sent as a patch)
+
+Branch `connected-journey`, made by a teammate on the Ziqi side and sent as `git format-patch` files for the owner to apply.
+
+- **Journey contract v1** (agreed by all four teams), only when the page is opened with `journey=demo`: the arriving and leaving cards use the contract's exact wording, a YoID thread strip sits at the top, "Back to the listing" uses the `return` parameter, and "Continue to SkillLens" passes on every parameter received plus `plan` and `course`, in the same tab. See docs/COHESION.md section 6.
+- **Across platforms:** each plan step shows its platform (P2E, Yoma, imaGen), and the plan ends with the weekly WhatsApp / SMS check-in.
+- **Settings:** `.env.example` now sets `NEXT_PROTOTYPE_URL=http://localhost:3001/demo/p2e` for the local journey demo; `SKILLLENS_URL` works too. Leave both empty for the pilot.
+- **Tests:** 106 unit (new `test/journey.test.mjs`), 24 browser scenarios.

@@ -86,7 +86,7 @@ Other settings:
 - `AI_ENRICH_LISTINGS`: AI tagging of listings during the sync.
 - `PILOT_ACCESS_CODE`: locks a hosted pilot behind a code. Open `/?code=…` once on each phone. Wrong codes are limited to 10 tries per 10 minutes.
 - `YOMA_AUTH_ISSUER`, `YOMA_AUTH_CLIENT_ID`, `YOMA_AUTH_CLIENT_SECRET`, `PUBLIC_URL`: turn on **"Continue with Yoma"**. These need a Keycloak client registered by Yoma for Pathfinder, with redirect URI `<PUBLIC_URL>/auth/yoma/callback`.
-- `NEXT_PROTOTYPE_NAME`, `NEXT_PROTOTYPE_URL`: the next prototype in the joined-up GenU demo, shown as a button once the plan is saved.
+- `NEXT_PROTOTYPE_NAME`, `NEXT_PROTOTYPE_URL`: the next prototype in the joined-up GenU demo, shown as a button once the plan is saved. For the connected journey, `http://localhost:3001/demo/p2e` (SkillLens's mock P2E course page). If it is empty, `SKILLLENS_URL` + `/demo/p2e` is used.
 - `DEMO_BROWSER_VOICE`: **demo only.** `true` lets voice notes use Chrome's built-in speech recognition when Azure voice isn't set up. The audio goes to Google, so it must stay `false` for the pilot. The app labels it "Demo only" whenever it's used.
 - `STAFF_CODE`: turns on the facilitator case inbox at `/staff`. Open `/staff?code=…` once. Use a long random code.
 - `PORT`: the port the server listens on.
@@ -161,10 +161,10 @@ The **Behind the scenes** panel shows:
 ## Tests
 
 ```bash
-npm test                    # 98 unit and API tests, no installs, about 2 seconds
+npm test                    # 106 unit and API tests, no installs, about 5 seconds
 ```
 
-Browser scenarios (23 of them) run the real server against a mock Yoma API and a mock Azure, in Chromium:
+Browser scenarios (24 of them) run the real server against a mock Yoma API and a mock Azure, in Chromium:
 
 ```bash
 npm i --no-save playwright && npx playwright install chromium

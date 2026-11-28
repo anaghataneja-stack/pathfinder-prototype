@@ -1,11 +1,11 @@
 # Testing
 
-Last run: 13 November 2026, Node 22, Chromium (Playwright).
+Last run: 28 November 2026, Node 22, Chromium (Playwright).
 
 | Suite | Command | Result |
 |---|---|---|
-| Unit and API tests | `npm test` | **98 / 98 pass** (about 2 s) |
-| Browser scenarios | `npm run e2e` | **23 / 23 pass** |
+| Unit and API tests | `npm test` | **106 / 106 pass** (about 5 s) |
+| Browser scenarios | `npm run e2e` | **24 / 24 pass** |
 | Live check, real Yoma API | `node sync.mjs` + the app | **Done 14 Nov 2026**: 5,171 real listings. Results and fixes [below](#live-check-real-yoma-14-november-2026) |
 | Live check, real Azure OpenAI | see [Live check](#live-check-run-this-before-the-demo) | **Not run yet.** Needs the team's Azure keys |
 
@@ -21,6 +21,7 @@ The automated tests use **mock** Yoma and Azure servers (`test/helpers/`) that c
 | Yoma sync (`sync.test.mjs`) | Paging through 230 results. Filtering to Nigeria and Worldwide. Mapping and informal signals. Change counts ("1 new, 1 closed"). Yoma down: saved copy kept. Yoma returns 0 listings: the catalogue isn't wiped. Corrupt cache plus Yoma down: bundled sample. AI enrichment failure keeps the rule tags. Next run time. Hourly retry after a failure |
 | AI layer (`ai.test.mjs`) | Azure URL and `api-key` header. Unknown skills dropped. Phone numbers never reach the AI. Fenced or prose-wrapped JSON parsed. Bad JSON falls back to rules. Timeout falls back within the time limit. One retry after a 500. No AI configured: no network calls. Plain-word answers: local match first, AI second, invalid AI value rejected. Reasons with promises ("guarantee") or invented numbers rejected. Listing tagging in batches survives a failed batch. Transcripts cleaned. Empty audio flagged |
 | Server (`server.test.mjs`) | Listings with source, gzip and ETag/304. Status. Personal details stripped on the route. 400 for bad input. 413 for oversized JSON and audio over 2 MB. 429 after 30 AI calls in 10 minutes. 404. Static files. Access code (401 without it, cookie after `?code=`) |
+| Connected journey (`journey.test.mjs`) | The SkillLens link is exactly the journey contract's link 2. Every parameter received is passed on, `from` becomes `pathfinder`, `return` goes last and unchanged; the pilot access code is never passed on. Only `http(s)` return URLs are followed. YoID thread states for Phase 2. The contract's wording is in the app, and the journey link opens in the same tab |
 | App text (`html.test.mjs`) | The app's skill list matches the server's. Every English message has a Hausa and Yoruba version. Placeholders such as `{date}` are kept in every translation |
 
 ## Browser scenarios (`e2e/scenarios.mjs`)
@@ -46,7 +47,8 @@ The automated tests use **mock** Yoma and Azure servers (`test/helpers/`) that c
 | 19 | Finishing a plan | Check-ins through to the end, then "Make my next plan" builds a different plan and the panel shows plan 2 | Pass |
 | 20 | Continue with Yoma | Sign-in through a fake Yoma Keycloak (PKCE). Real Yoma skills are read. "Save my plan" saves the opportunities to the Yoma account | Pass |
 | 21 | Skills Backpack (YoID) and next prototype | Nothing is written before the Skills Backpack question. "Tell me more" then "Yes, activate it" adds the confirmed skills and the plan. "Not now" (scenarios 9 and 19) writes nothing. The "Next: continue in YoCV" button has the right link and readable colours | Pass |
-| 22 | Journey from Ziqi to SkillLens (team's shared mock data) | `?journey=demo`: "Saved Opportunity" card for Halima's solar job, goal not asked again. The plan matches the shared Learning Plan (height safety → solar PV → the saved job). The pay-to-apply job is removed. The SkillLens link carries `plan-001`, `opp-course-001` and `opp-job-001` | Pass |
+| 22 | Journey from Ziqi to SkillLens (journey contract v1, team's shared mock data) | Ziqi's link (`journey=demo`, `yoid`, `return`): the "From Ziqi · Phase 1" card and the YoID thread are worded as in the contract, goal not asked again, "Back to the listing" uses `return`. The plan matches the shared Learning Plan (height safety → solar PV → the saved job), each step names its platform (P2E, Yoma) and the WhatsApp / SMS check-in is shown. The pay-to-apply job is removed. After saving, "Continue to SkillLens" is exactly the contract's link 2, in the same tab, and the thread shows the Learning Plan recorded | Pass |
+| 24 | Journey: bad `return`, and no journey | A `javascript:` return is ignored and "Back to the listing" is hidden; without `journey=demo` the YoID thread is not shown | Pass |
 | 23 | 15-year-old | Guardian agrees and the plan is saved, but the Skills Backpack isn't offered (YoID starts at 16, as in FunDoo) | Pass |
 | 17 | Demo voice without Azure | With `DEMO_BROWSER_VOICE=true`, voice uses Chrome speech recognition (a stand-in in the test), is labelled "Demo only", and the words become skills | Pass |
 | 16 | Pilot: urgent message | A case reaches the staff inbox with a code shown to the young person. No message text is stored. A listing report and the pilot counts are recorded | Pass |
