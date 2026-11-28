@@ -194,6 +194,26 @@ ul.rules b{font-weight:700}
 .stats b{color:var(--ink)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;max-width:min(92vw,460px);z-index:20;box-shadow:0 10px 30px -10px rgba(0,0,0,.4)}
 footer{color:var(--muted);font-size:13px;max-width:80ch}
+/* Connected journey (journey contract v1): only with ?journey=demo. Yoma colours and type from the shared tokens. */
+.jbar{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--yoma-surface);border:1px solid var(--line);border-radius:var(--yoma-radius)}
+.jbar[hidden]{display:none}
+.jthread{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}
+.jlabel{font-family:var(--yoma-font-display);font-weight:700;font-size:14px;color:var(--accent)}
+.jthread ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.jthread li{display:flex;gap:6px;align-items:baseline;padding:3px 10px;border-radius:var(--yoma-radius-pill);border:1px solid var(--line);font-size:13px;color:var(--muted);background:var(--surface-2)}
+.jthread li small{font-size:11.5px}
+.jthread li.recorded{border-color:transparent;background:var(--ok-soft);color:var(--ok);font-weight:600}
+.jthread li.progress{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.jback{color:var(--accent);font-weight:600;font-size:14px;text-underline-offset:3px}
+.handoff.jc{border:1px solid var(--line);border-radius:var(--yoma-radius);background:var(--yoma-surface);box-shadow:var(--shadow);gap:2px;font-family:var(--yoma-font-body)}
+.handoff.jc b{font-size:16px}
+.jc-eyebrow{font-size:12px;font-weight:600;color:var(--muted)}
+.jc-item{font-size:14px}
+.jc-rec{color:var(--ok);font-weight:600;font-size:13px}
+a.next-proto.jc-btn{background:var(--yoma-blue);color:var(--yoma-purple);justify-self:start;margin:6px 0 2px}
+.pstep-head{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.plat{font-size:11px;font-weight:600;padding:1px 7px;border-radius:var(--yoma-radius-pill);border:1px solid var(--line);color:var(--muted)}
+.t-check{background:var(--accent-soft);color:var(--accent)}
 @media (prefers-reduced-motion:reduce){.composer button.mic.rec{animation:none}.typing i{animation:none}.chat{scroll-behavior:auto}}
 </style>
 
@@ -214,6 +234,8 @@ footer{color:var(--muted);font-size:13px;max-width:80ch}
       <li data-s="checkin"><b>3</b>Weekly check-ins</li>
     </ol>
   </header>
+
+  <nav class="jbar" id="journey-bar" aria-label="Your YoID journey" hidden></nav>
 
   <div class="controls">
     <div class="ctl"><span>Test as</span>
@@ -292,6 +314,7 @@ footer{color:var(--muted);font-size:13px;max-width:80ch}
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="engine/plan-engine.js"></script>
+<script src="engine/journey.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1341,7 +1364,13 @@ async function aiRankCourses(){
    Phase 1 (Ziqi) hands PathFinder "A verified opportunity and the user's goal".
    PathFinder (Phase 2) hands SkillLens (Phase 3) "Plan step: complete a P2E course".
    Open with ?journey=demo to use the shared mock data, or ?from=ziqi&listing=<Yoma id>&goal=job for a real listing. */
-const JOURNEY = {in: null};
+const JOURNEY = {in: null, demo: false, params: new URLSearchParams(), yoid: '', ret: ''};
+// The connected journey's wording (journey contract v1). Exact, and the same in all four apps, so not translated here.
+const JC = {from: 'From {app} · Phase {n}', to: 'Handing on to {app} · Phase {n}', cont: 'Continue to {app}', rec: '✓ Recorded on your YoID (mock-up)',
+  back: 'Back to the listing', thread: 'YoID · {yoid} · mock-up', states: {recorded: 'recorded', 'in progress': 'in progress', next: 'next'},
+  checkTag: 'Check-in', checkTitle: 'Weekly check-in on WhatsApp or SMS',
+  checkWhy: 'Every week PathFinder asks how each step is going, on WhatsApp or by SMS on a basic phone. After two missed check-ins, a facilitator steps in.'};
+const jfill = (s, v) => s.replace(/\{(\w+)\}/g, (m, k) => v[k] ?? m);
 // Handoff items: the short name is the one in the team's shared mock data (mockups/SHARED-MOCK-DATA.md);
 // the line under it is the journey diagram's wording. Both are shown so the screen matches either slide.
 const ITEM_IN = {name: 'Saved Opportunity', desc: "A verified opportunity and the user's goal"},
@@ -1350,6 +1379,8 @@ async function loadJourney(){
   const q = new URLSearchParams(location.search);
   try {
     if (q.get('journey') === 'demo') {
+      // Connected journey: keep every parameter received, to pass on to SkillLens (journey contract v1)
+      JOURNEY.demo = true; JOURNEY.params = q; JOURNEY.ret = journeyReturn(q.get('return'));
       // The team's shared mock data (mockups/shared-mock-data.json): Halima, the solar trainee job, the P2E courses
       const d = await getJSON('/api/journey', 8000);
       const byId = id => d.opportunities.find(o => o.id === id), org = id => (d.partners.find(p => p.id === id) || {}).name || id;
@@ -1359,6 +1390,7 @@ async function loadJourney(){
       const opp = o => ({id: o.id, title: o.title, org: org(o.org), src: 'Yoma', kind: 'opp', type: o.type, states: [o.state || 'all'], remote: !!o.remote,
         minAge: 18, skills: [...(o.mustHave || []), ...(o.canLearn || [])], sectors: [yp.sector], openEnded: true, sample: true, scam: !!o.scam,
         link: o.link || 'https://yoma.world/opportunities', informal: {earnNow: false, phoneOnly: false, noCert: true}});
+      JOURNEY.yoid = q.get('yoid') || yp.yoidId;
       JOURNEY.in = {from: 'Ziqi', who: yp.displayName, goal: yp.goal, goalText: yp.goalText, sector: yp.sector, planId: lp.id,
         listing: {...opp(job), verified: true}, course: course(byId(step('start').opportunityId)), learnCourse: course(byId(step('learn').opportunityId)),
         handoffCourseId: d.skillChallenge && d.skillChallenge.afterCourse,
@@ -1372,11 +1404,33 @@ async function loadJourney(){
 }
 const goalText = g => lbl(O.goal.find(o => o.v === g) || O.goal[0]);
 function handoffHTML(m){
+  if (JOURNEY.demo) return journeyCardHTML(m);
   if (m.dir === 'in') return `<div class="handoff"><span class="tag t-apply">${esc(t('handoffFrom', {name: m.from}))} · Phase 1</span>
     <b>${esc(ITEM_IN.name)}</b><div class="handoff-desc">${esc(ITEM_IN.desc)}</div><div>${esc(m.title)} · ${esc(m.org)} <span class="sig"><span>${esc(t('sigVerified'))}</span></span></div><div>${esc(t('goalIs'))} ${esc(m.goal)}</div></div>`;
   return `<div class="handoff"><span class="tag t-learn">${esc(t('handoffTo', {name: NEXT.proto ? NEXT.proto.name : 'SkillLens'}))} · Phase 3</span>
     <b>${esc(ITEM_OUT.name)}</b><div class="handoff-desc">${esc(ITEM_OUT.desc)}</div><div>${esc(m.title)} · ${esc(m.provider)}</div>${nextProtoLink()}</div>`;
 }
+// The contract's handoff card: arriving from Ziqi (Phase 1), leaving for SkillLens (Phase 3).
+function journeyCardHTML(m){
+  const rec = `<div class="jc-rec">${esc(JC.rec)}</div>`;
+  if (m.dir === 'in') return `<div class="handoff jc"><span class="jc-eyebrow">${esc(jfill(JC.from, {app: m.from, n: JOURNEY_PHASE - 1}))}</span>
+    <b>${esc(ITEM_IN.name)}</b><div class="jc-item">${esc(m.title)}</div>${rec}</div>`;
+  return `<div class="handoff jc"><span class="jc-eyebrow">${esc(jfill(JC.to, {app: NEXT.proto ? NEXT.proto.name : 'SkillLens', n: JOURNEY_PHASE + 1}))}</span>
+    <b>${esc(ITEM_OUT.name)}</b><div class="jc-item">${esc(ITEM_OUT.desc)} (${esc(m.title)})</div>${nextProtoLink()}${planRecorded() ? rec : ''}</div>`;
+}
+// The Learning Plan counts as recorded on YoID once it is saved and the Skills Backpack is on (nothing is written before a yes).
+const planRecorded = () => !!(S.saved && S.backpack === true);
+function renderJourneyBar(){
+  const el = $('#journey-bar'); if (!el) return;
+  el.hidden = !JOURNEY.demo; if (!JOURNEY.demo) return;
+  const steps = journeyThread(JOURNEY_PHASE, planRecorded());
+  el.innerHTML = `<div class="jthread"><span class="jlabel">${esc(jfill(JC.thread, {yoid: JOURNEY.yoid}))}</span><ol>${steps.map(st =>
+    `<li class="${st.state === 'in progress' ? 'progress' : st.state}">${st.state === 'recorded' ? '<span aria-hidden="true">✓</span>' : ''}${esc(st.name)} <small>${esc(JC.states[st.state])}</small></li>`).join('')}</ol></div>
+    ${JOURNEY.ret ? `<a class="jback" href="${esc(JOURNEY.ret)}">${esc(JC.back)}</a>` : ''}`;
+}
+// Which platform a plan step happens on, shown on each step in the journey.
+const platformOf = s => { const p = s.openings ? (s.openings[0] || {}).platform || 'Yoma' : s.platform || '';
+  return /passport to earning|p2e/i.test(p) ? 'P2E' : /imagen/i.test(p) ? 'imaGen' : 'Yoma'; };
 function handoffCourse(){
   const steps = S.plan.steps.filter(s => s.kind !== 'apply' && !s.item.pseudo);
   const named = S.journey && S.journey.handoffCourseId && steps.find(s => s.item.id === S.journey.handoffCourseId);   // SkillLens tests this course
@@ -1418,6 +1472,12 @@ const yoidLabel = r => t({skills: 'yoidSkills', plan: 'yoidPlan', course: 'yoidC
 const NEXT = {proto: null};
 function nextProtoLink(){
   if (!NEXT.proto) return '';
+  if (JOURNEY.demo) {   // journey contract v1, link 2: every parameter received plus PathFinder's own, in the same tab
+    const c = S.plan ? handoffCourse() : null, q = JOURNEY.params, j = S.journey || {};
+    const href = journeyLink(new URL(NEXT.proto.url, location.href).toString(), q, {journey: 'demo', from: 'pathfinder', yoid: JOURNEY.yoid,
+      listing: q.get('listing') || (j.listing && j.listing.id), goal: q.get('goal') || S.a.goal, plan: j.planId, course: c && c.id});
+    return `<a class="next-proto jc-btn" href="${esc(href)}">${esc(jfill(JC.cont, {app: NEXT.proto.name}))}</a>`;
+  }
   const u = new URL(NEXT.proto.url, location.href), c = S.plan ? handoffCourse() : null;
   const pin = S.journey && S.journey.listing ? S.journey.listing.id : S.plan ? (S.plan.steps.find(s => s.items) || {items: [{}]}).items[0].id : '';
   const add = {from: 'pathfinder', plan: S.journey && S.journey.planId, course: c && c.id, course_title: c && c.title, listing: pin, goal: S.a.goal};
@@ -1607,14 +1667,16 @@ function openingHTML(o){
 const openingSMS = (o, j) => `  ${'abcdefgh'[j]}) ${o.title}\n     ${o.src}\n     ${o.meta}${o.link ? '\n     ' + o.link.replace(/^https?:\/\//, '') : ''}`;
 function planCard(steps){
   if (channel === 'sms') {
-    const lines = steps.map((s, i) => `${i+1}) ${tag(s.kind).toUpperCase()}${S.saved ? ' [' + statusLbl(s.status) + ']' : ''}\n${s.title}\n`
+    const lines = steps.map((s, i) => `${i+1}) ${tag(s.kind).toUpperCase()}${JOURNEY.demo ? ' · ' + platformOf(s) : ''}${S.saved ? ' [' + statusLbl(s.status) + ']' : ''}\n${s.title}\n`
       + (s.openings ? s.openings.map(openingSMS).join('\n') + `\n${t('why')}${s.why}\n! ` + t('neverPaySms', {n: i+1}) + (s.openings.some(o => o.inPerson) ? '\n! ' + t('safeInPerson') + (S.age < 18 ? ' ' + t('minorInPerson') : '') : '')
         : `${s.src}\n${s.meta}\n${t('why')}${s.why}\nLink: ${s.link ? s.link.replace(/^https?:\/\//, '') : 'gen.u/' + s.kind[0] + (i+1)}`));
+    if (JOURNEY.demo) lines.push(`${JC.checkTag.toUpperCase()} · WhatsApp / SMS\n${JC.checkTitle}\n${JC.checkWhy}`);
     return `<div class="msg bot">${esc(t('planTitle').toUpperCase() + '\n\n' + lines.join('\n\n') + '\n\n' + t('smsReport'))}</div>`;
   }
   return `<div class="plan"><h4>${esc(t('planTitle'))}</h4>${steps.map((s, i) => `
     <div class="pstep ${s.status === 'done' ? 'isdone' : ''}">
-      <span class="tag t-${s.kind}">${esc(t('step'))} ${i+1} · ${esc(tag(s.kind))}</span>
+      ${JOURNEY.demo ? `<div class="pstep-head"><span class="tag t-${s.kind}">${esc(t('step'))} ${i+1} · ${esc(tag(s.kind))}</span><span class="plat">${esc(platformOf(s))}</span></div>`
+        : `<span class="tag t-${s.kind}">${esc(t('step'))} ${i+1} · ${esc(tag(s.kind))}</span>`}
       <div class="ttl">${esc(s.title)}</div>
       ${s.openings ? '' : `<div class="src">${esc(s.src)}</div><div class="meta">${esc(s.meta)}</div>`}
       <div class="why">${esc(s.why)}</div>
@@ -1626,6 +1688,8 @@ function planCard(steps){
         : `<div class="row"><button class="open" data-open="${esc(s.title)}|${esc(s.platform)}" data-link="${esc(s.link)}">${esc(t('openOn', {p: s.platform}))}<span class="sr-only">: ${esc(s.title)}</span></button>
         <span>${S.saved ? `<span class="status ${s.status}">${esc(statusLbl(s.status))}</span> ` : ''}<button class="open report" data-report="${esc(s.id)}">${esc(t('report'))}<span class="sr-only"> ${esc(s.title)}</span></button></span></div>`}
     </div>`).join('')}
+    ${JOURNEY.demo ? `<div class="pstep jc-checkin"><div class="pstep-head"><span class="tag t-check">${esc(JC.checkTag)}</span><span class="plat">WhatsApp / SMS</span></div>
+      <div class="ttl">${esc(JC.checkTitle)}</div><div class="why">${esc(JC.checkWhy)}</div></div>` : ''}
     <div class="plan-foot"><a href="${esc(shareLink(steps))}" target="_blank" rel="noopener">${esc(t('share'))}</a><span>${esc(t('shareNote'))}</span></div>
     ${S.saved && NEXT.proto ? `<div class="plan-foot">${nextProtoLink()}</div>` : ''}</div>`;
 }
@@ -1673,6 +1737,7 @@ function renderChat(){
   $('#chan-label').textContent = sms ? 'SMS · basic phone' : 'WhatsApp · Nigeria';
 }
 function renderPanel(){
+  renderJourneyBar();
   const a = S.a, ans = (v, map) => v === undefined ? '<dd class="empty">—</dd>' : `<dd>${esc(map ? map(v) : v)}</dd>`;
   const optName = (k) => v => { const o = O[k].find(x => x.v === v); return o ? o.en : v; };
   $('#p-answers').innerHTML = `<h3>Answers stored <em>6 + age check</em></h3><dl class="kv">
